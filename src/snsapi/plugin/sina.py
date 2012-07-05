@@ -5,6 +5,9 @@ SINA micro-blog client
 '''
 
 from ..snsapi import SNSAPI
+from ..snstype import Status,User
+import urllib
+import json
 print "SINA weibo plugged!"
 
 class SinaAPI(SNSAPI):
@@ -25,8 +28,27 @@ class SinaAPI(SNSAPI):
         @param count: number of statuses
         '''
         url = "https://api.weibo.com/2/statuses/home_timeline.json"
-        count = count
+        params = {}
+        params['count'] = count
+        params['access_token'] = self.token.access_token
         
-        r = self._http_get(url, access_token=self.token.access_token, \
-                       count=count)
+        jsonobj = self._http_get(url, params)
         
+        statuslist = []
+        for j in jsonobj['statuses']:
+            statuslist.append(SinaStatus(j))
+        return statuslist
+
+        
+class SinaStatus(Status):
+    def parse(self, dct):
+        self.id = dct["id"]
+        self.created_at = dct["created_at"]
+        self.text = dct['text']
+        self.reposts_count = dct['reposts_count']
+        self.comments_count = dct['comments_count']
+        self.username = dct['user']['name']
+        self.usernick = ""
+        
+    def show(self):
+        print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)

@@ -209,9 +209,7 @@ class APIClient(object):
         '''
         if the auth info is a string, parse it and return as a JsonObject
         '''
-        if type(info) == dict:
-            return info
-        elif type(info) == str:
+        if type(info) == str:
             d = dict()
             parts = info.split("&")
             for part in parts:
@@ -226,6 +224,5 @@ class APIClient(object):
             
             r = _obj_hook(d)
             return r
-        
-        else:
-            raise "wrong auth info, may be failed"
+        return info
+

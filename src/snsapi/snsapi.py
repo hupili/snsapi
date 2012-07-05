@@ -10,14 +10,10 @@ except ImportError:
     import simplejson as json
 import time
 import urllib
-import urllib2
-import logging
 import oauth
 
 class SNSAPI(object):
     def __init__(self):
-        self._http_get = oauth._http_get
-        self._http_post = oauth._http_post
         self.app_key = None
         self.app_secret = None
         self.domain = None
@@ -41,6 +37,13 @@ class SNSAPI(object):
         code = raw_input()
         self.token = authClient.request_access_token(code)
         print "Authorized! access token is " + str(self.token)
+        
+    def _http_get(self, baseurl, params):
+        uri = urllib.urlencode(params)
+        url = baseurl + "?" + uri
+        resp = urllib.urlopen(url)
+        json_objs = json.loads(resp.read())
+        return json_objs
     
     def home_timeline(self, count=20):
         '''Get home timeline

@@ -5,7 +5,7 @@ SNS type: status, user, comment
 '''
 
 class Status(object):
-    def __init__(self, jobj=None):
+    def __init__(self, dct=None):
         self.created_at = ""
         self.id = 0
         self.text = ""
@@ -15,10 +15,10 @@ class Status(object):
         self.username = ""
         self.usernick = ""
         
-        if jobj:
-            self.parse(jobj)
+        if dct:
+            self.parse(dct)
             
-    def parse(self, jobj):
+    def parse(self, dct):
         pass
     
     
