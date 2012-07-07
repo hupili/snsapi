@@ -1,0 +1,12 @@
+[
+  {
+    "platform": "sina", 
+    "app_key": "", 
+    "app_secret": ""
+  }, 
+  {
+    "platform": "qq", 
+    "app_key": "", 
+    "app_secret": ""
+  }
+]

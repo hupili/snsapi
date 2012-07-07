@@ -1,5 +1,11 @@
 *.py[co]
 
+# app_key
+config.json
+
+# access_token
+*.token.save
+
 # Packages
 *.egg
 *.egg-info

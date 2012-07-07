@@ -6,21 +6,28 @@ SINA micro-blog client
 
 from ..snsapi import SNSAPI
 from ..snstype import Status,User
-import urllib
-import json
 print "SINA weibo plugged!"
 
 class SinaAPI(SNSAPI):
     def __init__(self):
         super(SinaAPI, self).__init__()
+        
+        self.platform = "sina"
+        self.domain = "api.sina.com"
+        #just you remind myself they exists
         self.app_key = ""
         self.app_secret = ""
-        self.domain = "api.sina.com"
+        #you must set self.plaform before invoking read_config()
+        self.read_config()
         
     def auth(self):
+        if self.get_saved_token():
+            print "Using a saved access_token!"
+            return
         auth_url = "https://api.weibo.com/oauth2/"
         callback_url = "http://copy.the.code.to.client/"
         self.oauth2(auth_url, callback_url)
+        self.save_token()
         
     def home_timeline(self, count=20):
         '''Get home timeline
