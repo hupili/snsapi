@@ -25,6 +25,14 @@ class QQAPI(SNSAPI):
         callback_url = "http://copy.the.code.to.client/"
         self.oauth2(auth_url, callback_url)
         self.save_token()
+        
+    def attachAuthinfo(self, params):
+        params['access_token'] = self.token.access_token
+        params['openid'] = self.token.openid
+        params['oauth_consumer_key'] = self.app_key
+        params['oauth_version'] = '2.a'
+        params['scope'] = 'all'
+        return params
 
     def home_timeline(self, count=20):
         '''Get home timeline
@@ -34,23 +42,37 @@ class QQAPI(SNSAPI):
         url = "https://open.t.qq.com/api/statuses/home_timeline"
         params = {}
         params['reqnum'] = count
-        params['access_token'] = self.token.access_token
-        params['openid'] = self.token.openid
-        params['oauth_consumer_key'] = self.app_key
-        params['oauth_version'] = '2.a'
-        params['scope'] = 'all'
+        self.attachAuthinfo(params)
         
         jsonobj = self._http_get(url, params)
         
         statuslist = []
-        for j in jsonobj['data']['info']:
-            statuslist.append(QQStatus(j))
+        try:
+            for j in jsonobj['data']['info']:
+                statuslist.append(QQStatus(j))
+        except TypeError:
+            return "Wrong response. " + str(jsonobj)
         return statuslist
     
+    def update(self, text):
+        '''update a status
+        @param text: the update message
+        @return: success or not
+        '''
+        url = "https://open.t.qq.com/api/t/add"
+        params = {}
+        params["content"] = text
+        self.attachAuthinfo(params)
+        
+        ret = self._http_post(url, params)
+        if(ret['msg'] == "ok"):
+            return True
+        return ret
+        
 class QQStatus(Status):
     def parse(self, dct):
-        self.id = dct["id"]
-        self.created_at = dct["timestamp"]
+        self.id = dct['id']
+        self.created_at = dct['timestamp']
         self.text = dct['text']
         self.reposts_count = dct['count']
         self.comments_count = dct['mcount']

@@ -130,6 +130,12 @@ class SNSAPI(object):
         json_objs = json.loads(resp.read())
         return json_objs
     
+    def _http_post(self, baseurl, params):
+        data = urllib.urlencode(params)
+        resp = urllib.urlopen(baseurl,data)
+        json_objs = json.loads(resp.read())
+        return json_objs
+    
     def home_timeline(self, count=20):
         '''Get home timeline
         get statuses of yours and your friends'

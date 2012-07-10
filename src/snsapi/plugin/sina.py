@@ -6,6 +6,7 @@ SINA micro-blog client
 
 from ..snsapi import SNSAPI
 from ..snstype import Status,User
+from ..errors import *
 print "SINA weibo plugged!"
 
 class SinaAPI(SNSAPI):
@@ -46,6 +47,22 @@ class SinaAPI(SNSAPI):
             statuslist.append(SinaStatus(j))
         return statuslist
 
+    def update(self, text):
+        '''update a status
+        @param text: the update message
+        @return: success or not
+        '''
+        url = "https://api.weibo.com/2/statuses/update.json"
+        params = {}
+        params['status'] = text
+        params['access_token'] = self.token.access_token
+        
+        ret = self._http_post(url, params)
+        try:
+            status = SinaStatus(ret)
+            return True
+        except SNSError:
+            return False
         
 class SinaStatus(Status):
     def parse(self, dct):
