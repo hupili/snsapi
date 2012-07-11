@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Over It.</title>
+	<atom:link href="http://jason.diamond.name/weblog/feed/" rel="self" type="application/rss+xml" />
+	<link>http://jason.diamond.name/weblog</link>
+	<description>(a Weblog by Jason Diamond)</description>
+	<lastBuildDate>Tue, 27 Mar 2012 19:08:46 +0000</lastBuildDate>
+	<language>en</language>
+	<sy:updatePeriod>hourly</sy:updatePeriod>
+	<sy:updateFrequency>1</sy:updateFrequency>
+	<generator>http://wordpress.org/?v=3.3.2</generator>
+		<item>
+		<title>Nustache (Mustache Templates for .NET)</title>
+		<link>http://jason.diamond.name/weblog/2012/02/14/nustache-mustache-templates-for-net/</link>
+		<comments>http://jason.diamond.name/weblog/2012/02/14/nustache-mustache-templates-for-net/#comments</comments>
+		<pubDate>Tue, 14 Feb 2012 16:41:24 +0000</pubDate>
+		<dc:creator>Jason Diamond</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+		<category><![CDATA[.NET]]></category>
+		<category><![CDATA[MVC]]></category>
+
+		<guid isPermaLink="false">http://jason.diamond.name/weblog/?p=179</guid>
+		<description><![CDATA[I&#8217;ve been working on a small project that brings Mustache templates to .NET. It&#8217;s called Nustache. The code is on GitHub and there are packages on NuGet (for the core engine and an MVC 3 view engine). I was excited about using the Mustache syntax, but that was before I started using Razor. It&#8217;s still [...]]]></description>
+			<content:encoded><![CDATA[<p>I&#8217;ve been working on a small project that brings <a href="http://mustache.github.com/">Mustache</a> templates to .NET. It&#8217;s called Nustache. The code is on <a href="https://github.com/jdiamond/Nustache">GitHub</a> and there are packages on NuGet (for the <a href="http://nuget.org/packages/Nustache">core engine</a> and an <a href="http://nuget.org/packages/Nustache.Mvc3">MVC 3 view engine</a>).</p>
+<p>I was excited about using the Mustache syntax, but that was before I started using Razor. It&#8217;s still been a fun project to work on and I wanted to point it out in case anybody else was interested.</p>
+]]></content:encoded>
+			<wfw:commentRss>http://jason.diamond.name/weblog/2012/02/14/nustache-mustache-templates-for-net/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+	</channel>
+</rss>

@@ -85,7 +85,12 @@ class SNSAPI(object):
             return False
         return True
     
-    def read_config(self, fname="snsapi/plugin/conf/config.json"):
+    #def read_config(self, fname="snsapi/plugin/conf/config.json"):
+    #The conf folder is moved to the upper layer(same level as 'test.py'). 
+    #It is better handled by application layer, 
+    #for the realization information is only available 
+    #to application developers and users.
+    def read_config(self, fname="conf/config.json"):
         '''get app_key and app_secret
         You must set self.platform before invoking this funciton.
         This function will change self.app_key and self.app_cecret

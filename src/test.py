@@ -24,6 +24,7 @@ def showStatus(ret):
             
         
 if __name__ == "__main__":
+
     '''
     QQ weibo may fail sometimes, even with same input. May be the invoking frequency limit.
     Sina weibo is better, and more stable.
@@ -45,4 +46,3 @@ if __name__ == "__main__":
         ret = cli.update(text)
         showStatus(ret)
     
-

@@ -93,3 +93,8 @@ Not all channels support the full set of functions.
 It is the application layer's resposibility to enumerate 
 supported methods(login/read/write) and then decide 
 whether and how to use this channel. 
+
+20120710
+====
+
+Test online editing this '.md' file....

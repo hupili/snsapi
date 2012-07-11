@@ -10,7 +10,7 @@ from ..errors import *
 print "SINA weibo plugged!"
 
 class SinaAPI(SNSAPI):
-    def __init__(self):
+    def __init__(self, channel = None):
         super(SinaAPI, self).__init__()
         
         self.platform = "sina"
@@ -19,7 +19,20 @@ class SinaAPI(SNSAPI):
         self.app_key = ""
         self.app_secret = ""
         #you must set self.plaform before invoking read_config()
+        if channel:
+            self.read_channel(channel)
+        else:
+            #for backward compatibility
+            self.read_config()
+
+    def read_channel(self, channel):
+        #TODO: fill this stub function
+
+        self.channel_name = channel['channel_name']
+
+        #We invoke the past config reading method for the moment
         self.read_config()
+        return 
         
     def auth(self):
         if self.get_saved_token():

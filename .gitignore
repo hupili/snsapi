@@ -1,5 +1,11 @@
 *.py[co]
 
+# temporary file
+*~
+
+# configurations
+*.json
+
 # app_key
 config.json
 
