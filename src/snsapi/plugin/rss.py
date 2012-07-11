@@ -67,15 +67,12 @@ class RSSAPI(SNSAPI):
         
 class RSSStatus(Status):
     def parse(self, dct):
+        self.username = dct['author']
+        self.created_at = dct['published']
         self.title = dct['title']
-        #self.id = dct["id"]
-        #self.created_at = dct["created_at"]
-        #self.text = dct['text']
-        #self.reposts_count = dct['reposts_count']
-        #self.comments_count = dct['comments_count']
-        #self.username = dct['user']['name']
-        #self.usernick = ""
+        self.link = dct['link']
         
     def show(self):
+        print "[%s] at %s \n  New article \"%s\" published! (%s)" % (self.username, self.created_at, self.title, self.link)
         #print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
-        print "%s" % self.title
+        #print "%s" % self.title
