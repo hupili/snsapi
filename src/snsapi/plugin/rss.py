@@ -16,25 +16,36 @@ Supported Methods
 from ..snsapi import SNSAPI
 from ..snstype import Status,User
 from ..third import feedparser
-#import ..thrid::feedparser
 
 print "RSS Plugged!"
 
 class RSSAPI(SNSAPI):
-    def __init__(self):
+    def __init__(self, channel = None):
         super(RSSAPI, self).__init__()
         
-        self.platform = "sina"
-        self.domain = "api.sina.com"
-        #just you remind myself they exists
-        self.app_key = ""
-        self.app_secret = ""
-        #you must set self.plaform before invoking read_config()
-        self.read_config()
+        self.platform = "rss"
+        self.domain = "null"
+
+        ##just you remind myself they exists
+        #self.app_key = ""
+        #self.app_secret = ""
+        ##you must set self.plaform before invoking read_config()
+        #self.read_config()
+        
+        if channel: 
+            self.read_channel(channel)
+        else:
+            #for backward compatibility
+            self.read_config()
+    
+    def read_channel(self, channel):
+        self.channel_name = channel['channel_name']
+        self.url = channel['url']
         
     def auth(self):
         #Nothing to do.
         print "RSS platform do not need auth!"
+        return 
         
     def home_timeline(self, count=20):
         '''Get home timeline
@@ -42,8 +53,11 @@ class RSSAPI(SNSAPI):
         @param count: number of statuses
         '''
 
-        url = 'http://jason.diamond.name/weblog/feed/'
-        d = feedparser.parse(url)
+        #url = 'file:///home/hpl/Desktop/research/snsapi/test/sample-rss/feed1.xml'
+        #url = 'file:///home/hpl/Desktop/research/snsapi/test/sample-rss/feed2.xml'
+        #url = 'file://../test/feed.xml'
+        #url = 'http://jason.diamond.name/weblog/feed/'
+        d = feedparser.parse(self.url)
         
         statuslist = []
         for j in d['items']:

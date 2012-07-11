@@ -1,0 +1,22 @@
+[
+  {
+    "channel_name": "sina_account_1", 
+    "open": "no", 
+    "platform": "sina", 
+    "app_key": "", 
+    "app_secret": "",
+    "user_id": ""
+  },
+  {
+    "channel_name": "test_feed_1", 
+    "open": "yes",
+    "platform": "rss", 
+    "url": "" 
+  },
+  {
+    "channel_name": "test_feed_2", 
+    "open": "yes",
+    "platform": "rss", 
+    "url": "" 
+  }
+]

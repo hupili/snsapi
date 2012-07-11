@@ -25,3 +25,7 @@ class MissAPPInfo(ConfigError):
     def __str__(self):
         return "Please config the file snsapi/plugin/conf/config.json. \
         You may forget to add your app_key and app_secret into it"
+
+class NoSuchPlatform(ConfigError):
+    def __str__(self):
+        return "No Such Platform. Please check your 'channel.json'."
