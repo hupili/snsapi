@@ -31,11 +31,11 @@ if __name__ == "__main__":
                     #any way to simplify it? 
                     #e.g. use the string name to the the corresponding class directly
                     if site['platform'] == "sina" :
-                        clis.append(snsapi.rss.SinaAPI(site))
+                        clis.append(snsapi.sina.SinaAPI(site))
                     elif site['platform'] == "rss":
                         clis.append(snsapi.rss.RSSAPI(site))
                     elif site['platform'] == "qq":
-                        clis.append(snsapi.rss.QQAPI(site))
+                        clis.append(snsapi.qq.QQAPI(site))
                     else:
                         raise errors.NoSuchPlatform
     except IOError:
