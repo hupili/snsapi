@@ -1,4 +1,4 @@
-#Sat Jul 07 16:42:03 CST 2012
+#Wed Jul 11 22:11:30 CST 2012
 eclipse.preferences.version=1
 encoding//src/snsapi/__init__.py=utf-8
 encoding//src/snsapi/errors.py=utf-8
@@ -10,5 +10,6 @@ encoding//src/snsapi/plugin/sina.py=utf-8
 encoding//src/snsapi/snsapi.py=utf-8
 encoding//src/snsapi/snstype.py=utf-8
 encoding//src/snsapi/utils.py=utf-8
+encoding//src/test-channel.py=utf-8
 encoding//src/test.py=utf-8
 encoding/<project>=UTF-8

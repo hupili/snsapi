@@ -17,13 +17,10 @@ class Status(object):
         self.username = ""
         self.usernick = ""
         
-        if type(dct) == dict:
-            try:
-                self.parse(dct)
-            except AttributeError:
-                raise errors.snsTypeParseError
-        else:
-            raise errors.snsTypeWrongInput(dct)
+        try:
+            self.parse(dct)
+        except AttributeError:
+            raise errors.snsTypeParseError
             
     def parse(self, dct):
         pass
