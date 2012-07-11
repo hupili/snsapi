@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Over It.</title>
+	<atom:link href="http://jason.diamond.name/weblog/feed/" rel="self" type="application/rss+xml" />
+	<link>http://jason.diamond.name/weblog</link>
+	<description>(a Weblog by Jason Diamond)</description>
+	<lastBuildDate>Tue, 27 Mar 2012 19:08:46 +0000</lastBuildDate>
+	<language>en</language>
+	<sy:updatePeriod>hourly</sy:updatePeriod>
+	<sy:updateFrequency>1</sy:updateFrequency>
+	<generator>http://wordpress.org/?v=3.3.2</generator>
+		<item>
+		<title>Offline Webinar Demo Code</title>
+		<link>http://jason.diamond.name/weblog/2012/03/27/offline-webinar-demo-code/</link>
+		<comments>http://jason.diamond.name/weblog/2012/03/27/offline-webinar-demo-code/#comments</comments>
+		<pubDate>Tue, 27 Mar 2012 19:08:46 +0000</pubDate>
+		<dc:creator>Jason Diamond</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
+		<category><![CDATA[HTML5]]></category>
+		<category><![CDATA[JavaScript]]></category>
+		<category><![CDATA[Offline]]></category>
+
+		<guid isPermaLink="false">http://jason.diamond.name/weblog/?p=183</guid>
+		<description><![CDATA[Thanks for watching! Here&#8217;s the code.]]></description>
+			<content:encoded><![CDATA[<p>Thanks for watching!</p>
+<p>Here&#8217;s the <a href="http://dl.dropbox.com/u/4389817/OfflineWebinarCode.zip">code</a>.</p>
+]]></content:encoded>
+			<wfw:commentRss>http://jason.diamond.name/weblog/2012/03/27/offline-webinar-demo-code/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		</item>
+	</channel>
+</rss>
