@@ -11,10 +11,11 @@ except ImportError:
 import time
 import urllib
 import oauth
-from utils import *
+from utils import JsonObject
 import errors
 import base64
 import urlparse
+import datetime
 
 class SNSAPI(object):
     def __init__(self):
@@ -75,6 +76,10 @@ class SNSAPI(object):
             fname = self.platform+".token.save"
             with open(fname, "r") as fp:
                 token = JsonObject(json.load(fp))
+                #check expire time
+                if self.isExpired(token):
+                    print "Saved Access token is expired, try to get one through sns.auth() :D"
+                    return False
                 #decryption
                 token.access_token = base64.decodestring(token.access_token)
                 self.token = token
@@ -84,6 +89,18 @@ class SNSAPI(object):
             print "No access token saved, try to get one through sns.auth() :D"
             return False
         return True
+    
+    def isExpired(self, token=None):
+        '''
+        check if the access token is expired
+        '''
+        if token == None:
+            token = self.token
+            
+        if token.expires_in < time.time():
+            return True
+        else:
+            return False
     
     #def read_config(self, fname="snsapi/plugin/conf/config.json"):
     #The conf folder is moved to the upper layer(same level as 'test.py'). 

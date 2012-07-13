@@ -5,8 +5,8 @@ SINA micro-blog client
 '''
 
 from ..snsapi import SNSAPI
-from ..snstype import Status,User
-from ..errors import *
+from ..snstype import Status,User,Error
+from .. import errors
 print "SINA weibo plugged!"
 
 class SinaAPI(SNSAPI):
@@ -53,10 +53,13 @@ class SinaAPI(SNSAPI):
         params['count'] = count
         params['access_token'] = self.token.access_token
         
-        jsonobj = self._http_get(url, params)
+        jsondict = self._http_get(url, params)
+        
+        if("error" in  jsondict):
+            return [Error(jsondict),]
         
         statuslist = []
-        for j in jsonobj['statuses']:
+        for j in jsondict['statuses']:
             statuslist.append(SinaStatus(j))
         return statuslist
 
@@ -74,7 +77,7 @@ class SinaAPI(SNSAPI):
         try:
             status = SinaStatus(ret)
             return True
-        except SNSError:
+        except errors.SNSError:
             return False
         
 class SinaStatus(Status):

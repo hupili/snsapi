@@ -29,7 +29,7 @@ class MissAPPInfo(ConfigError):
 class NoSuchPlatform(ConfigError):
     def __str__(self):
         return "No Such Platform. Please check your 'channel.json'."
-		
+
 class snsTypeWrongInput(SNSError):
     def __str__(self, value=""):
         return "Wrong input for snsType initializing! It must be a dict\n"+str(value)

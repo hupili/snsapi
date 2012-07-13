@@ -29,6 +29,10 @@ class Status(object):
 class User(object):
     def __init__(self, jobj=None):
         self.id = 0
+        
+class Error(dict):
+    def show(self):
+        print self
 
 if __name__ == "__main__":
     s = Status("fe")
