@@ -37,14 +37,24 @@ class SNSAPI(object):
         '''
         authClient = oauth.APIClient(self.app_key, self.app_secret, callback_url, auth_url=auth_url)
         url = authClient.get_authorize_url()
-        webbrowser.open(url)
+        self.openBrower(url)
         
         print "Please input the whole url from Broswer's address bar: ";
         #Wait for input
-        url = raw_input()
+        url = self.console_input()
         self.token = self.parseCode(url)
         self.token.update(authClient.request_access_token(self.token.code))
         print "Authorized! access token is " + str(self.token)
+    
+    def console_input(self):
+        '''
+        To make oauth2 testable, and more reusable, we use console_input to wrap raw_input.
+        See http://stackoverflow.com/questions/2617057/supply-inputs-to-python-unittests.
+        '''
+        return raw_input()
+    
+    def openBrower(self, url):
+        return webbrowser.open(url)
     
     def parseCode(self, url):
         '''
@@ -136,7 +146,7 @@ class SNSAPI(object):
                         return True
                 raise errors.NoPlatformInfo
         except IOError:
-            raise errors.NoConfigFile
+            raise errors.NoConfigFile(fname)
             
     def setup_app(self, app_key, app_secret):
         '''
