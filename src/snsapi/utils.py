@@ -14,6 +14,9 @@ class JsonObject(dict):
     def __setattr__(self, attr, value):
         self[attr] = value
         
+#TODO: 
+#The name of this function is non-informative
+#Probably change it to another one later
 def _obj_hook(pairs):
     '''
     convert json object to python object.
