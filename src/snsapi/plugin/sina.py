@@ -81,8 +81,24 @@ class SinaAPI(SNSAPI):
         try:
             status = SinaStatus(ret)
             return True
-        except errors.SNSError:
+        #TODO:
+        #Sometimes update fails, but we do not 
+        #catch errors.SNSError. 
+        #This part needs further modification. 
+#Traceback (most recent call last):
+#File "forwarder.py", line 84, in <module>
+#% (s.username, s.created_at, s.text)) ):
+#File "snsapi/src/app/forwarder/snsapi/plugin/sina.py", line 82, in update
+#status = SinaStatus(ret)
+#File "snsapi/src/app/forwarder/snsapi/snstype.py", line 21, in __init__
+#self.parse(dct)
+#File "snsapi/src/app/forwarder/snsapi/plugin/sina.py", line 89, in parse
+#self.id = dct["id"]
+#KeyError: 'id'
+        except:
             return False
+        #except errors.SNSError:
+        #    return False
         
 class SinaStatus(Status):
     def parse(self, dct):
