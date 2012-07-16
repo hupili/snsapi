@@ -29,9 +29,13 @@ class SinaAPI(SNSAPI):
         #TODO: fill this stub function
 
         self.channel_name = channel['channel_name']
+        self.app_key = channel['app_key']
+        self.app_secret = channel['app_secret']
 
         #We invoke the past config reading method for the moment
-        self.read_config()
+        #20120716: after the unifying upgrade of config, 
+        #          this is no longer needed
+        #self.read_config()
         return 
         
     def auth(self):

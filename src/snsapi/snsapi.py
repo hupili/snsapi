@@ -107,36 +107,36 @@ class SNSAPI(object):
     #It is better handled by application layer, 
     #for the realization information is only available 
     #to application developers and users.
-    def read_config(self, fname="conf/config.json"):
-        '''get app_key and app_secret
-        You must set self.platform before invoking this funciton.
-        This function will change self.app_key and self.app_cecret
-        @todo: I'm not sure where config.json should be placed, and how to set it in program
-            without worrying about the execute directory .
-            and I'm not sure, is it the snsapi layer that should responsible for config file
-            or upper layer, so I just made a function setup_app()
-        @param fname: the file path and name of config file, which storing the all app info
-        @raise NoConfigFile: snsapi/plugin/conf/config.json NOT EXISTS!
-        @raise NoPlatformInfo: No platform info found in snsapi/plugin/conf/config.json.
-        @raise MissAPPInfo: Forget app_key and app_secret in snsapi/plugin/conf/config.json
-        '''
-        from os.path import abspath
-        fname = abspath(fname)
-        try:
-            with open(fname, "r") as fp:
-                allinfo = json.load(fp)
-                for site in allinfo:
-                    
-                    if site['platform'] == self.platform:
-                        try:
-                            self.app_key = site['app_key']
-                            self.app_secret = site['app_secret']
-                        except KeyError:
-                            raise errors.MissAPPInfo
-                        return True
-                raise errors.NoPlatformInfo
-        except IOError:
-            raise errors.NoConfigFile
+    #def read_config(self, fname="conf/config.json"):
+    #    '''get app_key and app_secret
+    #    You must set self.platform before invoking this funciton.
+    #    This function will change self.app_key and self.app_cecret
+    #    @todo: I'm not sure where config.json should be placed, and how to set it in program
+    #        without worrying about the execute directory .
+    #        and I'm not sure, is it the snsapi layer that should responsible for config file
+    #        or upper layer, so I just made a function setup_app()
+    #    @param fname: the file path and name of config file, which storing the all app info
+    #    @raise NoConfigFile: snsapi/plugin/conf/config.json NOT EXISTS!
+    #    @raise NoPlatformInfo: No platform info found in snsapi/plugin/conf/config.json.
+    #    @raise MissAPPInfo: Forget app_key and app_secret in snsapi/plugin/conf/config.json
+    #    '''
+    #    from os.path import abspath
+    #    fname = abspath(fname)
+    #    try:
+    #        with open(fname, "r") as fp:
+    #            allinfo = json.load(fp)
+    #            for site in allinfo:
+    #                
+    #                if site['platform'] == self.platform:
+    #                    try:
+    #                        self.app_key = site['app_key']
+    #                        self.app_secret = site['app_secret']
+    #                    except KeyError:
+    #                        raise errors.MissAPPInfo
+    #                    return True
+    #            raise errors.NoPlatformInfo
+    #    except IOError:
+    #        raise errors.NoConfigFile
             
     def setup_app(self, app_key, app_secret):
         '''
