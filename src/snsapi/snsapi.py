@@ -37,10 +37,14 @@ class SNSAPI(object):
         '''
         authClient = oauth.APIClient(self.app_key, self.app_secret, callback_url, auth_url=auth_url)
         url = authClient.get_authorize_url()
+        #TODO: upgrade mark1
+        #      configurable to a cmd to send request
         webbrowser.open(url)
         
         print "Please input the whole url from Broswer's address bar: ";
         #Wait for input
+        #TODO: upgrade mark2
+        #      configurable to a cmd to fetch url
         url = raw_input()
         self.token = self.parseCode(url)
         self.token.update(authClient.request_access_token(self.token.code))
@@ -65,7 +69,7 @@ class SNSAPI(object):
         token.access_token = base64.encodestring(token.access_token)
         #save token to file "token.save"
         #TODO make the file invisible or at least add it to .gitignore
-        fname = self.platform+".token.save"
+        fname = self.channel_name+".token.save"
         with open(fname,"w") as fp:
             json.dump(token, fp)
         
@@ -73,7 +77,7 @@ class SNSAPI(object):
             
     def get_saved_token(self):
         try:
-            fname = self.platform+".token.save"
+            fname = self.channel_name+".token.save"
             with open(fname, "r") as fp:
                 token = JsonObject(json.load(fp))
                 #check expire time

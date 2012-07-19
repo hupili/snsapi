@@ -40,6 +40,8 @@ class QQAPI(SNSAPI):
             print "Using a saved access_token!"
             return
         auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
+        #TODO: upgrade mark3
+        #      configurable to another call_back url
         callback_url = "http://copy.the.code.to.client/"
         self.oauth2(auth_url, callback_url)
         self.save_token()
