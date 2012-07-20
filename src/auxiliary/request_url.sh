@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+#Note: export cookies.txt to the same folder 
+#      containing the current script. 
 
 if [[ $# == 1 ]] ; then
 	url=$1

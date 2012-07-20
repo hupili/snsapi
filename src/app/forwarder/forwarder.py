@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import time
 import hashlib
 import snsapi
 from snsapi import errors 
@@ -57,7 +58,8 @@ if __name__ == "__main__":
     for c in channel_out :
         print c
 
-    #print "test channel_in ===== "
+    #load message information and check in channels. 
+    #merge new messages into local storage
     messages = json.load(open(abspath('messages.json'),'r'))
     for cin_name in channel_in :
         print "==== Reading channel: %s" % (cname)
@@ -74,17 +76,37 @@ if __name__ == "__main__":
                     'sig': sig,
                     'created_at': s.created_at,
                     'username': s.username,
-                    'text': s.text
+                    'text': s.text,
+                    'success':{"__null":"yes"}
                 }
                 #The message is new
                 #forward it to all output channels
-                for cout_name in channel_out :
+
+    #set quota/run for each out_channel 
+    #TODO: make it configurable
+    quota = {}
+    for c in channel_out :
+        quota[c] = 1
+
+    #forward non-successful messages to all out_channels
+    for m in messages :
+        for cout_name in quota :
+            if cout_name in messages[m]['success'] and messages[m]['success'][cout_name] == "yes":
+                pass
+            else:
+                if quota[cout_name] > 0:
+                    quota[cout_name] -= 1 
                     cout_obj = channels[cout_name]
-                    text = "[%s] at %s \n %s"  % (s.username, s.created_at, s.text)
+                    #text = "[%s] at %s \n %s"  % (s.username, s.created_at, s.text)
+                    #text = "[%s] at %s \n %s (forward time:%s)"  % (s.username, s.created_at, s.text, time.time())
+                    s = messages[m]
+                    text = "[%s] at %s \n %s (forward time:%s)"  % (s['username'], s['created_at'], s['text'], time.time())
                     print "Text: %s" % (text)
                     if ( cout_obj.update(text) ):
+                        messages[m]['success'][cout_name] = "yes"
                         print "Forward success: %s" % (sig)
                     else:
+                        messages[m]['success'][cout_name] = "no"
                         print "Forward fail: %s" % (sig)
 
     print "forwarding done!"
