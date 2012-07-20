@@ -28,14 +28,27 @@ class SNSAPI(object):
         self.channel_name = None
 
         self.auth_info = snstype.AuthenticationInfo()
+        self.__fetch_code_timeout = 2
+        self.__fetch_code_max_try = 30
 
     def fetch_code(self):
-        return 
+        cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
+        print cmd
+        ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
+        tries = 1 
+        while ret == "(null)" :
+            tries += 1
+            if tries > self.__fetch_code_max_try :
+                break
+            time.sleep(self.__fetch_code_timeout)
+            ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
+        return ret
 
     def request_url(self, url):
+        self.__last_request_time = time.time()
         cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
         print cmd
-        print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read()
+        print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
         return
 
     #build-in fetch_code function: read from console
@@ -45,8 +58,8 @@ class SNSAPI(object):
 
     #build-in request_url function: open default web browser
     def __request_url(self, url):
-        #webbrowser.open(url)
-        print url
+        webbrowser.open(url)
+        #print url
         return
     
     def oauth2(self, auth_url, callback_url):
@@ -76,6 +89,10 @@ class SNSAPI(object):
             url = self.__fetch_code()
         else :
             url = self.fetch_code() 
+
+        if url == "(null)" :
+            raise errors.snsAuthFail
+        #print url
         #url = raw_input()
         self.token = self.parseCode(url)
         self.token.update(authClient.request_access_token(self.token.code))

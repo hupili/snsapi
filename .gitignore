@@ -1,5 +1,8 @@
 *.py[co]
 
+# cookies
+cookies.txt
+
 # temporary file
 *~
 

@@ -38,4 +38,8 @@ class snsTypeParseError(SNSError):
     def __str__(self, _type=""):
         return "errors when parsing JsonObject for snsType " + _type
 
+class snsAuthFail(SNSError):
+    def __str__(self):
+        return "Authentication Failed!"
+
 
