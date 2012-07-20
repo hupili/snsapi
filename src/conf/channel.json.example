@@ -12,6 +12,13 @@
 	  "cmd_fetch_code": "(built-in)",
 	  "cmd_request_url": "(built-in)"
 	  "save_token_file": "(built-in)"
+	},
+	"__auth_info(example to use individulized commands)":
+	{
+	  "callback_url": "http://copy.the.code.to.client/",
+	  "cmd_fetch_code": "./auxiliary/fetch_code.sh",
+	  "cmd_request_url": "./auxiliary/request_url.sh",
+	  "save_token_file": "(built-in)"
 	}
   },
   {
