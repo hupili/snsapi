@@ -27,7 +27,7 @@ class SinaAPI(SNSAPI):
             self.read_config()
 
     def read_channel(self, channel):
-        #TODO: fill this stub function
+        super(SinaAPI, self).read_channel(channel) 
 
         self.channel_name = channel['channel_name']
         self.app_key = channel['app_key']

@@ -132,6 +132,11 @@ class SNSAPI(object):
         else:
             return False
     
+    def read_channel(self, channel):
+        self.channel_name = channel['channel_name']
+        if channel['auth_info'] :
+            self.auth_info = snstype.AuthenticationInfo(channel['auth_info'])
+
     #def read_config(self, fname="snsapi/plugin/conf/config.json"):
     #The conf folder is moved to the upper layer(same level as 'test.py'). 
     #It is better handled by application layer, 
