@@ -17,6 +17,7 @@ import base64
 import urlparse
 import datetime
 import snstype
+import subprocess
 
 class SNSAPI(object):
     def __init__(self):
@@ -32,6 +33,9 @@ class SNSAPI(object):
         return 
 
     def request_url(self, url):
+        cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
+        print cmd
+        print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read()
         return
 
     #build-in fetch_code function: read from console
@@ -41,7 +45,8 @@ class SNSAPI(object):
 
     #build-in request_url function: open default web browser
     def __request_url(self, url):
-        webbrowser.open(url)
+        #webbrowser.open(url)
+        print url
         return
     
     def oauth2(self, auth_url, callback_url):
@@ -95,26 +100,35 @@ class SNSAPI(object):
         token.access_token = base64.encodestring(token.access_token)
         #save token to file "token.save"
         #TODO make the file invisible or at least add it to .gitignore
-        fname = self.channel_name+".token.save"
-        with open(fname,"w") as fp:
-            json.dump(token, fp)
+        fname = self.auth_info.save_token_file
+        if fname == "(built-in)" :
+            fname = self.channel_name+".token.save"
+        if fname != "(null)" :
+            with open(fname,"w") as fp:
+                json.dump(token, fp)
         
         return True
             
     def get_saved_token(self):
         try:
-            fname = self.channel_name+".token.save"
-            with open(fname, "r") as fp:
-                token = JsonObject(json.load(fp))
-                #check expire time
-                if self.isExpired(token):
-                    print "Saved Access token is expired, try to get one through sns.auth() :D"
-                    return False
-                #decryption
-                token.access_token = base64.decodestring(token.access_token)
-                self.token = token
-                
-                #TODO check its expiration time or validity
+            fname = self.auth_info.save_token_file
+            if fname == "(built-in)" :
+                fname = self.channel_name+".token.save"
+            if fname != "(null)" :
+                with open(fname, "r") as fp:
+                    token = JsonObject(json.load(fp))
+                    #check expire time
+                    if self.isExpired(token):
+                        print "Saved Access token is expired, try to get one through sns.auth() :D"
+                        return False
+                    #decryption
+                    token.access_token = base64.decodestring(token.access_token)
+                    self.token = token
+            else:
+                #This channel is configured not to save token to file
+                return False
+                    
+                    #TODO check its expiration time or validity
         except IOError:
             print "No access token saved, try to get one through sns.auth() :D"
             return False

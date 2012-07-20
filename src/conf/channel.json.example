@@ -11,6 +11,7 @@
 	  "callback_url": "http://copy.the.code.to.client/",
 	  "cmd_fetch_code": "(built-in)",
 	  "cmd_request_url": "(built-in)"
+	  "save_token_file": "(built-in)"
 	}
   },
   {
