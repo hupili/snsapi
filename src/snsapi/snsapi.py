@@ -16,6 +16,7 @@ import errors
 import base64
 import urlparse
 import datetime
+import snstype
 
 class SNSAPI(object):
     def __init__(self):
@@ -23,6 +24,25 @@ class SNSAPI(object):
         self.app_secret = None
         self.domain = None
         self.token = None
+        self.channel_name = None
+
+        self.auth_info = snstype.AuthenticationInfo()
+
+    def fetch_code(self):
+        return 
+
+    def request_url(self, url):
+        return
+
+    #build-in fetch_code function: read from console
+    def __fetch_code(self):
+        print "Please input the whole url from Broswer's address bar:";
+        return raw_input()
+
+    #build-in request_url function: open default web browser
+    def __request_url(self, url):
+        webbrowser.open(url)
+        return
     
     def oauth2(self, auth_url, callback_url):
         '''Authorizing using synchronized invocation.
@@ -39,13 +59,19 @@ class SNSAPI(object):
         url = authClient.get_authorize_url()
         #TODO: upgrade mark1
         #      configurable to a cmd to send request
-        webbrowser.open(url)
+        if self.auth_info.cmd_request_url == "(built-in)" :
+            self.__request_url(url)
+        else :
+            self.request_url(url)
         
-        print "Please input the whole url from Broswer's address bar: ";
         #Wait for input
         #TODO: upgrade mark2
         #      configurable to a cmd to fetch url
-        url = raw_input()
+        if self.auth_info.cmd_fetch_code == "(built-in)" :
+            url = self.__fetch_code()
+        else :
+            url = self.fetch_code() 
+        #url = raw_input()
         self.token = self.parseCode(url)
         self.token.update(authClient.request_access_token(self.token.code))
         print "Authorized! access token is " + str(self.token)

@@ -15,6 +15,7 @@ class QQAPI(SNSAPI):
         self.domain = "open.t.qq.com"
         self.app_key = ""
         self.app_secret = ""
+        self.auth_info.callback_url = "http://copy.the.code.to.client/"
         #you must set self.plaform before invoking read_config()
         if channel:
             self.read_channel(channel)
@@ -42,8 +43,8 @@ class QQAPI(SNSAPI):
         auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
         #TODO: upgrade mark3
         #      configurable to another call_back url
-        callback_url = "http://copy.the.code.to.client/"
-        self.oauth2(auth_url, callback_url)
+        #callback_url = "http://copy.the.code.to.client/"
+        self.oauth2(auth_url, self.auth_info.callback_url)
         self.save_token()
         
     def attachAuthinfo(self, params):

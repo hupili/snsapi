@@ -34,6 +34,12 @@ class Error(dict):
     def show(self):
         print self
 
+class AuthenticationInfo:
+    #default auth configurations
+    call_back_url = None
+    cmd_fetch_code = "(built-in)"
+    cmd_request_url = "(built-in)"
+
 if __name__ == "__main__":
     s = Status("fe")
     s.show()

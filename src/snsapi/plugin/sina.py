@@ -18,6 +18,7 @@ class SinaAPI(SNSAPI):
         #just you remind myself they exists
         self.app_key = ""
         self.app_secret = ""
+        self.auth_info.callback_url = "http://copy.the.code.to.client/"
         #you must set self.plaform before invoking read_config()
         if channel:
             self.read_channel(channel)
@@ -45,8 +46,8 @@ class SinaAPI(SNSAPI):
         auth_url = "https://api.weibo.com/oauth2/"
         #TODO: upgrade mark3
         #      configurable to another call_back url
-        callback_url = "http://copy.the.code.to.client/"
-        self.oauth2(auth_url, callback_url)
+        #callback_url = "http://copy.the.code.to.client/"
+        self.oauth2(auth_url, self.auth_info.callback_url)
         self.save_token()
         
     def home_timeline(self, count=20):
