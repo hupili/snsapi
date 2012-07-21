@@ -17,11 +17,24 @@ class TestSina(unittest.TestCase):
         f = sina.SinaAPI.read_config
         sina.SinaAPI.read_config = lambda x : f(x,testUtils.get_config_path())
         self.sina = sina.SinaAPI()
+        self.sina.channel_name = "sina_account_1"
+
+        self.sina.read_config()
+        self.assertIsNotNone(self.sina.app_key)
+        self.assertIsNotNone(self.sina.app_secret)
         self.sina.auth()
         
     def tearDown(self):
         self.sina = None
-        
+
+    #def test_read_config(self):
+    #    self.sian.read_config()
+    #    self.assertIsNotNone(self.sina.app_key)
+    #    self.assertIsNotNone(self.sina.app_secret)
+
+    #def test_auth(self):
+    #    self.sina.auth()
+
     def test_home_timeline(self):
         tls = self.sina.home_timeline(count=5)
         self.assertTrue(len(tls) == 5)

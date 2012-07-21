@@ -177,9 +177,29 @@ class SNSAPI(object):
     
     def read_channel(self, channel):
         self.channel_name = channel['channel_name']
+        self.platform = channel['platform']
         #if channel['auth_info'] :
         if 'auth_info' in channel :
             self.auth_info = snstype.AuthenticationInfo(channel['auth_info'])
+
+    #TODO:
+    #    All information is contained in 'channel.json'. 
+    #    There is no need to maintain 'config.json'. 
+    #    This method is a delegate for read_channel(),
+    #    bacause some implementations in test suite depends on it. 
+    #    It's better to be positioned in the container class of all SNSAPIs. 
+    def read_config(self, pathname):
+        try:
+            with open(pathname, "r") as fp:
+                allinfo = json.load(fp)
+                for c in allinfo:
+                    if c['channel_name'] == self.channel_name :
+                        self.read_channel(c)
+                        return
+                raise errors.NoSuchChannel
+        except IOError:
+            raise errors.NoConfigFile
+        
             
     def setup_app(self, app_key, app_secret):
         '''

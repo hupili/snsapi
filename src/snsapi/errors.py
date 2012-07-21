@@ -32,6 +32,10 @@ class NoSuchPlatform(ConfigError):
     def __str__(self):
         return "No Such Platform. Please check your 'channel.json'."
 
+class NoSuchChannel(ConfigError):
+    def __str__(self):
+        return "No Such Channel. Please check your 'channel.json'. Or do you forget to set snsapi.channel_name before calling read_config()?"
+
 class snsTypeWrongInput(SNSError):
     def __init__(self, value=""):
         self.value = value

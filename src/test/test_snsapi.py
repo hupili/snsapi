@@ -21,10 +21,24 @@ class TestSnsapi(unittest.TestCase):
     def test_read_config(self):
         pathname = testUtils.get_config_path()
         #TODO only test sina is not appropriate
-        self.sns.platform = "sina"
+        #====
+        #self.sns.platform = "sina"
+        #self.sns.read_config(pathname)
+        #====> substitute it with channel
+        self.sns.channel_name = "sina_account_1"
         self.sns.read_config(pathname)
-        self.assertIsNotNone(self.sns.app_key)
-        self.assertIsNotNone(self.sns.app_secret)
+        self.assertIsNotNone(self.sns.channel_name)
+        self.assertIsNotNone(self.sns.platform)
+
+        #TODO: the following tests will be put into plugin specific suite
+        #      app_key and app_secret is plugin specific. 
+        #      Not all plugin requires this information. 
+        #      Common information for 'snsapi' are only 
+        #      'channel_name', 'platform', 
+        #      so far. 
+        #      Other information depends on 'platform'
+        #self.assertIsNotNone(self.sns.app_key)
+        #self.assertIsNotNone(self.sns.app_secret)
         
     def test_parseCode(self):
         #sina example

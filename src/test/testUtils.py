@@ -11,7 +11,8 @@ def get_config_path():
     '''
     import os.path
     #make the pathname of config.json
-    pathname = os.path.abspath("conf/config.json")
+    #pathname = os.path.abspath("conf/config.json")
+    pathname = os.path.abspath("conf/channel.json")
     pathname = pathname.replace('test/', "")
     pathname = pathname.replace('test\\', "")
     return pathname
