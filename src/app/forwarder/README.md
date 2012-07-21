@@ -28,6 +28,10 @@ ln -s ../../auxiliary
 cp channel.json.example channel.json
 cp forwarder.json.example forwarder.json
 ```
+   * Make the json file to store captured messages:
+```
+echo "{}" > messages.json
+```
    * By default, two RSS channels are configured
    as in channels, which points 
    to the test RSS files in the repo. 
