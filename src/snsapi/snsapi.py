@@ -165,7 +165,8 @@ class SNSAPI(object):
     
     def read_channel(self, channel):
         self.channel_name = channel['channel_name']
-        if channel['auth_info'] :
+        #if channel['auth_info'] :
+        if 'auth_info' in channel :
             self.auth_info = snstype.AuthenticationInfo(channel['auth_info'])
 
     #def read_config(self, fname="snsapi/plugin/conf/config.json"):

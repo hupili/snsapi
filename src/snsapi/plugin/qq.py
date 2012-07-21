@@ -24,7 +24,7 @@ class QQAPI(SNSAPI):
             self.read_config()
             
     def read_channel(self, channel):
-        super(SinaAPI, self).read_channel(channel) 
+        super(QQAPI, self).read_channel(channel) 
 
         self.channel_name = channel['channel_name']
         self.app_key = channel['app_key']
