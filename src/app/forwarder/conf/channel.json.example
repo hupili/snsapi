@@ -25,12 +25,12 @@
     "channel_name": "test_feed_1", 
     "open": "yes",
     "platform": "rss", 
-    "url": "../test/sample-rss/feed1.xml" 
+    "url": "../../../test/sample-rss/feed1.xml" 
   },
   {
     "channel_name": "test_feed_2", 
     "open": "yes",
     "platform": "rss", 
-    "url": "../test/sample-rss/feed2.xml" 
+    "url": "../../../test/sample-rss/feed2.xml" 
   }
 ]

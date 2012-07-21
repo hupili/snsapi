@@ -16,6 +16,8 @@ import errors
 import base64
 import urlparse
 import datetime
+import snstype
+import subprocess
 
 class SNSAPI(object):
     def __init__(self):
@@ -23,6 +25,44 @@ class SNSAPI(object):
         self.app_secret = None
         self.domain = None
         self.token = None
+        self.channel_name = None
+
+        self.auth_info = snstype.AuthenticationInfo()
+        self.__fetch_code_timeout = 2
+        self.__fetch_code_max_try = 30
+
+    def fetch_code(self):
+        cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
+        print cmd
+        ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
+        tries = 1 
+        while ret == "(null)" :
+            tries += 1
+            if tries > self.__fetch_code_max_try :
+                break
+            time.sleep(self.__fetch_code_timeout)
+            ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
+        return ret
+
+    def request_url(self, url):
+        self.__last_request_time = time.time()
+        cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
+        print cmd
+        print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
+        return
+
+    #build-in fetch_code function: read from console
+    def __fetch_code(self):
+        print "Please input the whole url from Broswer's address bar:";
+        return self.console_input()
+        #return raw_input()
+
+    #build-in request_url function: open default web browser
+    def __request_url(self, url):
+        self.openBrower(url)
+        #webbrowser.open(url)
+        #print url
+        return
     
     def oauth2(self, auth_url, callback_url):
         '''Authorizing using synchronized invocation.
@@ -37,11 +77,25 @@ class SNSAPI(object):
         '''
         authClient = oauth.APIClient(self.app_key, self.app_secret, callback_url, auth_url=auth_url)
         url = authClient.get_authorize_url()
-        self.openBrower(url)
+        #TODO: upgrade mark1
+        #      configurable to a cmd to send request
+        if self.auth_info.cmd_request_url == "(built-in)" :
+            self.__request_url(url)
+        else :
+            self.request_url(url)
         
-        print "Please input the whole url from Broswer's address bar: ";
         #Wait for input
-        url = self.console_input()
+        #TODO: upgrade mark2
+        #      configurable to a cmd to fetch url
+        if self.auth_info.cmd_fetch_code == "(built-in)" :
+            url = self.__fetch_code()
+        else :
+            url = self.fetch_code() 
+
+        if url == "(null)" :
+            raise errors.snsAuthFail
+        #print url
+        #url = raw_input()
         self.token = self.parseCode(url)
         self.token.update(authClient.request_access_token(self.token.code))
         print "Authorized! access token is " + str(self.token)
@@ -75,26 +129,35 @@ class SNSAPI(object):
         token.access_token = base64.encodestring(token.access_token)
         #save token to file "token.save"
         #TODO make the file invisible or at least add it to .gitignore
-        fname = self.platform+".token.save"
-        with open(fname,"w") as fp:
-            json.dump(token, fp)
+        fname = self.auth_info.save_token_file
+        if fname == "(built-in)" :
+            fname = self.channel_name+".token.save"
+        if fname != "(null)" :
+            with open(fname,"w") as fp:
+                json.dump(token, fp)
         
         return True
             
     def get_saved_token(self):
         try:
-            fname = self.platform+".token.save"
-            with open(fname, "r") as fp:
-                token = JsonObject(json.load(fp))
-                #check expire time
-                if self.isExpired(token):
-                    print "Saved Access token is expired, try to get one through sns.auth() :D"
-                    return False
-                #decryption
-                token.access_token = base64.decodestring(token.access_token)
-                self.token = token
-                
-                #TODO check its expiration time or validity
+            fname = self.auth_info.save_token_file
+            if fname == "(built-in)" :
+                fname = self.channel_name+".token.save"
+            if fname != "(null)" :
+                with open(fname, "r") as fp:
+                    token = JsonObject(json.load(fp))
+                    #check expire time
+                    if self.isExpired(token):
+                        print "Saved Access token is expired, try to get one through sns.auth() :D"
+                        return False
+                    #decryption
+                    token.access_token = base64.decodestring(token.access_token)
+                    self.token = token
+            else:
+                #This channel is configured not to save token to file
+                return False
+                    
+                    #TODO check its expiration time or validity
         except IOError:
             print "No access token saved, try to get one through sns.auth() :D"
             return False
@@ -112,41 +175,11 @@ class SNSAPI(object):
         else:
             return False
     
-    #def read_config(self, fname="snsapi/plugin/conf/config.json"):
-    #The conf folder is moved to the upper layer(same level as 'test.py'). 
-    #It is better handled by application layer, 
-    #for the realization information is only available 
-    #to application developers and users.
-    def read_config(self, fname="conf/config.json"):
-        '''get app_key and app_secret
-        You must set self.platform before invoking this funciton.
-        This function will change self.app_key and self.app_cecret
-        @todo: I'm not sure where config.json should be placed, and how to set it in program
-            without worrying about the execute directory .
-            and I'm not sure, is it the snsapi layer that should responsible for config file
-            or upper layer, so I just made a function setup_app()
-        @param fname: the file path and name of config file, which storing the all app info
-        @raise NoConfigFile: snsapi/plugin/conf/config.json NOT EXISTS!
-        @raise NoPlatformInfo: No platform info found in snsapi/plugin/conf/config.json.
-        @raise MissAPPInfo: Forget app_key and app_secret in snsapi/plugin/conf/config.json
-        '''
-        from os.path import abspath
-        fname = abspath(fname)
-        try:
-            with open(fname, "r") as fp:
-                allinfo = json.load(fp)
-                for site in allinfo:
-                    
-                    if site['platform'] == self.platform:
-                        try:
-                            self.app_key = site['app_key']
-                            self.app_secret = site['app_secret']
-                        except KeyError:
-                            raise errors.MissAPPInfo
-                        return True
-                raise errors.NoPlatformInfo
-        except IOError:
-            raise errors.NoConfigFile(fname)
+    def read_channel(self, channel):
+        self.channel_name = channel['channel_name']
+        #if channel['auth_info'] :
+        if 'auth_info' in channel :
+            self.auth_info = snstype.AuthenticationInfo(channel['auth_info'])
             
     def setup_app(self, app_key, app_secret):
         '''

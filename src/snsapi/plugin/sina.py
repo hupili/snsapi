@@ -18,6 +18,7 @@ class SinaAPI(SNSAPI):
         #just you remind myself they exists
         self.app_key = ""
         self.app_secret = ""
+        self.auth_info.callback_url = "http://copy.the.code.to.client/"
         #you must set self.plaform before invoking read_config()
         if channel:
             self.read_channel(channel)
@@ -26,12 +27,16 @@ class SinaAPI(SNSAPI):
             self.read_config()
 
     def read_channel(self, channel):
-        #TODO: fill this stub function
+        super(SinaAPI, self).read_channel(channel) 
 
         self.channel_name = channel['channel_name']
+        self.app_key = channel['app_key']
+        self.app_secret = channel['app_secret']
 
         #We invoke the past config reading method for the moment
-        self.read_config()
+        #20120716: after the unifying upgrade of config, 
+        #          this is no longer needed
+        #self.read_config()
         return 
         
     def auth(self):
@@ -39,8 +44,10 @@ class SinaAPI(SNSAPI):
             print "Using a saved access_token!"
             return
         auth_url = "https://api.weibo.com/oauth2/"
-        callback_url = "http://copy.the.code.to.client/"
-        self.oauth2(auth_url, callback_url)
+        #TODO: upgrade mark3
+        #      configurable to another call_back url
+        #callback_url = "http://copy.the.code.to.client/"
+        self.oauth2(auth_url, self.auth_info.callback_url)
         self.save_token()
         
     def home_timeline(self, count=20):
@@ -77,8 +84,24 @@ class SinaAPI(SNSAPI):
         try:
             status = SinaStatus(ret)
             return True
-        except errors.SNSError:
+        #TODO:
+        #Sometimes update fails, but we do not 
+        #catch errors.SNSError. 
+        #This part needs further modification. 
+#Traceback (most recent call last):
+#File "forwarder.py", line 84, in <module>
+#% (s.username, s.created_at, s.text)) ):
+#File "snsapi/src/app/forwarder/snsapi/plugin/sina.py", line 82, in update
+#status = SinaStatus(ret)
+#File "snsapi/src/app/forwarder/snsapi/snstype.py", line 21, in __init__
+#self.parse(dct)
+#File "snsapi/src/app/forwarder/snsapi/plugin/sina.py", line 89, in parse
+#self.id = dct["id"]
+#KeyError: 'id'
+        except:
             return False
+        #except errors.SNSError:
+        #    return False
         
 class SinaStatus(Status):
     def parse(self, dct):

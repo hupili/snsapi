@@ -68,11 +68,18 @@ class RSSAPI(SNSAPI):
 class RSSStatus(Status):
     def parse(self, dct):
         self.username = dct['author']
-        self.created_at = dct['published']
+        #self.created_at = dct['published']
+        #For RSS, one entry will be brought up if it is updated. 
+        #We use it as 'created_at' field of SNS stauts. 
+        #This is for better message deduplicate
+        self.created_at = dct['updated']
         self.title = dct['title']
         self.link = dct['link']
+        #other plugins have 'text' field
+        self.text = "Article \"%s\" is updated(published)! (%s)" % (self.title, self.link)
         
     def show(self):
-        print "[%s] at %s \n  New article \"%s\" published! (%s)" % (self.username, self.created_at, self.title, self.link)
+        print "[%s] at %s \n  Article \"%s\" is updated(published)! (%s)" % (self.username, self.created_at, self.title, self.link)
+        #print "[%s] at %s \n  New article \"%s\" published! (%s)" % (self.username, self.created_at, self.title, self.link)
         #print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
         #print "%s" % self.title
