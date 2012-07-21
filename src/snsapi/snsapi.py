@@ -199,7 +199,6 @@ class SNSAPI(object):
                 raise errors.NoSuchChannel
         except IOError:
             raise errors.NoConfigFile
-        
             
     def setup_app(self, app_key, app_secret):
         '''
