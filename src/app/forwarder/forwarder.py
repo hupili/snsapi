@@ -64,7 +64,8 @@ if __name__ == "__main__":
     for cin_name in channel_in :
         print "==== Reading channel: %s" % (cin_name)
         cin_obj = channels[cin_name]
-        sl = cin_obj.home_timeline()
+        #TODO: make it configurable for each channel
+        sl = cin_obj.home_timeline(2)
         for s in sl:
             #s.show()
             #print type(s.created_at)
@@ -96,6 +97,7 @@ if __name__ == "__main__":
 
     #forward non-successful messages to all out_channels
     for m in messages :
+        #break
         for cout_name in quota :
             if cout_name in messages[m]['success'] and messages[m]['success'][cout_name] == "yes":
                 pass
@@ -109,7 +111,11 @@ if __name__ == "__main__":
                     print "forwarding %s to %s" % (m, cout_name)
                     text = "[%s] at %s \n %s (forward time:%s)"  % (s['username'], s['created_at'], s['text'], time.time())
                     print "Text: %s" % (text)
-                    if ( cout_obj.update(text) ):
+                    #TODO: check the real cause of the problem.
+                    #      It is aleady announec in the front of this file 
+                    #      that all strings should be treated as UTF-8 encoding. 
+                    #      Why do the following problem happen?
+                    if ( cout_obj.update(text.encode('utf-8')) ):
                         messages[m]['success'][cout_name] = "yes"
                         print "Forward success: %s" % (sig)
                     else:

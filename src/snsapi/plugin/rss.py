@@ -61,20 +61,49 @@ class RSSAPI(SNSAPI):
         
         statuslist = []
         for j in d['items']:
+            if len(statuslist) >= count:
+                break
             statuslist.append(RSSStatus(j))
         return statuslist
 
         
 class RSSStatus(Status):
+    def __get_dict_entry(self, attr, dct, field):
+        #dict entry reading with fault tolerance. 
+        #  self.attr = dct['field']
+        #RSS format is very diverse. 
+        #To my current knowledge, some format have 
+        #'author' fields, but others do not:
+        #   * rss : no
+        #   * rss2 : yes
+        #   * atom : yes
+        #   * rdf : yes
+        #This function will return a string "(null)"
+        #by default if the field does not exist. 
+        #The purpose is to expose unified interface
+        #to upper layers. (seeing "(null)" is better 
+        #than catching an error. 
+        try:
+            setattr(self, attr, dct[field])
+        except KeyError:
+            setattr(self, attr, "(null)")
+        
+
     def parse(self, dct):
-        self.username = dct['author']
-        #self.created_at = dct['published']
-        #For RSS, one entry will be brought up if it is updated. 
-        #We use it as 'created_at' field of SNS stauts. 
-        #This is for better message deduplicate
-        self.created_at = dct['updated']
-        self.title = dct['title']
-        self.link = dct['link']
+        #self.username = dct['author']
+        ##self.created_at = dct['published']
+        ##For RSS, one entry will be brought up if it is updated. 
+        ##We use it as 'created_at' field of SNS stauts. 
+        ##This is for better message deduplicate
+        #self.created_at = dct['updated']
+        #self.title = dct['title']
+        #self.link = dct['link']
+
+        self.__get_dict_entry('username', dct, 'author')
+        self.__get_dict_entry('created_at', dct, 'updated')
+        self.__get_dict_entry('title', dct, 'title')
+        self.__get_dict_entry('link', dct, 'link')
+
         #other plugins have 'text' field
         self.text = "Article \"%s\" is updated(published)! (%s)" % (self.title, self.link)
         
