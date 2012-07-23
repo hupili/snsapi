@@ -93,6 +93,15 @@ class QQAPI(SNSAPI):
 class QQStatus(Status):
     def parse(self, dct):
         self.id = dct['id']
+        #TODO: unify the data type
+        #      In SinaAPI, 'created_at' is a string
+        #      In QQAPI, 'created_at' is an int
+        #Proposal:
+        #      1. Store a copy of dct object in the Status object. 
+        #         Derived class of QQAPI or SinaAPI can extract 
+        #         other fields for future use. 
+        #      2. Defaultly convert every fields into unicode string. 
+        #         Upper layer can tackle with a unified interface
         self.created_at = dct['timestamp']
         self.text = dct['text']
         self.reposts_count = dct['count']

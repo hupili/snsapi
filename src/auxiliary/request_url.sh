@@ -16,7 +16,7 @@ tmp="$dir/tmp"
 cookies="$dir/cookies.txt"
 
 mkdir -p $tmp
-wget --load-cookies $cookies "$url" -O $tmp/request_url.html > $tmp/request_url.stdout 2> $tmp/request_url.stderr
+wget --load-cookies $cookies --save-cookies $cookies "$url" -O $tmp/request_url.html > $tmp/request_url.stdout 2> $tmp/request_url.stderr
 grep -P '^Location: http:.* \[following\]' $tmp/request_url.stderr | sed -e 's/^Location: //g' -e 's/ \[following\]//g' > $tmp/auth.code
 cat $tmp/auth.code
 

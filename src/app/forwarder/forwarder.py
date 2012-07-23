@@ -62,11 +62,17 @@ if __name__ == "__main__":
     #merge new messages into local storage
     messages = json.load(open(abspath('messages.json'),'r'))
     for cin_name in channel_in :
-        print "==== Reading channel: %s" % (cname)
+        print "==== Reading channel: %s" % (cin_name)
         cin_obj = channels[cin_name]
         sl = cin_obj.home_timeline()
         for s in sl:
-            sig = hashlib.sha1(s.created_at + s.username + s.text).hexdigest()
+            #s.show()
+            #print type(s.created_at)
+            #print type(s.username)
+            #print type(s.text)
+            msg_full = unicode(s.created_at) + unicode(s.username) + unicode(s.text)
+            sig = hashlib.sha1(msg_full.encode('utf-8')).hexdigest()
+            #sig = hashlib.sha1(msg_full).hexdigest() # <-- this line will raise an error
             if sig in messages:
                 print "One duplicate message:%s" % (sig)
             else:
@@ -100,6 +106,7 @@ if __name__ == "__main__":
                     #text = "[%s] at %s \n %s"  % (s.username, s.created_at, s.text)
                     #text = "[%s] at %s \n %s (forward time:%s)"  % (s.username, s.created_at, s.text, time.time())
                     s = messages[m]
+                    print "forwarding %s to %s" % (m, cout_name)
                     text = "[%s] at %s \n %s (forward time:%s)"  % (s['username'], s['created_at'], s['text'], time.time())
                     print "Text: %s" % (text)
                     if ( cout_obj.update(text) ):
