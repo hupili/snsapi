@@ -11,6 +11,7 @@ encoding//src/snsapi/snstype.py=utf-8
 encoding//src/snsapi/utils.py=utf-8
 encoding//src/test-channel.py=utf-8
 encoding//src/test.py=utf-8
+encoding//src/test/testUtils.py=utf-8
 encoding//src/test/test_sina.py=utf-8
 encoding//src/test/test_snsapi.py=utf-8
 encoding/<project>=UTF-8
