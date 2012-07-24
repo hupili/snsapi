@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 '''
-Unittest for qq.py
+Unittest for sina.py
 the function which start with "test" will be treated as one test.
-Each test start after setUp(), and end with tearDown()
+Each test start after setUp(), and end with tearDown().
+The setUp --> test_* --> tearDown process is called Fixture.
 '''
 import sys
 sys.path.append("..")
@@ -14,28 +15,28 @@ import testUtils
 
 class TestSina(unittest.TestCase):
     def setUp(self):
-        f = sina.SinaAPI.read_config
-        sina.SinaAPI.read_config = lambda x : f(x,testUtils.get_config_path())
-        self.sina = sina.SinaAPI()
-        self.sina.channel_name = "sina_account_1"
-
-        self.sina.read_config()
-        self.assertIsNotNone(self.sina.app_key)
-        self.assertIsNotNone(self.sina.app_secret)
+        try:
+            channel = testUtils.get_channel("sina")
+            self.sina = sina.SinaAPI(channel)
+            self.assertIsNotNone(self.sina.app_key)
+            self.assertIsNotNone(self.sina.app_secret)
+        except Exception as e:
+            print "Fail to initialize Sina channel. Please make sure channel.json\
+                has a account on sina platform, and app_key,app_serect are valid"
+            raise e;
         self.sina.auth()
         
     def tearDown(self):
         self.sina = None
 
-    #def test_read_config(self):
-    #    self.sian.read_config()
-    #    self.assertIsNotNone(self.sina.app_key)
-    #    self.assertIsNotNone(self.sina.app_secret)
-
-    #def test_auth(self):
-    #    self.sina.auth()
+    def test_auth(self):
+        self.sina.auth()
+        self.assertTrue(self.sina.token)
+        self.assertTrue("code" in self.sina.token)
+        self.assertTrue("access_token" in self.sina.token)
 
     def test_home_timeline(self):
+        self.sina.auth()
         tls = self.sina.home_timeline(count=5)
         self.assertTrue(len(tls) == 5)
         self.assertIsInstance(tls[0], snstype.Status)

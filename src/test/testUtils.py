@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 '''
-Test utilities
+Utilities for test
 '''
-    
+import json
     
 def get_config_path():
     '''
@@ -16,3 +16,19 @@ def get_config_path():
     pathname = pathname.replace('test/', "")
     pathname = pathname.replace('test\\', "")
     return pathname
+
+def get_channel(platform):
+    path = get_config_path()
+    with open(path) as fp:
+        channel = json.load(fp)
+        
+    for site in channel:
+        if site['platform'] == platform:
+            return site
+        
+    return None
+
+def clean_saved_token():
+    import os,glob
+    for f in glob.glob('*.token.save'):
+        os.remove(f)
