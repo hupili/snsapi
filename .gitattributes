@@ -1,11 +1,10 @@
 ﻿# Default behaviour setting, in case users don't have core.autocrlf set.
 * text=auto
 
-# Explicitly declare text files we want to always be normalized and converted 
-# to native line endings on checkout.
-# setting to "text" tells git to always normalize the files specified. 
-# When committed they are stored with LF, on checkout they are converted 
-# to the OS's native line endings.
+# text eol=lf
+# This setting tells git to normalize the files specified on commit, 
+# and always convert them to LF on checkout. You should use this for files 
+# that must retain LF endings, even on Windows.
 
 *.py text eol=lf
 *.json text eol=lf
