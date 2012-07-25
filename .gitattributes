@@ -1,4 +1,4 @@
-﻿# Set default behaviour, in case users don't have core.autocrlf set.
+﻿# Default behaviour setting, in case users don't have core.autocrlf set.
 * text=auto
 
 # Explicitly declare text files we want to always be normalized and converted 
@@ -7,16 +7,16 @@
 # When committed they are stored with LF, on checkout they are converted 
 # to the OS's native line endings.
 
-*.py text
-*.json text
-*.sh text
-*.md text
-*.txt text
-*.xml text
-*.prefs text
-*.example text
-*.save text
-*.token text
+*.py text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.xml text eol=lf
+*.prefs text eol=lf
+*.example text eol=lf
+*.save text eol=lf
+*.token text eol=lf
 
 # Declare files that will always have CRLF line endings on checkout.
 #*.sln text eol=crlf
