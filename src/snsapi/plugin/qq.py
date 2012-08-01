@@ -19,9 +19,9 @@ class QQAPI(SNSAPI):
         #you must set self.plaform before invoking read_config()
         if channel:
             self.read_channel(channel)
-        else:
-            #for backward compatibility
-            self.read_config()
+        #else:
+        #    #for backward compatibility
+        #    self.read_config()
             
     def read_channel(self, channel):
         super(QQAPI, self).read_channel(channel) 

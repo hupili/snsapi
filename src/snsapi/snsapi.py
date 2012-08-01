@@ -54,11 +54,13 @@ class SNSAPI(object):
     #build-in fetch_code function: read from console
     def __fetch_code(self):
         print "Please input the whole url from Broswer's address bar:";
-        return raw_input()
+        return self.console_input()
+        #return raw_input()
 
     #build-in request_url function: open default web browser
     def __request_url(self, url):
-        webbrowser.open(url)
+        self.openBrower(url)
+        #webbrowser.open(url)
         #print url
         return
     
@@ -97,6 +99,16 @@ class SNSAPI(object):
         self.token = self.parseCode(url)
         self.token.update(authClient.request_access_token(self.token.code))
         print "Authorized! access token is " + str(self.token)
+    
+    def console_input(self):
+        '''
+        To make oauth2 testable, and more reusable, we use console_input to wrap raw_input.
+        See http://stackoverflow.com/questions/2617057/supply-inputs-to-python-unittests.
+        '''
+        return raw_input()
+    
+    def openBrower(self, url):
+        return webbrowser.open(url)
     
     def parseCode(self, url):
         '''
@@ -165,45 +177,28 @@ class SNSAPI(object):
     
     def read_channel(self, channel):
         self.channel_name = channel['channel_name']
+        self.platform = channel['platform']
         #if channel['auth_info'] :
         if 'auth_info' in channel :
             self.auth_info = snstype.AuthenticationInfo(channel['auth_info'])
 
-    #def read_config(self, fname="snsapi/plugin/conf/config.json"):
-    #The conf folder is moved to the upper layer(same level as 'test.py'). 
-    #It is better handled by application layer, 
-    #for the realization information is only available 
-    #to application developers and users.
-    #def read_config(self, fname="conf/config.json"):
-    #    '''get app_key and app_secret
-    #    You must set self.platform before invoking this funciton.
-    #    This function will change self.app_key and self.app_cecret
-    #    @todo: I'm not sure where config.json should be placed, and how to set it in program
-    #        without worrying about the execute directory .
-    #        and I'm not sure, is it the snsapi layer that should responsible for config file
-    #        or upper layer, so I just made a function setup_app()
-    #    @param fname: the file path and name of config file, which storing the all app info
-    #    @raise NoConfigFile: snsapi/plugin/conf/config.json NOT EXISTS!
-    #    @raise NoPlatformInfo: No platform info found in snsapi/plugin/conf/config.json.
-    #    @raise MissAPPInfo: Forget app_key and app_secret in snsapi/plugin/conf/config.json
-    #    '''
-    #    from os.path import abspath
-    #    fname = abspath(fname)
-    #    try:
-    #        with open(fname, "r") as fp:
-    #            allinfo = json.load(fp)
-    #            for site in allinfo:
-    #                
-    #                if site['platform'] == self.platform:
-    #                    try:
-    #                        self.app_key = site['app_key']
-    #                        self.app_secret = site['app_secret']
-    #                    except KeyError:
-    #                        raise errors.MissAPPInfo
-    #                    return True
-    #            raise errors.NoPlatformInfo
-    #    except IOError:
-    #        raise errors.NoConfigFile
+    #TODO:
+    #    All information is contained in 'channel.json'. 
+    #    There is no need to maintain 'config.json'. 
+    #    This method is a delegate for read_channel(),
+    #    bacause some implementations in test suite depends on it. 
+    #    It's better to be positioned in the container class of all SNSAPIs. 
+    def read_config(self, pathname):
+        try:
+            with open(pathname, "r") as fp:
+                allinfo = json.load(fp)
+                for c in allinfo:
+                    if c['channel_name'] == self.channel_name :
+                        self.read_channel(c)
+                        return
+                raise errors.NoSuchChannel
+        except IOError:
+            raise errors.NoConfigFile
             
     def setup_app(self, app_key, app_secret):
         '''

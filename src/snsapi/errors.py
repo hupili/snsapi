@@ -13,8 +13,10 @@ class ConfigError(SNSError):
         return "SNS configuration error!"
     
 class NoConfigFile(ConfigError):
+    def __init__(self, fname="conf/config.json"):
+        self.fname = fname
     def __str__(self):
-        return "snsapi/plugin/conf/config.json NOT EXISTS!"
+        return self.fname + " NOT EXISTS!"
     
 class NoPlatformInfo(ConfigError):
     def __str__(self):
@@ -30,13 +32,21 @@ class NoSuchPlatform(ConfigError):
     def __str__(self):
         return "No Such Platform. Please check your 'channel.json'."
 
+class NoSuchChannel(ConfigError):
+    def __str__(self):
+        return "No Such Channel. Please check your 'channel.json'. Or do you forget to set snsapi.channel_name before calling read_config()?"
+
 class snsTypeWrongInput(SNSError):
-    def __str__(self, value=""):
-        return "Wrong input for snsType initializing! It must be a dict\n"+str(value)
+    def __init__(self, value=""):
+        self.value = value
+    def __str__(self):
+        return "Wrong input for snsType initializing! It must be a dict\n"+str(self.value)
     
 class snsTypeParseError(SNSError):
-    def __str__(self, _type=""):
-        return "errors when parsing JsonObject for snsType " + _type
+    def __init__(self, value=""):
+        self.value = value
+    def __str__(self):
+        return "errors when parsing JsonObject for snsType " + self.value
 
 class snsAuthFail(SNSError):
     def __str__(self):
