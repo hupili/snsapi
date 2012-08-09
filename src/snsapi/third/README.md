@@ -13,3 +13,5 @@ releases.
 We leave a pointer for each library:
    * 'feedparser.py'. 
    [http://code.google.com/p/feedparser/](http://code.google.com/p/feedparser/)
+   * 'PyRSS2Gen.py'. 
+   [http://www.dalkescientific.com/Python/PyRSS2Gen.html](http://www.dalkescientific.com/Python/PyRSS2Gen.html)
