@@ -27,12 +27,6 @@ class RSSAPI(SNSAPI):
         
         self.platform = "rss"
         self.domain = "null"
-
-        ##just you remind myself they exists
-        #self.app_key = ""
-        #self.app_secret = ""
-        ##you must set self.plaform before invoking read_config()
-        #self.read_config()
         
         if channel: 
             self.read_channel(channel)
@@ -52,10 +46,6 @@ class RSSAPI(SNSAPI):
         @param count: number of statuses
         '''
 
-        #url = 'file:///home/hpl/Desktop/research/snsapi/test/sample-rss/feed1.xml'
-        #url = 'file:///home/hpl/Desktop/research/snsapi/test/sample-rss/feed2.xml'
-        #url = 'file://../test/feed.xml'
-        #url = 'http://jason.diamond.name/weblog/feed/'
         d = feedparser.parse(self.url)
         
         statuslist = []
@@ -88,21 +78,20 @@ class RSSStatus(Status):
             setattr(self, attr, "(null)")
         
     def parse(self, dct):
-        #self.username = dct['author']
-        ##self.created_at = dct['published']
-        ##For RSS, one entry will be brought up if it is updated. 
-        ##We use it as 'created_at' field of SNS stauts. 
-        ##This is for better message deduplicate
-        #self.created_at = dct['updated']
-        #self.title = dct['title']
-        #self.link = dct['link']
 
+        #For RSS, one entry will be brought up if it is updated. 
+        #We use 'update' of RSS as 'created_at' field of SNS stauts. 
+        #This is for better message deduplicate
         self.__get_dict_entry('username', dct, 'author')
         self.__get_dict_entry('created_at', dct, 'updated')
         self.__get_dict_entry('title', dct, 'title')
         self.__get_dict_entry('link', dct, 'link')
 
-        #other plugins have 'text' field
+        #Other plugins' statuses have 'text' field
+        #The RSS channel is supposed to read contents from
+        #different places with different formats. 
+        #The entries are usually page update notifications. 
+        #We format them in a unified way and use this as 'text'. 
         self.text = "Article \"%s\" is updated(published)! (%s)" % (self.title, self.link)
         
     def show(self):

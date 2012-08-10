@@ -65,6 +65,8 @@ class RSS2RWAPI(RSSAPI):
         '''
         Update the RSS2 feeds. 
         The file pointed to by self.url should be writable.
+        Remember to set 'author' and 'entry_timeout' in configurations. 
+        Or the default values are used. 
         @param text: messages to update in a feeds
         '''
 
@@ -75,7 +77,7 @@ class RSS2RWAPI(RSSAPI):
         items = []
 
         #Read and filter existing entries.
-        #Old entries are disgarded to keep the file clean.
+        #Old entries are disgarded to keep the file short and clean.
         d = feedparser.parse(self.url)
         for j in d['items']:
             s = RSS2RWStatus(j)
