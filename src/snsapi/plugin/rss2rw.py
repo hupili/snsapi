@@ -14,8 +14,6 @@ Supported Methods
 
 _entry_class_ = "RSS2RWAPI"
 
-#from ..snsapi import SNSAPI
-#from ..snstype import Status,User
 import datetime
 from rss import RSSAPI, RSSStatus
 from ..third import feedparser
@@ -60,7 +58,7 @@ class RSS2RWAPI(RSSAPI):
         for j in d['items']:
             if len(statuslist) >= count:
                 break
-            statuslist.append(RSSStatus(j))
+            statuslist.append(RSS2RWStatus(j))
         return statuslist
 
     def update(self, text):
@@ -80,7 +78,7 @@ class RSS2RWAPI(RSSAPI):
         #Old entries are disgarded to keep the file clean.
         d = feedparser.parse(self.url)
         for j in d['items']:
-            s = RSSStatus(j)
+            s = RSS2RWStatus(j)
             entry_time = dtparser.parse(s.created_at)
             if (cur_time - entry_time).seconds < self.entry_timeout:
                 items.append( 
@@ -116,3 +114,16 @@ class RSS2RWAPI(RSSAPI):
 
         return True
 
+class RSS2RWStatus(RSSStatus):
+    def parse(self, dct):
+        super(RSS2RWStatus, self).parse(dct)
+
+        #RSS2RW channel is intended for snsapi-standardized communication.
+        #It does not have to digest RSS entry as is in RSSStatus. 
+        #The 'title' field is the place where we put our messages. 
+        self.text = self.title
+        
+    def show(self):
+        print "[%s] at %s \n  %s" \
+            % (self.username.encode('utf-8'), self.created_at.encode('utf-8'), \
+            self.text.encode('utf-8'))
