@@ -52,4 +52,7 @@ class snsAuthFail(SNSError):
     def __str__(self):
         return "Authentication Failed!"
 
+class snsWriteFail(SNSError):
+    def __str__(self):
+        return "This channel is non-writable"
 
