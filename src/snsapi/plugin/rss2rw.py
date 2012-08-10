@@ -30,7 +30,10 @@ class RSS2RWAPI(RSSAPI):
 
         self.platform = "rss2rw"
         self.domain = "null"
+
+        #default parameter for writing RSS2 feeds
         self.author = "snsapi"
+        self.entry_timeout = 3600 #in seconds, default 1 hour
 
         if channel: 
             self.read_channel(channel)
@@ -39,6 +42,8 @@ class RSS2RWAPI(RSSAPI):
         super(RSS2RWAPI, self).read_channel(channel)
         if 'author' in channel:
             self.author = channel['author']
+        if 'entry_timeout' in channel:
+            self.entry_timeout = channel['entry_timeout']
 
     def auth(self):
         print "RSS2RW platform do not need auth!"
@@ -65,23 +70,41 @@ class RSS2RWAPI(RSSAPI):
         @param text: messages to update in a feeds
         '''
 
-        items = [ 
-            PyRSS2Gen.RSSItem(
-                author = "test", 
-                title = "PyRSS2Gen-0.0 released",
-                link = "http://www.dalkescientific.com/news/030906-PyRSS2Gen.html",
-                description = "Dalke Scientific today announced PyRSS2Gen-0.0, "
-                "a library for generating RSS feeds for Python.  ",
-                guid = PyRSS2Gen.Guid("http://www.dalkescientific.com/news/"
-                    "030906-PyRSS2Gen.html"),
-                pubDate = datetime.datetime(2003, 9, 6, 21, 31)),
-            ]  
-        rss = PyRSS2Gen.RSS2(
-            title = "Andrew's PyRSS2Gen feed",
-            link = "http://www.dalkescientific.com/Python/PyRSS2Gen.html",
-            description = "The latest news about PyRSS2Gen, a "
-            "Python library for generating RSS2 feeds",
+        from dateutil import parser as dtparser, tz
 
+        cur_time = datetime.datetime.now(tz.tzlocal())
+
+        items = []
+
+        #Read and filter existing entries.
+        #Old entries are disgarded to keep the file clean.
+        d = feedparser.parse(self.url)
+        for j in d['items']:
+            s = RSSStatus(j)
+            entry_time = dtparser.parse(s.created_at)
+            if (cur_time - entry_time).seconds < self.entry_timeout:
+                items.append( 
+                    PyRSS2Gen.RSSItem(
+                        author = s.username, 
+                        title = s.title, 
+                        description = "snsapi RSS2RW update",
+                        pubDate = entry_time
+                        )
+                    )
+
+        items.insert(0, 
+            PyRSS2Gen.RSSItem(
+                author = self.author, 
+                title = text, 
+                description = "snsapi RSS2RW update",
+                pubDate = cur_time
+                )
+            )
+
+        rss = PyRSS2Gen.RSS2(
+            title = "snsapi, RSS2 R/W Channel",
+            link = "https://github.com/uxian/snsapi",
+            description = "RSS2 R/W channel based on feedparser and PyRSS2Gen",
             lastBuildDate = datetime.datetime.now(),
             items = items
             )
