@@ -57,12 +57,17 @@ def _format_date(dt):
     # Isn't there a standard way to do this for Python?  The
     # rfc822 and email.Utils modules assume a timestamp.  The
     # following is based on the rfc822 module.
-    return "%s, %02d %s %04d %02d:%02d:%02d GMT" % (
+    #hupili:20120810 fix
+    #If datetime has tzname() returned, format the timezone info. 
+    #Not all datetime object is in GMT. 
+    #return "%s, %02d %s %04d %02d:%02d:%02d GMT" % (
+    return "%s, %02d %s %04d %02d:%02d:%02d %s" % (
             ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dt.weekday()],
             dt.day,
             ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][dt.month-1],
-            dt.year, dt.hour, dt.minute, dt.second)
+            #dt.year, dt.hour, dt.minute, dt.second)
+            dt.year, dt.hour, dt.minute, dt.second, dt.tzname())
 
         
 ##
