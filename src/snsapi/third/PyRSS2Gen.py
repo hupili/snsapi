@@ -355,7 +355,7 @@ class RSS2(WriteXmlMixin):
         ttl = self.ttl
         if isinstance(self.ttl, int):
             ttl = IntElement("ttl", ttl)
-        _opt_element(handler, "tt", ttl)
+        _opt_element(handler, "ttl", ttl)
 
         if self.image is not None:
             self.image.publish(handler)
