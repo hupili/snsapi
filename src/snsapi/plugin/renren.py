@@ -4,3 +4,5 @@
 renren client
 '''
 print "renren plugged!"
+
+_entry_class_ = "RenrenAPI"

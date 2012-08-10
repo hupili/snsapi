@@ -13,6 +13,8 @@ Supported Methods
         not write to it.
 '''
 
+_entry_class_ = "RSSAPI"
+
 from ..snsapi import SNSAPI
 from ..snstype import Status,User
 from ..third import feedparser
@@ -34,9 +36,6 @@ class RSSAPI(SNSAPI):
         
         if channel: 
             self.read_channel(channel)
-        else:
-            #for backward compatibility
-            self.read_config()
     
     def read_channel(self, channel):
         self.channel_name = channel['channel_name']
@@ -88,7 +87,6 @@ class RSSStatus(Status):
         except KeyError:
             setattr(self, attr, "(null)")
         
-
     def parse(self, dct):
         #self.username = dct['author']
         ##self.created_at = dct['published']
@@ -108,7 +106,6 @@ class RSSStatus(Status):
         self.text = "Article \"%s\" is updated(published)! (%s)" % (self.title, self.link)
         
     def show(self):
-        print "[%s] at %s \n  Article \"%s\" is updated(published)! (%s)" % (self.username, self.created_at, self.title, self.link)
-        #print "[%s] at %s \n  New article \"%s\" published! (%s)" % (self.username, self.created_at, self.title, self.link)
-        #print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
-        #print "%s" % self.title
+        print "[%s] at %s \n  Article \"%s\" is updated(published)! (%s)" \
+            % (self.username.encode('utf-8'), self.created_at.encode('utf-8'), \
+            self.title.encode('utf-8'), self.link.encode('utf-8'))

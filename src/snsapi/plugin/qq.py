@@ -4,6 +4,8 @@
 QQ micro-blog client
 '''
 
+_entry_class_ = "QQAPI"
+
 from ..snsapi import SNSAPI
 from ..snstype import Status,User
 print "QQ weibo plugged!"

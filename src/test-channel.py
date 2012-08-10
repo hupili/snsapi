@@ -27,15 +27,10 @@ if __name__ == "__main__":
                 print "===channel:%s;open:%s;platform:%s" % \
                         (site['channel_name'],site['open'],site['platform'])
                 if site['open'] == "yes" :
-                    #TODO: the following code seems clumsy
-                    #any way to simplify it? 
-                    #e.g. use the string name to the the corresponding class directly
-                    if site['platform'] == "sina" :
-                        clis.append(snsapi.sina.SinaAPI(site))
-                    elif site['platform'] == "rss":
-                        clis.append(snsapi.rss.RSSAPI(site))
-                    elif site['platform'] == "qq":
-                        clis.append(snsapi.qq.QQAPI(site))
+                    plugin = getattr(snsapi, site['platform'])
+                    mod = getattr(plugin, plugin._entry_class_)
+                    if mod:
+                        clis.append(mod(site))
                     else:
                         raise errors.NoSuchPlatform
     except IOError:

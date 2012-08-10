@@ -4,6 +4,8 @@
 SINA micro-blog client
 '''
 
+_entry_class_ = "SinaAPI"
+
 from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
