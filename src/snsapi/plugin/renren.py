@@ -38,56 +38,12 @@ RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_SESSION_KEY_URI = "http://graph.renren.com/renren_api/session_key"
 RENREN_API_SERVER = "http://api.renren.com/restserver.do"
 
-class RenRenAPIClient(object):
-    def __init__(self, session_key = None, api_key = None, secret_key = None):
-        self.session_key = session_key
-        self.api_key = api_key
-        self.secret_key = secret_key
+#class RenRenAPIClient(object):
+#    def __init__(self, session_key = None, api_key = None, secret_key = None):
+#        self.session_key = session_key
+#        self.api_key = api_key
+#        self.secret_key = secret_key
 
-    def request(self, params = None):
-        """Fetches the given method's response returning from RenRen API.
-
-        Send a POST request to the given method with the given params.
-        """
-        params["api_key"] = self.api_key
-        params["call_id"] = str(int(time.time() * 1000))
-        params["format"] = "json"
-        params["session_key"] = self.session_key
-        params["v"] = '1.0'
-        sig = self.hash_params(params);
-        params["sig"] = sig
-        
-        post_data = None if params is None else urllib.urlencode(params)
-        
-        file = urllib.urlopen(RENREN_API_SERVER, post_data)
-        
-        try:
-            s = file.read()
-            #logging.info("api response is: " + s)
-            response = _parse_json(s)
-        finally:
-            file.close()
-
-        #print "api response is: %s" % response
-        if type(response) is not list and "error_code" in response:
-            print response["error_msg"]
-            raise RenRenAPIError(response["error_code"], response["error_msg"])
-        return response
-
-    def hash_params(self, params = None):
-        hasher = hashlib.md5("".join(["%s=%s" % (self.unicode_encode(x), self.unicode_encode(params[x])) for x in sorted(params.keys())]))
-        hasher.update(self.secret_key)
-        return hasher.hexdigest()
-    def unicode_encode(self, str):
-        """
-        Detect if a string is unicode and encode as utf-8 if necessary
-        """
-        return isinstance(str, unicode) and str.encode('utf-8') or str
-    
-class RenRenAPIError(Exception):
-    def __init__(self, code, message):
-        Exception.__init__(self, message)
-        self.code = code
 
 class RenrenAPI(SNSAPI):
     def __init__(self, channel = None):
@@ -157,15 +113,58 @@ class RenrenAPI(SNSAPI):
         #self.token.expires_in = self.token.expires_in + time.time()
         self.save_token()
         print "Authorized! access token is " + str(self.token)
-        
-    def read_status(self, atoken):
-        session_key_request_args = {"oauth_token": atoken}
+
+    def renren_request(self, params = None):
+        """Fetches the given method's response returning from RenRen API.
+
+        Send a POST request to the given method with the given params.
+        """
+
+        #request a session key
+        session_key_request_args = {"oauth_token": self.token.access_token}
         response = urllib.urlopen(RENREN_SESSION_KEY_URI + "?" + urllib.urlencode(session_key_request_args)).read()
         session_key = str(_parse_json(response)["renren_token"]["session_key"])
+
+        #system parameters fill-in
+        params["api_key"] = self.app_key
+        params["call_id"] = str(int(time.time() * 1000))
+        params["format"] = "json"
+        params["session_key"] = session_key
+        params["v"] = '1.0'
+        sig = self.hash_params(params);
+        params["sig"] = sig
+        
+        post_data = None if params is None else urllib.urlencode(params)
+        
+        file = urllib.urlopen(RENREN_API_SERVER, post_data)
+        
+        try:
+            s = file.read()
+            response = _parse_json(s)
+        finally:
+            file.close()
+
+        if type(response) is not list and "error_code" in response:
+            print response["error_msg"]
+            raise errors.RenRenAPIError(response["error_code"], response["error_msg"])
+        return response
+
+    def hash_params(self, params = None):
+        hasher = hashlib.md5("".join(["%s=%s" % (self.unicode_encode(x), self.unicode_encode(params[x])) for x in sorted(params.keys())]))
+        hasher.update(self.app_secret)
+        return hasher.hexdigest()
+    def unicode_encode(self, str):
+        """
+        Detect if a string is unicode and encode as utf-8 if necessary
+        """
+        return isinstance(str, unicode) and str.encode('utf-8') or str
+        
+    def read_status(self, atoken):
         api_params = dict(method = "status.gets", page = 1, count = 20)
-        api_client = RenRenAPIClient(session_key, self.app_key, self.app_secret)
-        response = api_client.request(api_params)
+        #api_client = RenRenAPIClient(session_key, self.app_key, self.app_secret)
+        #response = api_client.request(api_params)
         #print _parse_json(response)
+        response = self.renren_request(api_params)
         return response
 
     def home_timeline(self, count=20):
@@ -200,7 +199,7 @@ class RenrenAPI(SNSAPI):
         
 class RenrenStatus(Status):
     def parse(self, dct):
-        print dct
+        #print dct
         #TODO:
         #    is this the status_id or user_id in original snsapi design? 
         self.id = dct["status_id"]
