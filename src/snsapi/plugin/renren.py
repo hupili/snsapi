@@ -95,8 +95,7 @@ class RenRenAPIClient(object):
         finally:
             file.close()
 
-        print "api response is: %s" % response
-
+        #print "api response is: %s" % response
         if type(response) is not list and "error_code" in response:
             print response["error_msg"]
             raise RenRenAPIError(response["error_code"], response["error_msg"])
@@ -117,14 +116,14 @@ class RenRenAPIError(Exception):
         Exception.__init__(self, message)
         self.code = code
 
-def read_status(atoken):
-    session_key_request_args = {"oauth_token": atoken}
-    response = urllib.urlopen(RENREN_SESSION_KEY_URI + "?" + urllib.urlencode(session_key_request_args)).read()
-    session_key = str(_parse_json(response)["renren_token"]["session_key"])
-    api_params = dict(method = "status.gets", page = 1, count = 20)
-    api_client = RenRenAPIClient(session_key, RENREN_APP_API_KEY, RENREN_APP_SECRET_KEY)
-    response = api_client.request(api_params)
-    print response
+#def read_status(atoken):
+#    session_key_request_args = {"oauth_token": atoken}
+#    response = urllib.urlopen(RENREN_SESSION_KEY_URI + "?" + urllib.urlencode(session_key_request_args)).read()
+#    session_key = str(_parse_json(response)["renren_token"]["session_key"])
+#    api_params = dict(method = "status.gets", page = 1, count = 20)
+#    api_client = RenRenAPIClient(session_key, RENREN_APP_API_KEY, RENREN_APP_SECRET_KEY)
+#    response = api_client.request(api_params)
+#    print response
 
 class RenrenAPI(SNSAPI):
     def __init__(self, channel = None):
@@ -174,23 +173,32 @@ class RenrenAPI(SNSAPI):
         #auth_url = "https://api.weibo.com/oauth2/"
         #self.oauth2(auth_url, self.auth_info.callback_url)
         
+    def read_status(self, atoken):
+        session_key_request_args = {"oauth_token": atoken}
+        response = urllib.urlopen(RENREN_SESSION_KEY_URI + "?" + urllib.urlencode(session_key_request_args)).read()
+        session_key = str(_parse_json(response)["renren_token"]["session_key"])
+        api_params = dict(method = "status.gets", page = 1, count = 20)
+        api_client = RenRenAPIClient(session_key, self.app_key, self.app_secret)
+        response = api_client.request(api_params)
+        #print _parse_json(response)
+        return response
+
     def home_timeline(self, count=20):
         '''Get home timeline
         get statuses of yours and your friends'
         @param count: number of statuses
         '''
 
-        #read_status(self.token.access_token)
+        jsonlist = self.read_status(self.token.access_token)
         #read_status(self.access_token)
-        return
+        #return
         
-        jsondict = self._http_get(url, params)
-        
-        if("error" in  jsondict):
-            return [Error(jsondict),]
+        #jsondict = self._http_get(url, params)
+        #if("error" in  jsondict):
+        #    return [Error(jsondict),]
         
         statuslist = []
-        for j in jsondict['statuses']:
+        for j in jsonlist:
             statuslist.append(RenrenStatus(j))
         return statuslist
 
@@ -213,12 +221,19 @@ class RenrenAPI(SNSAPI):
         
 class RenrenStatus(Status):
     def parse(self, dct):
-        self.id = dct["id"]
-        self.created_at = dct["created_at"]
-        self.text = dct['text']
-        self.reposts_count = dct['reposts_count']
-        self.comments_count = dct['comments_count']
-        self.username = dct['user']['name']
+        print dct
+        #TODO:
+        #    is this the status_id or user_id in original snsapi design? 
+        self.id = dct["status_id"]
+        self.created_at = dct["time"]
+        if 'root_message' in dct:
+            self.text = dct['root_message']
+        else:
+            self.text = dct['message']
+        self.reposts_count = dct['forward_count']
+        self.comments_count = dct['comment_count']
+        #self.username = dct['source_name']
+        self.username = dct['uid']
         self.usernick = ""
         
     def show(self):
