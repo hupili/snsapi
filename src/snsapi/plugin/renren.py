@@ -31,46 +31,19 @@ except ImportError:
 
 _entry_class_ = "RenrenAPI"
 
-g_scope = "read_user_status"
-g_redirect_uri = ""
-
-RENREN_APP_API_KEY = ""
-RENREN_APP_SECRET_KEY = ""
-
+# Inteface URLs.
+# This differs from other platforms
 RENREN_AUTHORIZATION_URI = "http://graph.renren.com/oauth/authorize"
 RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_SESSION_KEY_URI = "http://graph.renren.com/renren_api/session_key"
 RENREN_API_SERVER = "http://api.renren.com/restserver.do"
-
-def request():
-    args = dict(client_id=RENREN_APP_API_KEY, redirect_uri = g_redirect_uri)
-    args["response_type"] = "code"
-    args["scope"] = g_scope
-    args["state"] = "1 23 abc&?|."
-    url = RENREN_AUTHORIZATION_URI + "?" + urllib.urlencode(args)
-    print url
-    webbrowser.open(url)
-
-def auth(code = None):
-    if code is None :
-        code = raw_input()
-    args = dict(client_id=RENREN_APP_API_KEY, redirect_uri=g_redirect_uri)
-    scope = g_scope
-    scope_array = str(scope).split("[\\s,+]")
-    args["client_secret"] = RENREN_APP_SECRET_KEY
-    args["code"] = code
-    args["grant_type"] = "authorization_code"
-    response = urllib.urlopen(RENREN_ACCESS_TOKEN_URI + "?" + urllib.urlencode(args)).read()
-    print response
-    #access_token = _parse_json(response)["access_token"]
-    #return access_token
-    return _parse_json(response)
 
 class RenRenAPIClient(object):
     def __init__(self, session_key = None, api_key = None, secret_key = None):
         self.session_key = session_key
         self.api_key = api_key
         self.secret_key = secret_key
+
     def request(self, params = None):
         """Fetches the given method's response returning from RenRen API.
 
@@ -135,21 +108,37 @@ class RenrenAPI(SNSAPI):
         self.app_key = channel['app_key']
         self.app_secret = channel['app_secret']
         
+    def auth_first(self):
+        args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)
+        args["response_type"] = "code"
+        args["scope"] = "read_user_status"
+        #args["state"] = "1 23 abc&?|."
+        args["state"] = "snsapi! Stand up, Geeks! Step on the head of those evil platforms!"
+        url = RENREN_AUTHORIZATION_URI + "?" + urllib.urlencode(args)
+        print url
+        webbrowser.open(url)
+
+    def auth_second(self, code = None):
+        if code is None :
+            code = raw_input()
+        args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)
+        args["client_secret"] = self.app_secret
+        args["code"] = code
+        args["grant_type"] = "authorization_code"
+        response = urllib.urlopen(RENREN_ACCESS_TOKEN_URI + "?" + urllib.urlencode(args)).read()
+        print response
+        #access_token = _parse_json(response)["access_token"]
+        #return access_token
+        return _parse_json(response)
+
     def auth(self):
         if self.get_saved_token():
             print "Using a saved access_token!"
             return
-        global RENREN_APP_API_KEY
-        global RENREN_APP_SECRET_KEY
-        global g_redirect_uri
-        g_redirect_uri = self.auth_info.callback_url
-        RENREN_APP_API_KEY = self.app_key
-        RENREN_APP_SECRET_KEY = self.app_secret
-        request()
-        #self.access_token = auth()
+        self.auth_first()
         url = raw_input()
         self.token = self.parseCode(url)
-        self.token.update(auth(self.token.code))
+        self.token.update(self.auth_second(self.token.code))
         self.token.expires_in = self.token.expires_in + time.time()
         self.save_token()
         print "Authorized! access token is " + str(self.token)
