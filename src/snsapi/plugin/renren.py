@@ -5,8 +5,14 @@ renren client
 '''
 print "renren plugged!"
 
+from ..snsapi import SNSAPI
+from ..snstype import Status,User,Error
+from .. import errors
+
+#used by auth method
 import urllib
 import webbrowser
+#used by RenrenAPIClient
 import time
 import hashlib
 
@@ -25,7 +31,8 @@ except ImportError:
 _entry_class_ = "RenrenAPI"
 
 g_scope = "read_user_status"
-g_redirect_uri = "http://graph.renren.com/oauth/login_success.html"
+#g_redirect_uri = "http://graph.renren.com/oauth/login_success.html"
+g_redirect_uri = ""
 
 #global RENREN_APP_API_KEY
 #global RENREN_APP_SECRET_KEY
@@ -129,9 +136,103 @@ def read_conf():
             RENREN_APP_API_KEY = c['app_key']
             RENREN_APP_SECRET_KEY = c['app_secret']
 
-if __name__ == "__main__":
-    read_conf()
-    request()
-    atoken = auth()
-    print atoken
-    read_status(atoken)
+class RenrenAPI(SNSAPI):
+    def __init__(self, channel = None):
+        super(RenrenAPI, self).__init__()
+        
+        self.platform = "renren"
+        self.domain = "graph.renren.com"
+        self.app_key = ""
+        self.app_secret = ""
+        self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
+        if channel:
+            self.read_channel(channel)
+
+    def read_channel(self, channel):
+        super(RenrenAPI, self).read_channel(channel) 
+
+        self.channel_name = channel['channel_name']
+        self.app_key = channel['app_key']
+        self.app_secret = channel['app_secret']
+        
+    def auth(self):
+        global RENREN_APP_API_KEY
+        global RENREN_APP_SECRET_KEY
+        global g_redirect_uri
+        g_redirect_uri = self.auth_info.callback_url
+        RENREN_APP_API_KEY = self.app_key
+        RENREN_APP_SECRET_KEY = self.app_secret
+        request()
+        self.access_token = auth()
+        #if self.get_saved_token():
+        #    print "Using a saved access_token!"
+        #    return
+        #auth_url = "https://api.weibo.com/oauth2/"
+        #self.oauth2(auth_url, self.auth_info.callback_url)
+        #self.save_token()
+        
+    def home_timeline(self, count=20):
+        '''Get home timeline
+        get statuses of yours and your friends'
+        @param count: number of statuses
+        '''
+        #url = "https://api.weibo.com/2/statuses/home_timeline.json"
+        #params = {}
+        #params['count'] = count
+        #params['access_token'] = self.token.access_token
+
+        #read_status(self.token.access_token)
+        read_status(self.access_token)
+        return
+        
+        jsondict = self._http_get(url, params)
+        
+        if("error" in  jsondict):
+            return [Error(jsondict),]
+        
+        statuslist = []
+        for j in jsondict['statuses']:
+            statuslist.append(RenrenStatus(j))
+        return statuslist
+
+    def update(self, text):
+        '''update a status
+        @param text: the update message
+        @return: success or not
+        '''
+        url = "https://api.weibo.com/2/statuses/update.json"
+        params = {}
+        params['status'] = text
+        params['access_token'] = self.token.access_token
+        
+        ret = self._http_post(url, params)
+        try:
+            status = SinaStatus(ret)
+            return True
+        except:
+            return False
+        
+class RenrenStatus(Status):
+    def parse(self, dct):
+        self.id = dct["id"]
+        self.created_at = dct["created_at"]
+        self.text = dct['text']
+        self.reposts_count = dct['reposts_count']
+        self.comments_count = dct['comments_count']
+        self.username = dct['user']['name']
+        self.usernick = ""
+        
+    def show(self):
+        print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
+
+#if __name__ == "__main__":
+#    for c in conf:
+#        if c['platform'] == 'renren':
+#            rapi = RenrenAPI(c)
+#    rapi.auth()
+#    rapi.home_timeline()
+#    #read_conf()
+#    #request()
+#    #atoken = auth()
+#    #print atoken
+#    #read_status(atoken)
