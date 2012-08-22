@@ -38,12 +38,6 @@ RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_SESSION_KEY_URI = "http://graph.renren.com/renren_api/session_key"
 RENREN_API_SERVER = "http://api.renren.com/restserver.do"
 
-#class RenRenAPIClient(object):
-#    def __init__(self, session_key = None, api_key = None, secret_key = None):
-#        self.session_key = session_key
-#        self.api_key = api_key
-#        self.secret_key = secret_key
-
 
 class RenrenAPI(SNSAPI):
     def __init__(self, channel = None):
@@ -68,37 +62,25 @@ class RenrenAPI(SNSAPI):
         args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)
         args["response_type"] = "code"
         args["scope"] = "read_user_status"
-        #args["state"] = "1 23 abc&?|."
         args["state"] = "snsapi! Stand up, Geeks! Step on the head of those evil platforms!"
         url = RENREN_AUTHORIZATION_URI + "?" + urllib.urlencode(args)
         self.request_url(url)
-        #print url
-        #webbrowser.open(url)
 
-    #def auth_second(self, code = None):
     def auth_second(self):
-        #if code is None :
-        #    code = raw_input()
         #TODO:
         #    The name 'fetch_code' is not self-explained.
         #    It actually fetches the authenticated callback_url.
         #    Code is parsed from this url. 
         url = self.fetch_code()
-        #print "==="
-        #print url
-        #print "==="
         self.token = self.parseCode(url)
         args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)
         args["client_secret"] = self.app_secret
         args["code"] = self.token.code
         args["grant_type"] = "authorization_code"
         response = urllib.urlopen(RENREN_ACCESS_TOKEN_URI + "?" + urllib.urlencode(args)).read()
-        print response
-        #access_token = _parse_json(response)["access_token"]
-        #return access_token
+        #print response
         self.token.update(_parse_json(response))
         self.token.expires_in = self.token.expires_in + time.time()
-        #return _parse_json(response)
 
     def auth(self):
         if self.get_saved_token():
@@ -106,11 +88,6 @@ class RenrenAPI(SNSAPI):
             return
         self.auth_first()
         self.auth_second()
-        #url = raw_input()
-        #self.token = self.parseCode(url)
-        #self.token.update(self.auth_second(self.token.code))
-        #self.token.update(self.auth_second())
-        #self.token.expires_in = self.token.expires_in + time.time()
         self.save_token()
         print "Authorized! access token is " + str(self.token)
 
@@ -131,7 +108,7 @@ class RenrenAPI(SNSAPI):
         params["format"] = "json"
         params["session_key"] = session_key
         params["v"] = '1.0'
-        sig = self.hash_params(params);
+        sig = self.__hash_params(params);
         params["sig"] = sig
         
         post_data = None if params is None else urllib.urlencode(params)
@@ -149,31 +126,25 @@ class RenrenAPI(SNSAPI):
             raise errors.RenRenAPIError(response["error_code"], response["error_msg"])
         return response
 
-    def hash_params(self, params = None):
-        hasher = hashlib.md5("".join(["%s=%s" % (self.unicode_encode(x), self.unicode_encode(params[x])) for x in sorted(params.keys())]))
+    def __hash_params(self, params = None):
+        hasher = hashlib.md5("".join(["%s=%s" % (self.__unicode_encode(x), self.__unicode_encode(params[x])) for x in sorted(params.keys())]))
         hasher.update(self.app_secret)
         return hasher.hexdigest()
-    def unicode_encode(self, str):
+
+    def __unicode_encode(self, str):
         """
         Detect if a string is unicode and encode as utf-8 if necessary
         """
         return isinstance(str, unicode) and str.encode('utf-8') or str
         
-    def read_status(self, atoken):
-        api_params = dict(method = "status.gets", page = 1, count = 20)
-        #api_client = RenRenAPIClient(session_key, self.app_key, self.app_secret)
-        #response = api_client.request(api_params)
-        #print _parse_json(response)
-        response = self.renren_request(api_params)
-        return response
-
     def home_timeline(self, count=20):
         '''Get home timeline
         get statuses of yours and your friends'
         @param count: number of statuses
         '''
 
-        jsonlist = self.read_status(self.token.access_token)
+        api_params = dict(method = "status.gets", page = 1, count = 20)
+        jsonlist = self.renren_request(api_params)
         
         statuslist = []
         for j in jsonlist:
@@ -199,7 +170,6 @@ class RenrenAPI(SNSAPI):
         
 class RenrenStatus(Status):
     def parse(self, dct):
-        #print dct
         #TODO:
         #    is this the status_id or user_id in original snsapi design? 
         self.id = dct["status_id"]
