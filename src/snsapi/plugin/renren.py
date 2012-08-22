@@ -116,15 +116,6 @@ class RenRenAPIError(Exception):
         Exception.__init__(self, message)
         self.code = code
 
-#def read_status(atoken):
-#    session_key_request_args = {"oauth_token": atoken}
-#    response = urllib.urlopen(RENREN_SESSION_KEY_URI + "?" + urllib.urlencode(session_key_request_args)).read()
-#    session_key = str(_parse_json(response)["renren_token"]["session_key"])
-#    api_params = dict(method = "status.gets", page = 1, count = 20)
-#    api_client = RenRenAPIClient(session_key, RENREN_APP_API_KEY, RENREN_APP_SECRET_KEY)
-#    response = api_client.request(api_params)
-#    print response
-
 class RenrenAPI(SNSAPI):
     def __init__(self, channel = None):
         super(RenrenAPI, self).__init__()
@@ -157,21 +148,11 @@ class RenrenAPI(SNSAPI):
         request()
         #self.access_token = auth()
         url = raw_input()
-        #authClient = oauth.APIClient(self.app_key, self.app_secret, self.auth_info.callback_url, auth_url=RENREN_ACCESS_TOKEN_URI)
         self.token = self.parseCode(url)
-        print url
-        print self.token
-        #self.token.update(authClient.request_access_token(self.token.code))
         self.token.update(auth(self.token.code))
-        #self.token.access_token = auth(self.token.code)
         self.token.expires_in = self.token.expires_in + time.time()
         self.save_token()
         print "Authorized! access token is " + str(self.token)
-        #if self.get_saved_token():
-        #    print "Using a saved access_token!"
-        #    return
-        #auth_url = "https://api.weibo.com/oauth2/"
-        #self.oauth2(auth_url, self.auth_info.callback_url)
         
     def read_status(self, atoken):
         session_key_request_args = {"oauth_token": atoken}
@@ -190,12 +171,6 @@ class RenrenAPI(SNSAPI):
         '''
 
         jsonlist = self.read_status(self.token.access_token)
-        #read_status(self.access_token)
-        #return
-        
-        #jsondict = self._http_get(url, params)
-        #if("error" in  jsondict):
-        #    return [Error(jsondict),]
         
         statuslist = []
         for j in jsonlist:
