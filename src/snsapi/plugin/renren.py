@@ -31,11 +31,8 @@ except ImportError:
 _entry_class_ = "RenrenAPI"
 
 g_scope = "read_user_status"
-#g_redirect_uri = "http://graph.renren.com/oauth/login_success.html"
 g_redirect_uri = ""
 
-#global RENREN_APP_API_KEY
-#global RENREN_APP_SECRET_KEY
 RENREN_APP_API_KEY = ""
 RENREN_APP_SECRET_KEY = ""
 
@@ -127,15 +124,6 @@ def read_status(atoken):
     response = api_client.request(api_params)
     print response
 
-def read_conf():
-    global RENREN_APP_API_KEY
-    global RENREN_APP_SECRET_KEY
-    conf = json.load(open('../../conf/channel.json'))
-    for c in conf:
-        if c['platform'] == 'renren':
-            RENREN_APP_API_KEY = c['app_key']
-            RENREN_APP_SECRET_KEY = c['app_secret']
-
 class RenrenAPI(SNSAPI):
     def __init__(self, channel = None):
         super(RenrenAPI, self).__init__()
@@ -176,10 +164,6 @@ class RenrenAPI(SNSAPI):
         get statuses of yours and your friends'
         @param count: number of statuses
         '''
-        #url = "https://api.weibo.com/2/statuses/home_timeline.json"
-        #params = {}
-        #params['count'] = count
-        #params['access_token'] = self.token.access_token
 
         #read_status(self.token.access_token)
         read_status(self.access_token)
@@ -224,15 +208,3 @@ class RenrenStatus(Status):
         
     def show(self):
         print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
-
-#if __name__ == "__main__":
-#    for c in conf:
-#        if c['platform'] == 'renren':
-#            rapi = RenrenAPI(c)
-#    rapi.auth()
-#    rapi.home_timeline()
-#    #read_conf()
-#    #request()
-#    #atoken = auth()
-#    #print atoken
-#    #read_status(atoken)
