@@ -143,7 +143,8 @@ class RenrenAPI(SNSAPI):
         @param count: number of statuses
         '''
 
-        api_params = dict(method = "status.gets", page = 1, count = 20)
+        #api_params = dict(method = "status.gets", page = 1, count = 20)
+        api_params = dict(method = "feed.get", type = 10, page = 1, count = count)
         jsonlist = self.renren_request(api_params)
         
         statuslist = []
@@ -168,10 +169,33 @@ class RenrenAPI(SNSAPI):
         except:
             return False
         
+#TODO: 
+#    "Status" is not an abstract enough word. 
+#    Suggested to change it to "Message". 
+#    There are many types of messages on renren. 
+#    There are even many types for new feeds alone. 
+#    Ref: http://wiki.dev.renren.com/wiki/Type%E5%88%97%E8%A1%A8
 class RenrenStatus(Status):
     def parse(self, dct):
-        #TODO:
-        #    is this the status_id or user_id in original snsapi design? 
+        self._parse_feed_status(dct)
+
+    def _parse_feed_status(self, dct):
+        #print json.dumps(dct)
+        #By trial, it seems:
+        #   * 'post_id' : the id of news feeds
+        #   * 'source_id' : the id of status
+        #     equal to 'status_id' returned by 
+        #     'status.get' interface
+        #self.id = dct["post_id"]
+        self.id = dct["source_id"]
+        self.created_at = dct["update_time"]
+        self.text = dct['message']
+        self.reposts_count = 'N/A'
+        self.comments_count = dct['comments']['count']
+        self.username = dct['name']
+        self.usernick = ""
+
+    def _parse_status(self, dct):
         self.id = dct["status_id"]
         self.created_at = dct["time"]
         if 'root_message' in dct:
@@ -180,7 +204,6 @@ class RenrenStatus(Status):
             self.text = dct['message']
         self.reposts_count = dct['forward_count']
         self.comments_count = dct['comment_count']
-        #self.username = dct['source_name']
         self.username = dct['uid']
         self.usernick = ""
         
