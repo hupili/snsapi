@@ -32,24 +32,32 @@ class SNSAPI(object):
         self.__fetch_code_max_try = 30
 
     def fetch_code(self):
-        cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
-        print cmd
-        ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
-        tries = 1 
-        while ret == "(null)" :
-            tries += 1
-            if tries > self.__fetch_code_max_try :
-                break
-            time.sleep(self.__fetch_code_timeout)
-            ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
-        return ret
+        if self.auth_info.cmd_fetch_code == "(built-in)" :
+            url = self.__fetch_code()
+            return url
+        else :
+            #url = self.fetch_code() 
+            cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
+            print cmd
+            ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
+            tries = 1 
+            while ret == "(null)" :
+                tries += 1
+                if tries > self.__fetch_code_max_try :
+                    break
+                time.sleep(self.__fetch_code_timeout)
+                ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
+            return ret
 
     def request_url(self, url):
-        self.__last_request_time = time.time()
-        cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
-        print cmd
-        print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
-        return
+        if self.auth_info.cmd_request_url == "(built-in)" :
+            self.__request_url(url)
+        else :
+            self.__last_request_time = time.time()
+            cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
+            print cmd
+            print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
+            return
 
     #build-in fetch_code function: read from console
     def __fetch_code(self):
@@ -77,25 +85,15 @@ class SNSAPI(object):
         '''
         authClient = oauth.APIClient(self.app_key, self.app_secret, callback_url, auth_url=auth_url)
         url = authClient.get_authorize_url()
-        #TODO: upgrade mark1
-        #      configurable to a cmd to send request
-        if self.auth_info.cmd_request_url == "(built-in)" :
-            self.__request_url(url)
-        else :
-            self.request_url(url)
+
+
+        self.request_url(url)
         
         #Wait for input
-        #TODO: upgrade mark2
-        #      configurable to a cmd to fetch url
-        if self.auth_info.cmd_fetch_code == "(built-in)" :
-            url = self.__fetch_code()
-        else :
-            url = self.fetch_code() 
+        url = self.fetch_code()
 
         if url == "(null)" :
             raise errors.snsAuthFail
-        #print url
-        #url = raw_input()
         self.token = self.parseCode(url)
         self.token.update(authClient.request_access_token(self.token.code))
         print "Authorized! access token is " + str(self.token)
@@ -170,6 +168,11 @@ class SNSAPI(object):
         if token == None:
             token = self.token
             
+        print "==="
+        print token.expires_in 
+        print time.time()
+        print "==="
+
         if token.expires_in < time.time():
             return True
         else:

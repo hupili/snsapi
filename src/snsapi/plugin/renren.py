@@ -115,31 +115,46 @@ class RenrenAPI(SNSAPI):
         #args["state"] = "1 23 abc&?|."
         args["state"] = "snsapi! Stand up, Geeks! Step on the head of those evil platforms!"
         url = RENREN_AUTHORIZATION_URI + "?" + urllib.urlencode(args)
-        print url
-        webbrowser.open(url)
+        self.request_url(url)
+        #print url
+        #webbrowser.open(url)
 
-    def auth_second(self, code = None):
-        if code is None :
-            code = raw_input()
+    #def auth_second(self, code = None):
+    def auth_second(self):
+        #if code is None :
+        #    code = raw_input()
+        #TODO:
+        #    The name 'fetch_code' is not self-explained.
+        #    It actually fetches the authenticated callback_url.
+        #    Code is parsed from this url. 
+        url = self.fetch_code()
+        #print "==="
+        #print url
+        #print "==="
+        self.token = self.parseCode(url)
         args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)
         args["client_secret"] = self.app_secret
-        args["code"] = code
+        args["code"] = self.token.code
         args["grant_type"] = "authorization_code"
         response = urllib.urlopen(RENREN_ACCESS_TOKEN_URI + "?" + urllib.urlencode(args)).read()
         print response
         #access_token = _parse_json(response)["access_token"]
         #return access_token
-        return _parse_json(response)
+        self.token.update(_parse_json(response))
+        self.token.expires_in = self.token.expires_in + time.time()
+        #return _parse_json(response)
 
     def auth(self):
         if self.get_saved_token():
             print "Using a saved access_token!"
             return
         self.auth_first()
-        url = raw_input()
-        self.token = self.parseCode(url)
-        self.token.update(self.auth_second(self.token.code))
-        self.token.expires_in = self.token.expires_in + time.time()
+        self.auth_second()
+        #url = raw_input()
+        #self.token = self.parseCode(url)
+        #self.token.update(self.auth_second(self.token.code))
+        #self.token.update(self.auth_second())
+        #self.token.expires_in = self.token.expires_in + time.time()
         self.save_token()
         print "Authorized! access token is " + str(self.token)
         
