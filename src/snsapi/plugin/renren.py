@@ -5,6 +5,7 @@ renren client
 '''
 print "renren plugged!"
 
+from ..snsapi import oauth
 from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
@@ -61,8 +62,9 @@ def auth(code = None):
     args["grant_type"] = "authorization_code"
     response = urllib.urlopen(RENREN_ACCESS_TOKEN_URI + "?" + urllib.urlencode(args)).read()
     print response
-    access_token = _parse_json(response)["access_token"]
-    return access_token
+    #access_token = _parse_json(response)["access_token"]
+    #return access_token
+    return _parse_json(response)
 
 class RenRenAPIClient(object):
     def __init__(self, session_key = None, api_key = None, secret_key = None):
@@ -144,6 +146,9 @@ class RenrenAPI(SNSAPI):
         self.app_secret = channel['app_secret']
         
     def auth(self):
+        if self.get_saved_token():
+            print "Using a saved access_token!"
+            return
         global RENREN_APP_API_KEY
         global RENREN_APP_SECRET_KEY
         global g_redirect_uri
@@ -151,13 +156,23 @@ class RenrenAPI(SNSAPI):
         RENREN_APP_API_KEY = self.app_key
         RENREN_APP_SECRET_KEY = self.app_secret
         request()
-        self.access_token = auth()
+        #self.access_token = auth()
+        url = raw_input()
+        #authClient = oauth.APIClient(self.app_key, self.app_secret, self.auth_info.callback_url, auth_url=RENREN_ACCESS_TOKEN_URI)
+        self.token = self.parseCode(url)
+        print url
+        print self.token
+        #self.token.update(authClient.request_access_token(self.token.code))
+        self.token.update(auth(self.token.code))
+        #self.token.access_token = auth(self.token.code)
+        self.token.expires_in = self.token.expires_in + time.time()
+        self.save_token()
+        print "Authorized! access token is " + str(self.token)
         #if self.get_saved_token():
         #    print "Using a saved access_token!"
         #    return
         #auth_url = "https://api.weibo.com/oauth2/"
         #self.oauth2(auth_url, self.auth_info.callback_url)
-        #self.save_token()
         
     def home_timeline(self, count=20):
         '''Get home timeline
@@ -166,7 +181,7 @@ class RenrenAPI(SNSAPI):
         '''
 
         #read_status(self.token.access_token)
-        read_status(self.access_token)
+        #read_status(self.access_token)
         return
         
         jsondict = self._http_get(url, params)
