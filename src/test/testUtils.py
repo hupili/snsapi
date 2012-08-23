@@ -5,21 +5,25 @@ Utilities for test
 '''
 import json
     
-def get_config_path():
+def get_config_paths():
     '''
     How to get the path of config.json in test directory, Use this. 
     '''
     import os.path
-    #make the pathname of config.json
-    #pathname = os.path.abspath("conf/config.json")
+    paths = {}
     pathname = os.path.abspath("conf/channel.json")
     pathname = pathname.replace('test/', "")
     pathname = pathname.replace('test\\', "")
-    return pathname
+    paths['channel'] = pathname
+    pathname = os.path.abspath("conf/snsapi.json")
+    pathname = pathname.replace('test/', "")
+    pathname = pathname.replace('test\\', "")
+    paths['snsapi'] = pathname
+    return paths
 
 def get_channel(platform):
-    path = get_config_path()
-    with open(path) as fp:
+    paths = get_config_paths()
+    with open(paths['channel']) as fp:
         channel = json.load(fp)
         
     for site in channel:
