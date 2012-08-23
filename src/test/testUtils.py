@@ -26,9 +26,25 @@ def get_channel(platform):
         if site['platform'] == platform:
             return site
         
-    return None
+    raise TestInitNoSuchPlatform(platform)
 
 def clean_saved_token():
     import os,glob
     for f in glob.glob('*.token.save'):
         os.remove(f)
+
+class TestInitError(Exception):
+    """docstring for TestInitError"""
+    def __init__(self):
+        super(TestInitError, self).__init__()
+    def __str__(self):
+        print "Test init error. You may want to check your configs."
+
+class TestInitNoSuchPlatform(TestInitError):
+    def __init__(self, platform = None):
+        self.platform = platform
+    def __str__(self):
+        if self.platform is not None:
+            print "Test init error -- No such platform : %s. " \
+            "Please check your channel.json config. " % self.platform
+        

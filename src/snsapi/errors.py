@@ -55,4 +55,9 @@ class snsAuthFail(SNSError):
 class snsWriteFail(SNSError):
     def __str__(self):
         return "This channel is non-writable"
+    
+class RenRenAPIError(SNSError):
+    def __init__(self, code, message):
+        Exception.__init__(self, message)
+        self.code = code
 
