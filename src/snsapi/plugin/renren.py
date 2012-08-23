@@ -127,6 +127,7 @@ class RenrenAPI(SNSAPI):
             file.close()
 
         if type(response) is not list and "error_code" in response:
+            #TODO: using logging
             print response["error_msg"]
             raise errors.RenRenAPIError(response["error_code"], response["error_msg"])
         return response
