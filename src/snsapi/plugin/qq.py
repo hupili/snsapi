@@ -18,12 +18,8 @@ class QQAPI(SNSAPI):
         self.app_key = ""
         self.app_secret = ""
         self.auth_info.callback_url = "http://copy.the.code.to.client/"
-        #you must set self.plaform before invoking read_config()
         if channel:
             self.read_channel(channel)
-        #else:
-        #    #for backward compatibility
-        #    self.read_config()
             
     def read_channel(self, channel):
         super(QQAPI, self).read_channel(channel) 
@@ -31,12 +27,6 @@ class QQAPI(SNSAPI):
         self.channel_name = channel['channel_name']
         self.app_key = channel['app_key']
         self.app_secret = channel['app_secret']
-
-        #We invoke the past config reading method for the moment
-        #20120716: after the unifying upgrade of config, 
-        #          this is no longer needed
-        #self.read_config()
-        return 
 
     def auth(self):
         if self.get_saved_token():
