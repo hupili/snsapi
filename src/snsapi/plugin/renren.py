@@ -61,7 +61,7 @@ class RenrenAPI(SNSAPI):
     def auth_first(self):
         args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)
         args["response_type"] = "code"
-        args["scope"] = "read_user_status status_update"
+        args["scope"] = "read_user_status status_update publish_comment"
         args["state"] = "snsapi! Stand up, Geeks! Step on the head of those evil platforms!"
         url = RENREN_AUTHORIZATION_URI + "?" + urllib.urlencode(args)
         self.request_url(url)
@@ -133,7 +133,8 @@ class RenrenAPI(SNSAPI):
 
     def __hash_params(self, params = None):
         hashstring = "".join(["%s=%s" % (self.__unicode_encode(x), self.__unicode_encode(params[x])) for x in sorted(params.keys())])
-        hashstring = hashstring + self.app_secret
+        #print hashstring
+        hashstring = hashstring + self.__unicode_encode(self.app_secret)
         #print "=== _hash_params"
         #print hashstring
         #print "=== _hash_params"
@@ -178,6 +179,29 @@ class RenrenAPI(SNSAPI):
                 return False
         except:
             return False
+
+    def reply(self, statusID, text):
+        """reply status
+        @param status: StatusID object
+        @param text: string, the reply message
+        @return: success or not
+        """
+
+        #TODO: check platform and place a warning
+        #      if it is not "renren"
+
+        api_params = dict(method = "status.addComment", content = text, \
+            status_id = statusID.status_id, owner_id = statusID.source_user_id)
+
+        try:
+            ret = self.renren_request(api_params)
+            if 'result' in ret and ret['result'] == 1:
+                return True
+            else:
+                return False
+        except:
+            return False
+
         
 #TODO: 
 #    "Status" is not an abstract enough word. 
