@@ -187,6 +187,7 @@ class RenrenAPI(SNSAPI):
 #    Ref: http://wiki.dev.renren.com/wiki/Type%E5%88%97%E8%A1%A8
 class RenrenStatus(Status):
     def parse(self, dct):
+        self.ID.platform = "renren"
         self._parse_feed_status(dct)
 
     def _parse_feed_status(self, dct):
@@ -204,6 +205,8 @@ class RenrenStatus(Status):
         self.comments_count = dct['comments']['count']
         self.username = dct['name']
         self.usernick = ""
+        self.ID.status_id = dct["source_id"]
+        self.ID.source_user_id = dct["actor_id"]
 
     def _parse_status(self, dct):
         self.id = dct["status_id"]
