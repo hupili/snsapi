@@ -39,12 +39,17 @@ First Test
    * For Linux user, run './deploy.sh'. 
    Equivalently you can manually make links
    of '../../snsapi' and '../../conf' to 
-   the current folder. 
+   the current folder. Here's how the directory tree
+   looks then
+
+<img src="https://raw.github.com/uxian/snsapi/master/src/app/mysofa/pics/renren_sofa_1.jpg" />
+
    * Copy 'conf/channel.json.example' to 
    'conf/channel.json' and configure your 
    Renren channel accordingly. 
    If you have hard time understanding the 
    config file, use the following sample:
+
 ```
 [
 {
@@ -64,9 +69,13 @@ First Test
 }
 ]
 ```
+
    You have to fill in your own "app_key" and 
    "app_secret". You get them in the first step.
    * Run 'python mysofa.py' .
+   It runs like this. 
+
+<img src="https://raw.github.com/uxian/snsapi/master/src/app/mysofa/pics/renren_sofa_2.jpg" />
 
 A Step Further
 ----
