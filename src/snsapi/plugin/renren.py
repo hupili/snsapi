@@ -10,11 +10,11 @@ from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
 
-#used by auth method
+#Use by all Renren API transactions
 import urllib
-import webbrowser
-#used by RenrenAPIClient
+#Used by renren_request
 import time
+#Used by __hash_params
 import hashlib
 
 try:
@@ -92,9 +92,9 @@ class RenrenAPI(SNSAPI):
         print "Authorized! access token is " + str(self.token)
 
     def renren_request(self, params = None):
-        """Fetches the given method's response returning from RenRen API.
-
-        Send a POST request to the given method with the given params.
+        """
+        A general purpose encapsulation of renren API. 
+        It fills in system paramters and compute the signature. 
         """
 
         #request a session key
@@ -108,6 +108,11 @@ class RenrenAPI(SNSAPI):
         params["format"] = "json"
         params["session_key"] = session_key
         params["v"] = '1.0'
+        #del 'sig' first, if not:
+        #   Client may use the same params dict repeatedly. 
+        #   Later call will fail because they have previous 'sig'. 
+        if "sig" in params:
+            del params["sig"] 
         sig = self.__hash_params(params);
         params["sig"] = sig
         
@@ -133,7 +138,6 @@ class RenrenAPI(SNSAPI):
         #print hashstring
         #print "=== _hash_params"
         hasher = hashlib.md5(hashstring)
-        #hasher.update(self.app_secret)
         return hasher.hexdigest()
 
     def __unicode_encode(self, str):
