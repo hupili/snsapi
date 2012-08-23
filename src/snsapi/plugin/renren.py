@@ -61,7 +61,7 @@ class RenrenAPI(SNSAPI):
     def auth_first(self):
         args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)
         args["response_type"] = "code"
-        args["scope"] = "read_user_status"
+        args["scope"] = "read_user_status status_update"
         args["state"] = "snsapi! Stand up, Geeks! Step on the head of those evil platforms!"
         url = RENREN_AUTHORIZATION_URI + "?" + urllib.urlencode(args)
         self.request_url(url)
@@ -127,8 +127,13 @@ class RenrenAPI(SNSAPI):
         return response
 
     def __hash_params(self, params = None):
-        hasher = hashlib.md5("".join(["%s=%s" % (self.__unicode_encode(x), self.__unicode_encode(params[x])) for x in sorted(params.keys())]))
-        hasher.update(self.app_secret)
+        hashstring = "".join(["%s=%s" % (self.__unicode_encode(x), self.__unicode_encode(params[x])) for x in sorted(params.keys())])
+        hashstring = hashstring + self.app_secret
+        #print "=== _hash_params"
+        #print hashstring
+        #print "=== _hash_params"
+        hasher = hashlib.md5(hashstring)
+        #hasher.update(self.app_secret)
         return hasher.hexdigest()
 
     def __unicode_encode(self, str):
@@ -157,15 +162,16 @@ class RenrenAPI(SNSAPI):
         @param text: the update message
         @return: success or not
         '''
-        url = "https://api.weibo.com/2/statuses/update.json"
-        params = {}
-        params['status'] = text
-        params['access_token'] = self.token.access_token
+
+        api_params = dict(method = "status.set", status = text)
         
-        ret = self._http_post(url, params)
         try:
-            status = SinaStatus(ret)
-            return True
+            ret = self.renren_request(api_params)
+            #print ret
+            if 'result' in ret and ret['result'] == 1:
+                return True
+            else:
+                return False
         except:
             return False
         
