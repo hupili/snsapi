@@ -169,10 +169,10 @@ class SNSAPI(object):
         if token == None:
             token = self.token
             
-        print "==="
-        print token.expires_in 
-        print time.time()
-        print "==="
+        #print "==="
+        #print token.expires_in 
+        #print time.time()
+        #print "==="
 
         if token.expires_in < time.time():
             return True
