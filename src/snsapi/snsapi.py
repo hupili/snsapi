@@ -125,9 +125,8 @@ class SNSAPI(object):
         if successfully saved, invoke get_saved_token() to get it back
         '''
         token = JsonObject(self.token)
-        #encrypt access token
-        #TODO Use a better encryption method
-        token.access_token = base64.encodestring(token.access_token)
+        #TODO: encrypt access token
+
         #save token to file "token.save"
         #TODO make the file invisible or at least add it to .gitignore
         fname = self.auth_info.save_token_file
@@ -151,8 +150,7 @@ class SNSAPI(object):
                     if self.isExpired(token):
                         print "Saved Access token is expired, try to get one through sns.auth() :D"
                         return False
-                    #decryption
-                    token.access_token = base64.decodestring(token.access_token)
+                    #TODO: decrypt token
                     self.token = token
             else:
                 #This channel is configured not to save token to file
