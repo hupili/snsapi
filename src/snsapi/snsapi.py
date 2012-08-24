@@ -59,10 +59,39 @@ class SNSAPI(object):
 
     #build-in request_url function: open default web browser
     def __request_url(self, url):
-        self.openBrower(url)
+		#self.openBrower(url)
         #webbrowser.open(url)
-        #print url
+        print url
         return
+
+    def _oauth2_first(self):
+        '''
+        The first stage of oauth. 
+        Generate auth url and request. 
+        '''
+        url = self.authClient.get_authorize_url()
+        if self.auth_info.cmd_request_url == "(built-in)" :
+            self.__request_url(url)
+        else :
+            self.request_url(url)
+
+    def _oauth2_second(self):
+        '''
+        The second stage of oauth. 
+        Fetch authenticated code. 
+        '''
+        if self.auth_info.cmd_fetch_code == "(built-in)" :
+            url = self.__fetch_code()
+        else :
+            url = self.fetch_code() 
+
+        if url == "(null)" :
+            raise errors.snsAuthFail
+        #print url
+        #url = raw_input()
+        self.token = self.parseCode(url)
+        self.token.update(self.authClient.request_access_token(self.token.code))
+        print "Authorized! access token is " + str(self.token)
     
     def oauth2(self, auth_url, callback_url):
         '''Authorizing using synchronized invocation.
