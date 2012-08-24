@@ -5,6 +5,8 @@ snsapi Log Tools
 '''
 
 import logging
+import inspect
+import os.path
 
 #Test piece. 
 #This lambda expression does not "inline" into
@@ -26,12 +28,14 @@ class SNSLog(object):
     ERROR = logging.ERROR
     CRITICAL = logging.CRITICAL
 
+    VERBOSE = True
+
     def __init__(self):
         super(SNSLog).__init__()
         raise SNSLogNoInstantiation
 
     @staticmethod
-    def init(fname = None, level = WARNING):
+    def init(logfile = None, level = WARNING, verbose = True):
         """
         Init the log basic configurations. It should 
         be called only once over the entire execution. 
@@ -42,34 +46,47 @@ class SNSLog(object):
         
         """
         logging.basicConfig(\
-                format='[%(levelname)s][%(asctime)s][%(filename)s][%(funcName)s]%(message)s', \
+                #format='[%(levelname)s][%(asctime)s][%(filename)s][%(funcName)s]%(message)s', \
+                format='[%(levelname)s][%(asctime)s]%(message)s', \
                 datefmt='%Y%m%d-%H%M%S', \
                 level = level
                 )
+        SNSLog.VERBOSE = verbose
+
+    @staticmethod
+    def __env_info():
+        if SNSLog.VERBOSE:
+            caller = inspect.stack()[2]
+            fn = os.path.basename(caller[1])
+            no = caller[2]
+            func = caller[3]
+            return "[%s][%s][%s]" % (fn, func, no)
+        else:
+            return ""
 
     @staticmethod
     def debug(fmt, *args):
-        logging.debug(fmt, *args)
+        logging.debug(SNSLog.__env_info() + fmt, *args)
 
     @staticmethod
     def info(fmt, *args):
-        logging.info(fmt, *args)
+        logging.info(SNSLog.__env_info() + fmt, *args)
 
     @staticmethod
     def warning(fmt, *args):
-        logging.warning(fmt, *args)
+        logging.warning(SNSLog.__env_info() + fmt, *args)
 
     @staticmethod
     def warn(fmt, *args):
-        logging.warn(fmt, *args)
+        logging.warn(SNSLog.__env_info() + fmt, *args)
 
     @staticmethod
     def error(fmt, *args):
-        logging.error(fmt, *args)
+        logging.error(SNSLog.__env_info() + fmt, *args)
         
     @staticmethod
     def critical(fmt, *args):
-        logging.critical(fmt, *args)
+        logging.critical(SNSLog.__env_info() + fmt, *args)
 
 class SNSLogNoInstantiation(Exception):
     """docstring for SNSLogNoInstantiation"""
@@ -81,13 +98,13 @@ class SNSLogNoInstantiation(Exception):
                 "Call its static methods directly!"
        
 
-
 #TODO:
-# To enable project wide Debugging by default
-# This line should be commented out normally
-SNSLog.init(level = SNSLog.DEBUG)
+#    To enable project wide Debugging by default
+#    This line should be commented out normally
+#SNSLog.init(level = SNSLog.DEBUG)
 
 if __name__ == '__main__':
+    #SNSLog.init(level = SNSLog.DEBUG, verbose = False)
     SNSLog.init(level = SNSLog.DEBUG)
     SNSLog.warning('test: %d; %s', 123, "str")
     SNSLog.debug('test debug')
