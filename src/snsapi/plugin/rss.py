@@ -13,13 +13,15 @@ Supported Methods
         not write to it.
 '''
 
-_entry_class_ = "RSSAPI"
 
+from ..snslog import SNSLog 
+logger = SNSLog
 from ..snsapi import SNSAPI
 from ..snstype import Status,User
 from ..third import feedparser
 
-print "RSS Plugged!"
+_entry_class_ = "RSSAPI"
+logger.debug("%s plugged!", _entry_class_)
 
 class RSSAPI(SNSAPI):
     def __init__(self, channel = None):

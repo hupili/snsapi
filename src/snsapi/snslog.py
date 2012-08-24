@@ -6,6 +6,12 @@ snsapi Log Tools
 
 import logging
 
+#Test piece. 
+#This lambda expression does not "inline" into
+#the caller file. The filename and funcname 
+#reported in log is still in 'snslog.py'
+#mylog = lambda *x: logging.info(*x)
+
 class SNSLog(object):
     """
     Provide the unified entry to write logs 
@@ -90,5 +96,4 @@ if __name__ == '__main__':
     SNSLog.warn('test warn')
     SNSLog.error('test error')
     SNSLog.critical('test critical')
-
 

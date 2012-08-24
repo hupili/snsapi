@@ -12,15 +12,16 @@ Supported Methods
         Publish new contents to a RSS2 feed
 '''
 
-_entry_class_ = "RSS2RWAPI"
-
+from ..snslog import SNSLog 
+logger = SNSLog
 import datetime
 from rss import RSSAPI, RSSStatus
 from ..third import feedparser
 from ..third import PyRSS2Gen
 from ..snsapi import errors
 
-print "RSS2RW Plugged!"
+_entry_class_ = "RSS2RWAPI"
+logger.debug("%s plugged!", _entry_class_)
 
 class RSS2RWAPI(RSSAPI):
     def __init__(self, channel = None):

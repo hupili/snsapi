@@ -4,12 +4,14 @@
 SINA micro-blog client
 '''
 
-_entry_class_ = "SinaAPI"
-
+from ..snslog import SNSLog 
+logger = SNSLog
 from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
-print "SINA weibo plugged!"
+
+_entry_class_ = "SinaAPI"
+logger.debug("%s plugged!", _entry_class_)
 
 class SinaAPI(SNSAPI):
     def __init__(self, channel = None):

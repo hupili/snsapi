@@ -4,15 +4,12 @@
 renren client
 '''
 
-#from ..snslog import SNSLog as logger
 from ..snslog import SNSLog
+logger = SNSLog
 from ..snsapi import oauth
 from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
-
-SNSLog.debug("renren plugged!")
-
 #Use by all Renren API transactions
 import urllib
 #Used by renren_request
@@ -33,6 +30,7 @@ except ImportError:
         _parse_json = lambda s: simplejson.loads(s)
 
 _entry_class_ = "RenrenAPI"
+logger.debug("%s plugged!", _entry_class_)
 
 # Inteface URLs.
 # This differs from other platforms
