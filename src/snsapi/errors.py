@@ -13,7 +13,7 @@ class ConfigError(SNSError):
         return "SNS configuration error!"
     
 class NoConfigFile(ConfigError):
-    def __init__(self, fname="conf/config.json"):
+    def __init__(self, fname="conf/channel.json"):
         self.fname = fname
     def __str__(self):
         return self.fname + " NOT EXISTS!"
@@ -48,8 +48,25 @@ class snsTypeParseError(SNSError):
     def __str__(self):
         return "errors when parsing JsonObject for snsType " + self.value
 
+class SNSEncodingError(SNSError):
+    def __init__(self):
+        super(SNSEncodingError, self).__init__()
+    def __str__(self):
+        return "Do not evaluate our interface objects using str(). " \
+                "Internal data structure of the entire project is " \
+                "unicode. For text exchange with other parties, we " \
+                "stick to utf-8"
+
 class snsAuthFail(SNSError):
     def __str__(self):
         return "Authentication Failed!"
 
+class snsWriteFail(SNSError):
+    def __str__(self):
+        return "This channel is non-writable"
+    
+class RenRenAPIError(SNSError):
+    def __init__(self, code, message):
+        Exception.__init__(self, message)
+        self.code = code
 

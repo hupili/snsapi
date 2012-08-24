@@ -10,7 +10,7 @@ http://www.voidspace.org.uk/python/articles/introduction-to-unittest.shtml
 http://docs.python.org/library/unittest.html
 '''
 
-import test_snsapi,test_sina,test_qq
+import test_snsapi,test_sina,test_qq,test_rss,test_renren
 import unittest
 import testUtils
 

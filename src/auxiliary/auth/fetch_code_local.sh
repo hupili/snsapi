@@ -1,4 +1,18 @@
 #!/bin/bash
+#
+#Fetch code from local storage
+#
+#INPUT:
+#   * {last_request_time}. 
+#     This value is used to check the whether the code
+#     seen by the script is the one just requested. 
+#
+#OUTPUT:
+#   * write the auth'ed url to stdout. 
+#
+#Pre-condition:
+#   * This script assumes "tmp/auth.code" relative to 
+#     the location of it contains the auth'ed url. 
 
 if [[ $# == 1 ]] ; then
 	last_request_time=$1

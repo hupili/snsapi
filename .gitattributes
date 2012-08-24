@@ -1,4 +1,5 @@
-﻿# _Default_ behaviour_ setting_, in case users don't have core.autocrlf set.
+﻿#newline
+# _Default_ behaviour_ setting_, in case users don't have core.autocrlf set.
 * text=auto
 
 # text eol=lf

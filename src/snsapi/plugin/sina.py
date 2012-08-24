@@ -5,10 +5,14 @@ SINA micro-blog client
 '''
 
 from .. import oauth
+from ..snslog import SNSLog 
+logger = SNSLog
 from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
-print "SINA weibo plugged!"
+
+_entry_class_ = "SinaAPI"
+logger.debug("%s plugged!", _entry_class_)
 
 class SinaAPI(SNSAPI):
     def __init__(self, channel = None):
@@ -20,12 +24,8 @@ class SinaAPI(SNSAPI):
         self.app_key = ""
         self.app_secret = ""
         self.auth_info.callback_url = "http://copy.the.code.to.client/"
-        #you must set self.plaform before invoking read_config()
         if channel:
             self.read_channel(channel)
-        #else:
-        #    #for backward compatibility
-        #    self.read_config()
 
         auth_url = "https://api.weibo.com/oauth2/"
         self.authClient = oauth.APIClient(self.app_key, self.app_secret, self.auth_info.callback_url, auth_url=auth_url)
@@ -53,7 +53,6 @@ class SinaAPI(SNSAPI):
         
     def auth(self):
         if self.get_saved_token():
-            print "Using a saved access_token!"
             return
         auth_url = "https://api.weibo.com/oauth2/"
         #TODO: upgrade mark3
@@ -125,6 +124,5 @@ class SinaStatus(Status):
         self.username = dct['user']['name']
         self.usernick = ""
         
-    def show(self):
-		#print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
-		print "[%s] at %s \n  %s" % (self.username.encode('utf-8'), self.created_at.encode('utf-8'), self.text.encode('utf-8'))
+    #def show(self):
+    #    print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)

@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from snsapi.snslog import SNSLog
+logger = SNSLog
 import snsapi
 from snsapi import errors 
 try:
     import json
 except ImportError:
     import simplejson as json
+
 
 if __name__ == "__main__":
     #TODO:
@@ -27,15 +30,10 @@ if __name__ == "__main__":
                 print "===channel:%s;open:%s;platform:%s" % \
                         (site['channel_name'],site['open'],site['platform'])
                 if site['open'] == "yes" :
-                    #TODO: the following code seems clumsy
-                    #any way to simplify it? 
-                    #e.g. use the string name to the the corresponding class directly
-                    if site['platform'] == "sina" :
-                        clis.append(snsapi.sina.SinaAPI(site))
-                    elif site['platform'] == "rss":
-                        clis.append(snsapi.rss.RSSAPI(site))
-                    elif site['platform'] == "qq":
-                        clis.append(snsapi.qq.QQAPI(site))
+                    plugin = getattr(snsapi, site['platform'])
+                    mod = getattr(plugin, plugin._entry_class_)
+                    if mod:
+                        clis.append(mod(site))
                     else:
                         raise errors.NoSuchPlatform
     except IOError:
@@ -48,7 +46,7 @@ if __name__ == "__main__":
     #test home_timeline()
     for c in clis:
         print "=====Information from channel: %s" % c.channel_name
-        sl = c.home_timeline()
+        sl = c.home_timeline(5)
         for s in sl:
             s.show()
         print "=====End of channel: %s" % c.channel_name

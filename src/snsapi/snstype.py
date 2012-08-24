@@ -6,6 +6,33 @@ SNS type: status, user, comment
 import utils
 import errors
 
+class StatusID(object):
+    """
+    All information to locate one status is here. 
+
+    It shuold be complete so that 
+       * one can invoke reply() function of plugin on this object. 
+       * Or one can invoke reply() function of container on this object. 
+
+    In order to reply one status, here's the information 
+    required by each platforms:
+       * Renren: the status_id and source_user_id
+       * Sina:
+       * QQ:
+    """
+    def __init__(self, platform = None, status_id = None, source_user_id = None):
+        super(StatusID, self).__init__()
+
+        self.platform = platform
+        self.status_id = status_id
+        self.source_user_id = source_user_id
+
+    def __str__(self):
+        """docstring for __str__"""
+        return "(p:%s|sid:%s|uid:%s)" % \
+                (self.platform, self.status_id, self.source_user_id)
+        
+
 class Status(object):
     def __init__(self, dct=None):
         self.created_at = ""
@@ -16,6 +43,8 @@ class Status(object):
         self.user = None
         self.username = ""
         self.usernick = ""
+
+        self.ID = StatusID()
         
         try:
             self.parse(dct)
@@ -24,15 +53,31 @@ class Status(object):
             
     def parse(self, dct):
         pass
+
+    def show(self):
+        utils.console_output(unicode(self))
     
+    #def __str__(self):
+    #    return "[%s] at %s \n  %s" % \
+    #            (self.username, self.created_at, self.text)
+    def __str__(self):
+        raise errors.SNSEncodingError()
+
+    def __unicode__(self):
+        return "[%s] at %s \n  %s" % \
+                (self.username, self.created_at, self.text)
     
 class User(object):
     def __init__(self, jobj=None):
         self.id = 0
         
+#TODO:
+#    This class is not used anywhere in the project. 
+#    Retire it in the next upgrades?
 class Error(dict):
     def show(self):
-        print self
+        #print self
+        utils.console_output(self)
 
 class AuthenticationInfo:
     #default auth configurations

@@ -10,5 +10,10 @@ work well by default.
 File list
 ----
 
-   * 'request_url.sh'. Request url through 'wget', instead of default webbrowser.
-   * 'fetch_code.sh'. Pull authenticated code to local storage.
+   * 'request_url_wget.sh'. Request url through 'wget', instead of default webbrowser.
+   * 'fetch_code_local.sh'. Pull authenticated code from local storage. 
+     By default, this script is invoked after 'request_url_wget.sh'. 
+   * 'auto.sh'. A general purpose auto executing script. 
+     It is assumed to be invoked by cron. 
+     This script help you enable and disable some auto command 
+     in an easier way. 

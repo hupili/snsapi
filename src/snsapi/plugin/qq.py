@@ -4,9 +4,13 @@
 QQ micro-blog client
 '''
 
+from ..snslog import SNSLog 
+logger = SNSLog
 from ..snsapi import SNSAPI
 from ..snstype import Status,User
-print "QQ weibo plugged!"
+
+_entry_class_ = "QQAPI"
+logger.debug("%s plugged!", _entry_class_)
 
 class QQAPI(SNSAPI):
     def __init__(self, channel = None):
@@ -16,12 +20,8 @@ class QQAPI(SNSAPI):
         self.app_key = ""
         self.app_secret = ""
         self.auth_info.callback_url = "http://copy.the.code.to.client/"
-        #you must set self.plaform before invoking read_config()
         if channel:
             self.read_channel(channel)
-        #else:
-        #    #for backward compatibility
-        #    self.read_config()
             
     def read_channel(self, channel):
         super(QQAPI, self).read_channel(channel) 
@@ -30,20 +30,11 @@ class QQAPI(SNSAPI):
         self.app_key = channel['app_key']
         self.app_secret = channel['app_secret']
 
-        #We invoke the past config reading method for the moment
-        #20120716: after the unifying upgrade of config, 
-        #          this is no longer needed
-        #self.read_config()
-        return 
-
     def auth(self):
         if self.get_saved_token():
-            print "Using a saved access_token!"
             return
+
         auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
-        #TODO: upgrade mark3
-        #      configurable to another call_back url
-        #callback_url = "http://copy.the.code.to.client/"
         self.oauth2(auth_url, self.auth_info.callback_url)
         self.save_token()
         
@@ -93,6 +84,15 @@ class QQAPI(SNSAPI):
 class QQStatus(Status):
     def parse(self, dct):
         self.id = dct['id']
+        #TODO: unify the data type
+        #      In SinaAPI, 'created_at' is a string
+        #      In QQAPI, 'created_at' is an int
+        #Proposal:
+        #      1. Store a copy of dct object in the Status object. 
+        #         Derived class of QQAPI or SinaAPI can extract 
+        #         other fields for future use. 
+        #      2. Defaultly convert every fields into unicode string. 
+        #         Upper layer can tackle with a unified interface
         self.created_at = dct['timestamp']
         self.text = dct['text']
         self.reposts_count = dct['count']
@@ -100,5 +100,5 @@ class QQStatus(Status):
         self.username = dct['name']
         self.usernick = dct['nick']
         
-    def show(self):
-        print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
+    #def show(self):
+    #    print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
