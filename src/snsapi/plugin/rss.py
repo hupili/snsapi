@@ -39,7 +39,7 @@ class RSSAPI(SNSAPI):
         
     def auth(self):
         #Nothing to do.
-        print "RSS platform do not need auth!"
+        logger.info("RSS platform do not need auth!")
         return 
         
     def home_timeline(self, count=20):

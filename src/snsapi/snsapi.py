@@ -22,6 +22,9 @@ import datetime
 import snstype
 import subprocess
 
+from snslog import SNSLog
+logger = SNSLog
+
 class SNSAPI(object):
     def __init__(self):
         self.app_key = None
@@ -41,7 +44,7 @@ class SNSAPI(object):
         else :
             #url = self.fetch_code() 
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
-            print cmd
+            logger.debug("fetch_code command is: %s", cmd) 
             ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
             tries = 1 
             while ret == "(null)" :
@@ -58,15 +61,15 @@ class SNSAPI(object):
         else :
             self.__last_request_time = time.time()
             cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
-            print cmd
-            print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
+            logger.debug("request_url command is: %s", cmd) 
+            res = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
+            logger.debug("request_url result is: %s", res) 
             return
 
     #build-in fetch_code function: read from console
     def __fetch_code(self):
         print "Please input the whole url from Broswer's address bar:";
         return self.console_input()
-        #return raw_input()
 
     #build-in request_url function: open default web browser
     def __request_url(self, url):
@@ -89,7 +92,6 @@ class SNSAPI(object):
         authClient = oauth.APIClient(self.app_key, self.app_secret, callback_url, auth_url=auth_url)
         url = authClient.get_authorize_url()
 
-
         self.request_url(url)
         
         #Wait for input
@@ -99,7 +101,9 @@ class SNSAPI(object):
             raise errors.snsAuthFail
         self.token = self.parseCode(url)
         self.token.update(authClient.request_access_token(self.token.code))
-        print "Authorized! access token is " + str(self.token)
+        #print "Authorized! access token is " + str(self.token)
+        logger.debug("Authorized! access token is " + str(self.token))
+        logger.info("Channel '%s' is authorized", self.channel_name)
     
     def console_input(self):
         '''
@@ -148,18 +152,21 @@ class SNSAPI(object):
                     token = JsonObject(json.load(fp))
                     #check expire time
                     if self.isExpired(token):
-                        print "Saved Access token is expired, try to get one through sns.auth() :D"
+                        #print "Saved Access token is expired, try to get one through sns.auth() :D"
+                        logger.debug("Saved Access token is expired, try to get one through sns.auth() :D")
                         return False
                     #TODO: decrypt token
                     self.token = token
             else:
-                #This channel is configured not to save token to file
+                logger.debug("This channel is configured not to save token to file")
                 return False
                     
-                    #TODO check its expiration time or validity
         except IOError:
-            print "No access token saved, try to get one through sns.auth() :D"
+            #print "No access token saved, try to get one through sns.auth() :D"
+            logger.debug("No access token saved, try to get one through sns.auth() :D")
             return False
+
+        logger.info("Read saved token for '%s' successfully", self.channel_name)
         return True
     
     def isExpired(self, token=None):
@@ -186,24 +193,6 @@ class SNSAPI(object):
         if 'auth_info' in channel :
             self.auth_info = snstype.AuthenticationInfo(channel['auth_info'])
 
-    ##TODO:
-    ##    All information is contained in 'channel.json'. 
-    ##    There is no need to maintain 'config.json'. 
-    ##    This method is a delegate for read_channel(),
-    ##    bacause some implementations in test suite depends on it. 
-    ##    It's better to be positioned in the container class of all SNSAPIs. 
-    #def read_config(self, pathname):
-    #    try:
-    #        with open(pathname, "r") as fp:
-    #            allinfo = json.load(fp)
-    #            for c in allinfo:
-    #                if c['channel_name'] == self.channel_name :
-    #                    self.read_channel(c)
-    #                    return
-    #            raise errors.NoSuchChannel
-    #    except IOError:
-    #        raise errors.NoConfigFile
-            
     def setup_app(self, app_key, app_secret):
         '''
         If you do not want to use read_config, and want to set app_key on your own, here it is.
@@ -230,6 +219,4 @@ class SNSAPI(object):
         @param count: number of statuses
         '''
         pass
-        
-        
         

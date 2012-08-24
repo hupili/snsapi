@@ -35,7 +35,6 @@ class SinaAPI(SNSAPI):
         
     def auth(self):
         if self.get_saved_token():
-            print "Using a saved access_token!"
             return
         auth_url = "https://api.weibo.com/oauth2/"
         #TODO: upgrade mark3

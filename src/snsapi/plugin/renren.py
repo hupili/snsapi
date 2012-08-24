@@ -79,18 +79,18 @@ class RenrenAPI(SNSAPI):
         args["code"] = self.token.code
         args["grant_type"] = "authorization_code"
         response = urllib.urlopen(RENREN_ACCESS_TOKEN_URI + "?" + urllib.urlencode(args)).read()
-        #print response
+        logger.debug("response: %s", response)
         self.token.update(_parse_json(response))
         self.token.expires_in = self.token.expires_in + time.time()
 
     def auth(self):
         if self.get_saved_token():
-            print "Using a saved access_token!"
             return
         self.auth_first()
         self.auth_second()
         self.save_token()
-        print "Authorized! access token is " + str(self.token)
+        #print "Authorized! access token is " + str(self.token)
+        logger.debug("Authorized! access token is " + str(self.token))
 
     def renren_request(self, params = None):
         """
@@ -123,23 +123,20 @@ class RenrenAPI(SNSAPI):
         
         try:
             s = file.read()
+            logger.debug("request response: %s", s)
             response = _parse_json(s)
         finally:
             file.close()
 
         if type(response) is not list and "error_code" in response:
-            #TODO: using logging
-            print response["error_msg"]
+            logger.warning(response["error_msg"]) 
             raise errors.RenRenAPIError(response["error_code"], response["error_msg"])
         return response
 
     def __hash_params(self, params = None):
         hashstring = "".join(["%s=%s" % (self.__unicode_encode(x), self.__unicode_encode(params[x])) for x in sorted(params.keys())])
-        #print hashstring
         hashstring = hashstring + self.__unicode_encode(self.app_secret)
-        #print "=== _hash_params"
-        #print hashstring
-        #print "=== _hash_params"
+        logger.debug(hashstring)
         hasher = hashlib.md5(hashstring)
         return hasher.hexdigest()
 
@@ -174,7 +171,6 @@ class RenrenAPI(SNSAPI):
         
         try:
             ret = self.renren_request(api_params)
-            #print ret
             if 'result' in ret and ret['result'] == 1:
                 return True
             else:
@@ -217,7 +213,7 @@ class RenrenStatus(Status):
         self._parse_feed_status(dct)
 
     def _parse_feed_status(self, dct):
-        #print json.dumps(dct)
+        #logger.debug(json.dumps(dct))
         #By trial, it seems:
         #   * 'post_id' : the id of news feeds
         #   * 'source_id' : the id of status

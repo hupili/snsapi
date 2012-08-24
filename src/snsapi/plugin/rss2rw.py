@@ -45,7 +45,7 @@ class RSS2RWAPI(RSSAPI):
             self.entry_timeout = channel['entry_timeout']
 
     def auth(self):
-        print "RSS2RW platform do not need auth!"
+        logger.info("RSS2RW platform do not need auth!")
         return 
 
     def home_timeline(self, count=20):

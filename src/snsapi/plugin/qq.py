@@ -32,12 +32,11 @@ class QQAPI(SNSAPI):
 
     def auth(self):
         if self.get_saved_token():
-            print "Using a saved access_token!"
             return
+
+        logger.info("Try to authenticate channel '%s'", self.channel_name)
+
         auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
-        #TODO: upgrade mark3
-        #      configurable to another call_back url
-        #callback_url = "http://copy.the.code.to.client/"
         self.oauth2(auth_url, self.auth_info.callback_url)
         self.save_token()
         
