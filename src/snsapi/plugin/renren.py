@@ -3,12 +3,15 @@
 '''
 renren client
 '''
-print "renren plugged!"
 
+#from ..snslog import SNSLog as logger
+from ..snslog import SNSLog
 from ..snsapi import oauth
 from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
+
+SNSLog.debug("renren plugged!")
 
 #Use by all Renren API transactions
 import urllib

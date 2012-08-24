@@ -36,11 +36,10 @@ class SNSLog(object):
         
         """
         logging.basicConfig(\
-                format='[%(levelname)s][%(asctime)s][]%(message)s', \
+                format='[%(levelname)s][%(asctime)s][%(filename)s][%(funcName)s]%(message)s', \
                 datefmt='%Y%m%d-%H%M%S', \
                 level = level
                 )
-        pass
 
     @staticmethod
     def debug(fmt, *args):
@@ -75,6 +74,12 @@ class SNSLogNoInstantiation(Exception):
         return "You can not instantiate SNSLog. "\
                 "Call its static methods directly!"
        
+
+
+#TODO:
+# To enable project wide Debugging by default
+# This line should be commented out normally
+SNSLog.init(level = SNSLog.DEBUG)
 
 if __name__ == '__main__':
     SNSLog.init(level = SNSLog.DEBUG)
