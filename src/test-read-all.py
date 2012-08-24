@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from snslog.snslog import SNSLog
+logger = SNSLog
 import snsapi
 from snsapi import errors 
 try:
     import json
 except ImportError:
     import simplejson as json
+
 
 if __name__ == "__main__":
     #TODO:

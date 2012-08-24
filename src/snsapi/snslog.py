@@ -45,12 +45,30 @@ class SNSLog(object):
         logging module. 
         
         """
-        logging.basicConfig(\
-                #format='[%(levelname)s][%(asctime)s][%(filename)s][%(funcName)s]%(message)s', \
-                format='[%(levelname)s][%(asctime)s]%(message)s', \
-                datefmt='%Y%m%d-%H%M%S', \
-                level = level
-                )
+
+        #Debug information writes to log using SNSLog.debug().
+        #How do you debug the logger itself...? 
+        #Here it is... 
+        #We fall back to the print. 
+        #They should be comment out to make the screen clean.
+        #print "=== init log ==="
+        #print "logfile:%s" % logfile
+        #print "level:%s" % level
+        #print "verbose:%s" % verbose
+
+        if logfile:
+            logging.basicConfig(\
+                    format='[%(levelname)s][%(asctime)s]%(message)s', \
+                    datefmt='%Y%m%d-%H%M%S', \
+                    level = level, \
+                    filename = logfile
+                    )
+        else:
+            logging.basicConfig(\
+                    format='[%(levelname)s][%(asctime)s]%(message)s', \
+                    datefmt='%Y%m%d-%H%M%S', \
+                    level = level
+                    )
         SNSLog.VERBOSE = verbose
 
     @staticmethod
