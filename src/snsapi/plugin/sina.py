@@ -4,6 +4,7 @@
 SINA micro-blog client
 '''
 
+from .. import oauth
 from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
@@ -26,6 +27,9 @@ class SinaAPI(SNSAPI):
         #    #for backward compatibility
         #    self.read_config()
 
+        auth_url = "https://api.weibo.com/oauth2/"
+        self.authClient = oauth.APIClient(self.app_key, self.app_secret, self.auth_info.callback_url, auth_url=auth_url)
+
     def read_channel(self, channel):
         super(SinaAPI, self).read_channel(channel) 
 
@@ -38,6 +42,14 @@ class SinaAPI(SNSAPI):
         #          this is no longer needed
         #self.read_config()
         return 
+
+    def auth_first(self):
+        #self._oauth2_first(auth_url, self.auth_info.callback_url)
+        self._oauth2_first()
+
+    def auth_second(self):
+        self._oauth2_second()
+        self.save_token()
         
     def auth(self):
         if self.get_saved_token():
@@ -114,4 +126,5 @@ class SinaStatus(Status):
         self.usernick = ""
         
     def show(self):
-        print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
+		#print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
+		print "[%s] at %s \n  %s" % (self.username.encode('utf-8'), self.created_at.encode('utf-8'), self.text.encode('utf-8'))
