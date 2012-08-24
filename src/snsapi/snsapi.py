@@ -89,6 +89,9 @@ class SNSAPI(object):
             Users need to collect the code in the browser's address bar to this client.
             callback_url MUST be the same one you set when you apply for an app in openSNS platform.
         '''
+        
+        logger.info("Try to authenticate '%s' using OAuth2", self.channel_name)
+
         authClient = oauth.APIClient(self.app_key, self.app_secret, callback_url, auth_url=auth_url)
         url = authClient.get_authorize_url()
 

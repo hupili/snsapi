@@ -26,6 +26,11 @@ class StatusID(object):
         self.platform = platform
         self.status_id = status_id
         self.source_user_id = source_user_id
+
+    def __str__(self):
+        """docstring for __str__"""
+        return "(p:%s|sid:%s|uid:%s)" % \
+                (self.platform, self.status_id, self.source_user_id)
         
 
 class Status(object):

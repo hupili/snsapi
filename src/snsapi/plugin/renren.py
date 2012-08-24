@@ -79,18 +79,20 @@ class RenrenAPI(SNSAPI):
         args["code"] = self.token.code
         args["grant_type"] = "authorization_code"
         response = urllib.urlopen(RENREN_ACCESS_TOKEN_URI + "?" + urllib.urlencode(args)).read()
-        logger.debug("response: %s", response)
+        #logger.debug("response: %s", response)
         self.token.update(_parse_json(response))
         self.token.expires_in = self.token.expires_in + time.time()
 
     def auth(self):
         if self.get_saved_token():
             return
+
+        logger.info("Try to authenticate '%s' using OAuth2", self.channel_name)
         self.auth_first()
         self.auth_second()
         self.save_token()
-        #print "Authorized! access token is " + str(self.token)
         logger.debug("Authorized! access token is " + str(self.token))
+        logger.info("Channel '%s' is authorized", self.channel_name)
 
     def renren_request(self, params = None):
         """
@@ -123,7 +125,7 @@ class RenrenAPI(SNSAPI):
         
         try:
             s = file.read()
-            logger.debug("request response: %s", s)
+            #logger.debug("request response: %s", s)
             response = _parse_json(s)
         finally:
             file.close()
@@ -136,7 +138,7 @@ class RenrenAPI(SNSAPI):
     def __hash_params(self, params = None):
         hashstring = "".join(["%s=%s" % (self.__unicode_encode(x), self.__unicode_encode(params[x])) for x in sorted(params.keys())])
         hashstring = hashstring + self.__unicode_encode(self.app_secret)
-        logger.debug(hashstring)
+        #logger.debug(hashstring)
         hasher = hashlib.md5(hashstring)
         return hasher.hexdigest()
 
@@ -159,6 +161,8 @@ class RenrenAPI(SNSAPI):
         statuslist = []
         for j in jsonlist:
             statuslist.append(RenrenStatus(j))
+
+        logger.info("Read %d statuses from '%s'", len(statuslist), self.channel_name)
         return statuslist
 
     def update(self, text):
@@ -172,11 +176,13 @@ class RenrenAPI(SNSAPI):
         try:
             ret = self.renren_request(api_params)
             if 'result' in ret and ret['result'] == 1:
+                logger.info("Update status '%s' on '%s' succeed", text, self.channel_name)
                 return True
-            else:
-                return False
         except:
-            return False
+            pass
+
+        logger.info("Update status '%s' on '%s' fail", text, self.channel_name)
+        return False
 
     def reply(self, statusID, text):
         """reply status
@@ -194,11 +200,13 @@ class RenrenAPI(SNSAPI):
         try:
             ret = self.renren_request(api_params)
             if 'result' in ret and ret['result'] == 1:
+                logger.info("Reply '%s' to status '%s' succeed", text, statusID)
                 return True
-            else:
-                return False
         except:
-            return False
+            pass
+
+        logger.info("Reply '%s' to status '%s' fail", text, statusID)
+        return False
 
         
 #TODO: 

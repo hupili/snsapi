@@ -34,8 +34,6 @@ class QQAPI(SNSAPI):
         if self.get_saved_token():
             return
 
-        logger.info("Try to authenticate channel '%s'", self.channel_name)
-
         auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
         self.oauth2(auth_url, self.auth_info.callback_url)
         self.save_token()
