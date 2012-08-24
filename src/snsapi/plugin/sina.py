@@ -23,12 +23,10 @@ class SinaAPI(SNSAPI):
         #just you remind myself they exists
         self.app_key = ""
         self.app_secret = ""
+        self.auth_info.auth_url = "https://api.weibo.com/oauth2/"
         self.auth_info.callback_url = "http://copy.the.code.to.client/"
         if channel:
             self.read_channel(channel)
-
-        self.auth_url = "https://api.weibo.com/oauth2/"
-        #self.authClient = oauth.APIClient(self.app_key, self.app_secret, self.auth_info.callback_url, auth_url=auth_url)
 
     def read_channel(self, channel):
         super(SinaAPI, self).read_channel(channel) 
@@ -44,22 +42,10 @@ class SinaAPI(SNSAPI):
         return 
 
     def auth_first(self):
-        #self._oauth2_first(auth_url, self.auth_info.callback_url)
         self._oauth2_first()
 
     def auth_second(self):
         self._oauth2_second()
-        self.save_token()
-        
-    #def auth(self):
-    #    if self.get_saved_token():
-    #        return
-    #    auth_url = "https://api.weibo.com/oauth2/"
-    #    #TODO: upgrade mark3
-    #    #      configurable to another call_back url
-    #    #callback_url = "http://copy.the.code.to.client/"
-    #    self.oauth2(auth_url, self.auth_info.callback_url)
-    #    self.save_token()
         
     def home_timeline(self, count=20):
         '''Get home timeline

@@ -19,7 +19,7 @@ class QQAPI(SNSAPI):
         self.domain = "open.t.qq.com"
         self.app_key = ""
         self.app_secret = ""
-        self.auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
+        self.auth_info.auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
         self.auth_info.callback_url = "http://copy.the.code.to.client/"
         if channel:
             self.read_channel(channel)
@@ -31,13 +31,12 @@ class QQAPI(SNSAPI):
         self.app_key = channel['app_key']
         self.app_secret = channel['app_secret']
 
-    #def auth(self):
-    #    if self.get_saved_token():
-    #        return
-    #
-    #    auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
-    #    self.oauth2(auth_url, self.auth_info.callback_url)
-    #    self.save_token()
+    def auth_first(self):
+        self._oauth2_first()
+
+    def auth_second(self):
+        self._oauth2_second()
+        
         
     def attachAuthinfo(self, params):
         params['access_token'] = self.token.access_token

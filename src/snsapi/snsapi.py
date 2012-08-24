@@ -101,7 +101,8 @@ class SNSAPI(object):
         if self.authClient == None:
             try:
                 self.authClient = oauth.APIClient(self.app_key, \
-                        self.app_secret, self.auth_info.callback_url, auth_url = self.auth_url)
+                        self.app_secret, self.auth_info.callback_url, \
+                        auth_url = self.auth_info.auth_url)
             except:
                 logger.critical("authClient init error")
                 raise errors.snsAuthFail
@@ -250,9 +251,8 @@ class SNSAPI(object):
     def read_channel(self, channel):
         self.channel_name = channel['channel_name']
         self.platform = channel['platform']
-        #if channel['auth_info'] :
         if 'auth_info' in channel :
-            self.auth_info = snstype.AuthenticationInfo(channel['auth_info'])
+            self.auth_info.update(channel['auth_info'])
 
     def setup_app(self, app_key, app_secret):
         '''

@@ -79,7 +79,7 @@ class Error(dict):
         #print self
         utils.console_output(self)
 
-class AuthenticationInfo:
+class AuthenticationInfo(utils.JsonObject):
     #default auth configurations
     def __init__(self, auth_info = None):
         if auth_info :

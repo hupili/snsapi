@@ -40,7 +40,6 @@ RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_SESSION_KEY_URI = "http://graph.renren.com/renren_api/session_key"
 RENREN_API_SERVER = "http://api.renren.com/restserver.do"
 
-
 class RenrenAPI(SNSAPI):
     def __init__(self, channel = None):
         super(RenrenAPI, self).__init__()
