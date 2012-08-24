@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import snsconf
+
 '''
 utilities for snsapi
 '''
@@ -25,3 +27,20 @@ def _obj_hook(pairs):
     for k, v in pairs.iteritems():
         o[str(k)] = v
     return o
+
+def console_input():
+    '''
+    To make oauth2 testable, and more reusable, we use console_input to wrap raw_input.
+    See http://stackoverflow.com/questions/2617057/supply-inputs-to-python-unittests.
+    '''
+    return raw_input()
+
+def console_output(string):
+    '''
+    The sister function of console_intput()!
+
+    Actually it has a much longer story. See Issue#8: 
+    the discussion of console encoding~
+    '''
+    print string.encode(snsconf.SNSAPI_CONSOLE_STDOUT_ENCODING)
+

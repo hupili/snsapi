@@ -96,7 +96,7 @@ class RSSStatus(Status):
         #We format them in a unified way and use this as 'text'. 
         self.text = "Article \"%s\" is updated(published)! (%s)" % (self.title, self.link)
         
-    def show(self):
-        print "[%s] at %s \n  Article \"%s\" is updated(published)! (%s)" \
-            % (self.username.encode('utf-8'), self.created_at.encode('utf-8'), \
-            self.title.encode('utf-8'), self.link.encode('utf-8'))
+    #def show(self):
+    #    print "[%s] at %s \n  Article \"%s\" is updated(published)! (%s)" \
+    #        % (self.username.encode('utf-8'), self.created_at.encode('utf-8'), \
+    #        self.title.encode('utf-8'), self.link.encode('utf-8'))

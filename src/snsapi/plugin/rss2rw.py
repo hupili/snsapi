@@ -126,7 +126,7 @@ class RSS2RWStatus(RSSStatus):
         #The 'title' field is the place where we put our messages. 
         self.text = self.title
         
-    def show(self):
-        print "[%s] at %s \n  %s" \
-            % (self.username.encode('utf-8'), self.created_at.encode('utf-8'), \
-            self.text.encode('utf-8'))
+    #def show(self):
+    #    print "[%s] at %s \n  %s" \
+    #        % (self.username.encode('utf-8'), self.created_at.encode('utf-8'), \
+    #        self.text.encode('utf-8'))

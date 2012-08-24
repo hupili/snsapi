@@ -10,6 +10,7 @@ from ..snsapi import oauth
 from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
+from ..utils import console_output
 #Use by all Renren API transactions
 import urllib
 #Used by renren_request
@@ -244,5 +245,5 @@ class RenrenStatus(Status):
         self.username = dct['uid']
         self.usernick = ""
         
-    def show(self):
-        print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
+    #def show(self):
+    #    console_output("[%s] at %s \n  %s" % (self.username, self.created_at, self.text))

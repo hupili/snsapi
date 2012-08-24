@@ -21,6 +21,7 @@ import urlparse
 import datetime
 import snstype
 import subprocess
+import utils
 
 from snslog import SNSLog
 logger = SNSLog
@@ -36,6 +37,8 @@ class SNSAPI(object):
         self.auth_info = snstype.AuthenticationInfo()
         self.__fetch_code_timeout = 2
         self.__fetch_code_max_try = 30
+
+        self.console_input = lambda : utils.console_input()
 
     def fetch_code(self):
         if self.auth_info.cmd_fetch_code == "(built-in)" :
@@ -68,7 +71,8 @@ class SNSAPI(object):
 
     #build-in fetch_code function: read from console
     def __fetch_code(self):
-        print "Please input the whole url from Broswer's address bar:";
+        #print "Please input the whole url from Broswer's address bar:";
+        utils.console_output("Please input the whole url from Broswer's address bar:")
         return self.console_input()
 
     #build-in request_url function: open default web browser
@@ -107,13 +111,6 @@ class SNSAPI(object):
         #print "Authorized! access token is " + str(self.token)
         logger.debug("Authorized! access token is " + str(self.token))
         logger.info("Channel '%s' is authorized", self.channel_name)
-    
-    def console_input(self):
-        '''
-        To make oauth2 testable, and more reusable, we use console_input to wrap raw_input.
-        See http://stackoverflow.com/questions/2617057/supply-inputs-to-python-unittests.
-        '''
-        return raw_input()
     
     def openBrower(self, url):
         return webbrowser.open(url)

@@ -100,5 +100,5 @@ class QQStatus(Status):
         self.username = dct['name']
         self.usernick = dct['nick']
         
-    def show(self):
-        print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
+    #def show(self):
+    #    print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)

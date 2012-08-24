@@ -46,7 +46,7 @@ if __name__ == "__main__":
     #test home_timeline()
     for c in clis:
         print "=====Information from channel: %s" % c.channel_name
-        sl = c.home_timeline()
+        sl = c.home_timeline(5)
         for s in sl:
             s.show()
         print "=====End of channel: %s" % c.channel_name

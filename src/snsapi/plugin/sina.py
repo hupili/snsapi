@@ -106,5 +106,5 @@ class SinaStatus(Status):
         self.username = dct['user']['name']
         self.usernick = ""
         
-    def show(self):
-        print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
+    #def show(self):
+    #    print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)

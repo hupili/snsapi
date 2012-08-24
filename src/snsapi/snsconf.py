@@ -32,6 +32,8 @@ Guidelines to add things here:
    '../conf' folder. 
 '''
 
+# ========== logging confs =================
+
 from snslog import SNSLog
 
 #Debug level, print to console, for developers
@@ -41,3 +43,7 @@ SNSLog.init(level = SNSLog.DEBUG)
 #SNSLog.init(logfile = "snsapi.log", verbose = False)
 
 #SNSLog.init(level = SNSLog.DEBUG, logfile = "snsapi.log", verbose = False)
+
+# ========== console confs =================
+
+SNSAPI_CONSOLE_STDOUT_ENCODING = 'utf-8'

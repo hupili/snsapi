@@ -53,15 +53,31 @@ class Status(object):
             
     def parse(self, dct):
         pass
+
+    def show(self):
+        utils.console_output(unicode(self))
     
+    #def __str__(self):
+    #    return "[%s] at %s \n  %s" % \
+    #            (self.username, self.created_at, self.text)
+    def __str__(self):
+        raise errors.SNSEncodingError()
+
+    def __unicode__(self):
+        return "[%s] at %s \n  %s" % \
+                (self.username, self.created_at, self.text)
     
 class User(object):
     def __init__(self, jobj=None):
         self.id = 0
         
+#TODO:
+#    This class is not used anywhere in the project. 
+#    Retire it in the next upgrades?
 class Error(dict):
     def show(self):
-        print self
+        #print self
+        utils.console_output(self)
 
 class AuthenticationInfo:
     #default auth configurations
