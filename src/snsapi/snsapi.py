@@ -39,6 +39,13 @@ class SNSAPI(object):
         self.__fetch_code_max_try = 30
 
         self.console_input = lambda : utils.console_input()
+        
+        #We can not init the auth client here. 
+        #As the base class, this part is first 
+        #execute. Not until we execute the derived
+        #class, e.g. sina.py, can we get all the
+        #information to init an auth client. 
+        self.authClient = None
 
     def fetch_code(self):
         if self.auth_info.cmd_fetch_code == "(built-in)" :
@@ -78,40 +85,54 @@ class SNSAPI(object):
     #build-in request_url function: open default web browser
     def __request_url(self, url):
 		#self.openBrower(url)
-        #webbrowser.open(url)
-        print url
+        webbrowser.open(url)
+        #print url
         return
+
+    #The init process is separated out and we 
+    #adopt an idle evaluation strategy for it. 
+    #This is because the two stages of OAtuh 
+    #should be context-free. We can not assume 
+    #calling the second is right after calling
+    #the first. They can be done in different 
+    #invokation of the script. They can be done
+    #on different servers. 
+    def __init_oauth2_client(self):
+        if self.authClient == None:
+            try:
+                self.authClient = oauth.APIClient(self.app_key, \
+                        self.app_secret, self.auth_info.callback_url, auth_url = self.auth_url)
+            except:
+                logger.critical("authClient init error")
+                raise errors.snsAuthFail
 
     def _oauth2_first(self):
         '''
         The first stage of oauth. 
         Generate auth url and request. 
         '''
+        self.__init_oauth2_client()
+
         url = self.authClient.get_authorize_url()
-        if self.auth_info.cmd_request_url == "(built-in)" :
-            self.__request_url(url)
-        else :
-            self.request_url(url)
+        self.request_url(url)
 
     def _oauth2_second(self):
         '''
         The second stage of oauth. 
         Fetch authenticated code. 
         '''
-        if self.auth_info.cmd_fetch_code == "(built-in)" :
-            url = self.__fetch_code()
-        else :
-            url = self.fetch_code() 
+        self.__init_oauth2_client() 
 
+        url = self.fetch_code() 
         if url == "(null)" :
             raise errors.snsAuthFail
-        #print url
-        #url = raw_input()
         self.token = self.parseCode(url)
         self.token.update(self.authClient.request_access_token(self.token.code))
-        print "Authorized! access token is " + str(self.token)
+        logger.debug("Authorized! access token is " + str(self.token))
+        logger.info("Channel '%s' is authorized", self.channel_name)
     
-    def oauth2(self, auth_url, callback_url):
+    #def oauth2(self, auth_url, callback_url):
+    def oauth2(self):
         '''Authorizing using synchronized invocation.
         Invoking APIs from oauth.py
         
@@ -125,21 +146,32 @@ class SNSAPI(object):
         
         logger.info("Try to authenticate '%s' using OAuth2", self.channel_name)
 
-        authClient = oauth.APIClient(self.app_key, self.app_secret, callback_url, auth_url=auth_url)
-        url = authClient.get_authorize_url()
+        #authClient = oauth.APIClient(self.app_key, self.app_secret, callback_url, auth_url=auth_url)
+        #url = authClient.get_authorize_url()
+        #self.request_url(url)
 
-        self.request_url(url)
+        self._oauth2_first()
         
         #Wait for input
-        url = self.fetch_code()
+        #url = self.fetch_code()
+        #if url == "(null)" :
+        #    raise errors.snsAuthFail
+        #self.token = self.parseCode(url)
+        #self.token.update(authClient.request_access_token(self.token.code))
+        ##print "Authorized! access token is " + str(self.token)
+        #logger.debug("Authorized! access token is " + str(self.token))
+        #logger.info("Channel '%s' is authorized", self.channel_name)
+        self._oauth2_second()
 
-        if url == "(null)" :
-            raise errors.snsAuthFail
-        self.token = self.parseCode(url)
-        self.token.update(authClient.request_access_token(self.token.code))
-        #print "Authorized! access token is " + str(self.token)
-        logger.debug("Authorized! access token is " + str(self.token))
-        logger.info("Channel '%s' is authorized", self.channel_name)
+    def auth(self):
+        """
+        General entry for authorization.  
+        It uses OAuth2 by default. 
+        """
+        if self.get_saved_token():
+            return
+        self.oauth2()
+        self.save_token()
     
     def openBrower(self, url):
         return webbrowser.open(url)
