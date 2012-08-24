@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from snslog.snslog import SNSLog
+from snsapi.snslog import SNSLog
 logger = SNSLog
 import snsapi
 from snsapi import errors 
