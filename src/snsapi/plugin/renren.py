@@ -136,17 +136,11 @@ class RenrenAPI(SNSAPI):
         return response
 
     def __hash_params(self, params = None):
-        hashstring = "".join(["%s=%s" % (self.__unicode_encode(x), self.__unicode_encode(params[x])) for x in sorted(params.keys())])
-        hashstring = hashstring + self.__unicode_encode(self.app_secret)
+        hashstring = "".join(["%s=%s" % (self._unicode_encode(x), self._unicode_encode(params[x])) for x in sorted(params.keys())])
+        hashstring = hashstring + self._unicode_encode(self.app_secret)
         #logger.debug(hashstring)
         hasher = hashlib.md5(hashstring)
         return hasher.hexdigest()
-
-    def __unicode_encode(self, str):
-        """
-        Detect if a string is unicode and encode as utf-8 if necessary
-        """
-        return isinstance(str, unicode) and str.encode('utf-8') or str
         
     def home_timeline(self, count=20):
         '''Get home timeline

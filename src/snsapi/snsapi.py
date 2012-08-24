@@ -215,6 +215,12 @@ class SNSAPI(object):
         resp = urllib.urlopen(baseurl,data)
         json_objs = json.loads(resp.read())
         return json_objs
+
+    def _unicode_encode(self, str):
+        """
+        Detect if a string is unicode and encode as utf-8 if necessary
+        """
+        return isinstance(str, unicode) and str.encode('utf-8') or str
     
     def home_timeline(self, count=20):
         '''Get home timeline
