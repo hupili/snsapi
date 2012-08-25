@@ -4,7 +4,6 @@
 SINA micro-blog client
 '''
 
-from .. import oauth
 from ..snslog import SNSLog 
 logger = SNSLog
 from ..snsapi import SNSAPI

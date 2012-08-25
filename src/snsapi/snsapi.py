@@ -6,6 +6,8 @@ snsapi base class.
 All plugins are derived from this class. 
 It provides common authenticate and communicate methods.
 '''
+
+# === system imports ===
 import webbrowser
 try:
     import json
@@ -13,18 +15,21 @@ except ImportError:
     import simplejson as json
 import time
 import urllib
-import oauth
-from utils import JsonObject
 import errors
 import base64
 import urlparse
 import datetime
-import snstype
 import subprocess
-import utils
 
+# === snsapi modules ===
+import snstype
+import utils
+from utils import JsonObject
 from snslog import SNSLog
 logger = SNSLog
+
+# === 3rd party modules ===
+from third import oauth
 
 class SNSAPI(object):
     def __init__(self):

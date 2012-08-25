@@ -6,7 +6,6 @@ renren client
 
 from ..snslog import SNSLog
 logger = SNSLog
-from ..snsapi import oauth
 from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
