@@ -58,9 +58,17 @@ if __name__ == "__main__":
     for c in channel_out :
         print c
 
+    try:
+        messages = json.load(open('messages.json'))
+    except IOError, e:
+        if e.errno == 2: #no such file
+            messages = {}
+        else:
+            raise e
+
     #load message information and check in channels. 
     #merge new messages into local storage
-    messages = json.load(open(abspath('messages.json'),'r'))
+    #messages = json.load(open(abspath('messages.json'),'r'))
     for cin_name in channel_in :
         print "==== Reading channel: %s" % (cin_name)
         cin_obj = channels[cin_name]
