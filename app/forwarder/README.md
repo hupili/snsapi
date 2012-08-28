@@ -88,3 +88,12 @@ It forwards the newly published status on Sina:
 This is what we see on QQ microblog:
 
 ![qq web](https://raw.github.com/uxian/snsapi/master/app/forwarder/screenshots/forwarder2.jpg)
+
+
+Remarks
+----
+
+The forwarder app is by no means complete. 
+It is just a demo of the basic idea. 
+You can modify the codes a little 
+and  setup some rules governing the forwarding behaviour. 
