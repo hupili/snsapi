@@ -15,7 +15,9 @@ except ImportError:
 import time
 import urllib
 import urllib2
-import logging
+#import logging
+from ..snslog import SNSLog
+logger = SNSLog
 
 def _obj_hook(pairs):
     '''
@@ -95,15 +97,15 @@ _HTTP_POST = 1
 _HTTP_UPLOAD = 2
 
 def _http_get(url, authorization=None, **kw):
-    logging.info('GET %s' % url)
+    logger.debug('GET %s' % url)
     return _http_call(url, _HTTP_GET, authorization, **kw)
 
 def _http_post(url, authorization=None, **kw):
-    logging.info('POST %s' % url)
+    logger.debug('POST %s' % url)
     return _http_call(url, _HTTP_POST, authorization, **kw)
 
 def _http_upload(url, authorization=None, **kw):
-    logging.info('MULTIPART POST %s' % url)
+    logger.debug('MULTIPART POST %s' % url)
     return _http_call(url, _HTTP_UPLOAD, authorization, **kw)
 
 def _http_call(url, method, authorization, **kw):
