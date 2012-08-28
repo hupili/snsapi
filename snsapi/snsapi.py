@@ -55,9 +55,8 @@ class SNSAPI(object):
     def fetch_code(self):
         if self.auth_info.cmd_fetch_code == "(built-in)" :
             url = self.__fetch_code()
-            return url
+            return url.strip()
         else :
-            #url = self.fetch_code() 
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
             logger.debug("fetch_code command is: %s", cmd) 
             ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
