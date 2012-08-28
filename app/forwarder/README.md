@@ -64,3 +64,27 @@ Advanced
 ```
 {}
 ```
+
+Screenshots
+----
+
+Configure Sina Weibo to be one in channel, 
+and QQ Microblog to be one out channel. 
+Invoke `python forwarder.py` and pass all the authorization. 
+It forwards the first message:
+
+![cli 1](https://raw.github.com/uxian/snsapi/master/app/forwarder/screenshots/forwarder3.jpg)
+
+Now I publish some news on the Sina weibo through web interface:
+
+![sina web](https://raw.github.com/uxian/snsapi/master/app/forwarder/screenshots/forwarder1.jpg)
+
+Invoke forwarder again. 
+forwarder remembers the messages it has forwarded and avoid repitition. 
+It forwards the newly published status on Sina:
+
+![cli 2](https://raw.github.com/uxian/snsapi/master/app/forwarder/screenshots/forwarder4.jpg)
+
+This is what we see on QQ microblog:
+
+![qq web](https://raw.github.com/uxian/snsapi/master/app/forwarder/screenshots/forwarder2.jpg)
