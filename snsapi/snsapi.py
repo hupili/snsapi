@@ -143,10 +143,17 @@ class SNSAPI(object):
         
         web browser will be open, after that, user need to copy the code back to command window.
         save access_token if authorized.
-        @param auth_url: the authorizing url for individual SNS provider, must be set.
-        @param callback_url: the SNS provider will send something of a code to this page. 
-            Users need to collect the code in the browser's address bar to this client.
-            callback_url MUST be the same one you set when you apply for an app in openSNS platform.
+        
+        .. py:function:: -
+
+        :param auth_url: 
+            The authorizing url for individual SNS provider, must be set.
+
+        :param callback_url: 
+            The SNS provider will send something of a code to this page. 
+
+        Users need to collect the code in the browser's address bar to this client.
+        callback_url MUST be the same one you set when you apply for an app in openSNS platform.
         '''
         
         logger.info("Try to authenticate '%s' using OAuth2", self.channel_name)

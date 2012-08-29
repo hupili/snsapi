@@ -10,15 +10,18 @@ class StatusID(object):
     """
     All information to locate one status is here. 
 
-    It shuold be complete so that 
+    It shuold be complete so that:
+
        * one can invoke reply() function of plugin on this object. 
        * Or one can invoke reply() function of container on this object. 
 
     In order to reply one status, here's the information 
     required by each platforms:
+
        * Renren: the status_id and source_user_id
        * Sina:
        * QQ:
+
     """
     def __init__(self, platform = None, status_id = None, source_user_id = None):
         super(StatusID, self).__init__()
