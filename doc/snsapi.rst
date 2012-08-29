@@ -3,7 +3,7 @@ SNSAPI Middleware
 =========================
 
 snsapi.py
------
+---------
 
 .. automodule:: snsapi.snsapi
     :members:
