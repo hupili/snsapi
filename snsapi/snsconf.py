@@ -6,31 +6,51 @@ snsapi Basic Hardcode Conf
 This files may look weird at first glance, 
 here's a short background story on how I 
 get to this point:
-   * There are many debugging information 
-   printed on the console previously, 
-   which make stdin/stdout interface a 
+   * There are many debugging information \
+   printed on the console previously, \
+   which make stdin/stdout interface a \
    mess. 
-   * I just developed a wrapper for logging.
+   * I just developed a wrapper for logging.\
    Hope it can unify different log messages. 
-   * 'snsapi' as a whole package will import 
-   all plugins at the initialization stage. 
+   * 'snsapi' as a whole package will import \
+   all plugins at the initialization stage. \
    This will trigger a 'xxx plugged!" message.
-   * Some calls to write logs happens before
-   we have a chance to init SNSLog (Original
-   plan is to let the upper layer init with 
+   * Some calls to write logs happens before \
+   we have a chance to init SNSLog (Original \
+   plan is to let the upper layer init with  \
    its own preference). 
-   * The workaround is to develop this 
+   * The workaround is to develop this  \
    hardcode conf files. 
 
 Guidelines to add things here:
-   * If something is to be configured before
-   fully init of snsapi(which involves 
-   init those plugins), the configuration 
+   * If something is to be configured before \
+   fully init of snsapi(which involves  \
+   init those plugins), the configuration  \
    can go into this file. 
-   * Otherwise, try best to let the upper
-   layer configure it. Put the confs in the
+   * Otherwise, try best to let the upper \
+   layer configure it. Put the confs in the \
    '../conf' folder. 
 '''
+
+class SNSConf(object):
+    """Hardcode Confs for SNSAPI"""
+    
+    SNSAPI_CONSOLE_STDOUT_ENCODING = 'utf-8'
+    '''
+    de
+    '''
+
+    def __init__(self, arg):
+        raise
+        
+
+class SNSConfNoInstantiation(Exception):
+    def __init__(self):
+        super(SNSConfNoInstantiation, self).__init__()
+
+    def __str__(self):
+        return "You can not instantiate SNSConf. "\
+                "Call its static methods directly!"
 
 # ========== logging confs =================
 
@@ -46,4 +66,3 @@ SNSLog.init(level = SNSLog.DEBUG)
 
 # ========== console confs =================
 
-SNSAPI_CONSOLE_STDOUT_ENCODING = 'utf-8'

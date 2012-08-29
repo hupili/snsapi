@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import snsconf
+from snsconf import SNSConf
 
 '''
 utilities for snsapi
@@ -42,5 +42,5 @@ def console_output(string):
     Actually it has a much longer story. See Issue#8: 
     the discussion of console encoding~
     '''
-    print string.encode(snsconf.SNSAPI_CONSOLE_STDOUT_ENCODING)
+    print string.encode(SNSConf.SNSAPI_CONSOLE_STDOUT_ENCODING)
 
