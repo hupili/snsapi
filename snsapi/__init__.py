@@ -8,3 +8,4 @@ import errors
 import snscrypt
 from third import *
 from plugin import *
+from plugin_trial import *
