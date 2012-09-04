@@ -11,7 +11,7 @@ from ..snstype import Status,User,Error
 from .. import errors
 from ..utils import console_output
 #Use by all Renren API transactions
-import urllib
+#import urllib
 #Used by renren_request
 import time
 #Used by __hash_params
@@ -63,7 +63,8 @@ class RenrenAPI(SNSAPI):
         args["response_type"] = "code"
         args["scope"] = "read_user_status status_update publish_comment"
         args["state"] = "snsapi! Stand up, Geeks! Step on the head of those evil platforms!"
-        url = RENREN_AUTHORIZATION_URI + "?" + urllib.urlencode(args)
+        #self._http_get(RENREN_AUTHORIZATION_URI, args)
+        url = RENREN_AUTHORIZATION_URI + "?" + self._urlencode(args)
         self.request_url(url)
 
     def auth_second(self):
@@ -77,9 +78,10 @@ class RenrenAPI(SNSAPI):
         args["client_secret"] = self.app_secret
         args["code"] = self.token.code
         args["grant_type"] = "authorization_code"
-        response = urllib.urlopen(RENREN_ACCESS_TOKEN_URI + "?" + urllib.urlencode(args)).read()
-        #logger.debug("response: %s", response)
-        self.token.update(_parse_json(response))
+        #response = urllib.urlopen(RENREN_ACCESS_TOKEN_URI + "?" + urllib.urlencode(args)).read()
+        ##logger.debug("response: %s", response)
+        #self.token.update(_parse_json(response))
+        self.token.update(self._http_get(RENREN_ACCESS_TOKEN_URI, args))
         self.token.expires_in = self.token.expires_in + time.time()
 
     def auth(self):
@@ -101,8 +103,9 @@ class RenrenAPI(SNSAPI):
 
         #request a session key
         session_key_request_args = {"oauth_token": self.token.access_token}
-        response = urllib.urlopen(RENREN_SESSION_KEY_URI + "?" + urllib.urlencode(session_key_request_args)).read()
-        session_key = str(_parse_json(response)["renren_token"]["session_key"])
+        #response = urllib.urlopen(RENREN_SESSION_KEY_URI + "?" + urllib.urlencode(session_key_request_args)).read()
+        response = self._http_get(RENREN_SESSION_KEY_URI, session_key_request_args)
+        session_key = str(response["renren_token"]["session_key"])
 
         #system parameters fill-in
         params["api_key"] = self.app_key
@@ -118,16 +121,17 @@ class RenrenAPI(SNSAPI):
         sig = self.__hash_params(params);
         params["sig"] = sig
         
-        post_data = None if params is None else urllib.urlencode(params)
-        
-        file = urllib.urlopen(RENREN_API_SERVER, post_data)
+        #post_data = None if params is None else urllib.urlencode(params)
+        #file = urllib.urlopen(RENREN_API_SERVER, post_data)
         
         try:
-            s = file.read()
-            #logger.debug("request response: %s", s)
-            response = _parse_json(s)
+            response = self._http_post(RENREN_API_SERVER, params)
+            #s = file.read()
+            ##logger.debug("request response: %s", s)
+            #response = _parse_json(s)
         finally:
-            file.close()
+            pass
+        #    file.close()
 
         if type(response) is not list and "error_code" in response:
             logger.warning(response["error_msg"]) 
