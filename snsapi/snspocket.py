@@ -82,6 +82,8 @@ class SNSPocket(dict):
         except IOError:
             raise errors.NoConfigFile
 
+        logger.info("read configs done")
+
     def save_config(self, \
             fn_channel = 'conf/channel.json',\
             fn_pocket = 'conf/pocket.json'):
@@ -105,8 +107,10 @@ class SNSPocket(dict):
             json.dump(conf_pocket, open(fn_pocket, "w"), indent = 2)
         except:
             raise errors.SNSPocketSaveConfigError
+
+        logger.info("save configs done")
         
-    def list(self, verbose = False):
+    def list_channel(self, verbose = False):
         console_output("\n")
         console_output("Current channels:")
         for cname in self.iterkeys():
@@ -139,6 +143,8 @@ class SNSPocket(dict):
             for c in self.itervalues():
                 if c.jsonconf['open'] == "yes":
                     status_list.extend(c.home_timeline(count))
+
+        logger.info("Read %d statuses", len(status_list))
         return status_list
 
     def update(self, text, channel = None):
@@ -148,14 +154,16 @@ class SNSPocket(dict):
         :param channel:
             The channel name. Use None to update all channels
         """
+        re = {}
         if channel:
-            return self[channel].update(text)
+            re[channel] = self[channel].update(text)
         else:
-            re = {}
             for c in self.itervalues():
                 if c.jsonconf['open'] == "yes":
                     re[c.jsonconf['channel_name']] = c.update(text)
-            return re
+
+        logger.info("Update status '%s'. Result:%s", text, re)
+        return re
 
     def reply(self, statusID, text, channel = None):
         """
@@ -165,10 +173,16 @@ class SNSPocket(dict):
             The channel name. Use None to automatically select
             one compatible channel. 
         """
+        re = {}
         if channel:
-            return self[channel].reply(statusID, text)
+            re = self[channel].reply(statusID, text)
         else:
             for c in self.itervalues():
                 if c.jsonconf['open'] == "yes":
                     if c.jsonconf['platform'] == statusID.platform:
-                        return c.reply(statusID, text)
+                        re = c.reply(statusID, text)
+                        break
+
+        logger.info("Reply to status '%s' with text '%s'. Result: %s",\
+                statusID, text, re)
+        return re
