@@ -70,3 +70,15 @@ class RenRenAPIError(SNSError):
         Exception.__init__(self, message)
         self.code = code
 
+class SNSPocketError(SNSError):
+    def __init__(self):
+        super(SNSPocketError, self).__init__()
+    def __str__(self):
+        return "SNSPocket Error!"
+
+class SNSPocketSaveConfigError(SNSPocketError):
+    def __init__(self):
+        super(SNSPocketSaveConfigError, self).__init__()
+    def __str__(self):
+        return "SNSPocket Save Config Error!"
+        

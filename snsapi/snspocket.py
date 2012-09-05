@@ -27,6 +27,7 @@ class SNSPocket(dict):
     """The container class for snsapi's"""
     def __init__(self):
         super(SNSPocket, self).__init__()
+        self.jsonconf = {}
 
     def __iter__(self):
         """
@@ -74,16 +75,12 @@ class SNSPocket(dict):
         except IOError:
             raise errors.NoConfigFile
 
-    def list(self, verbose = False):
-        console_output("\n")
-        console_output("Current channels:")
-        for cname in self.iterkeys():
-            c = self[cname].jsonconf
-            console_output("   * %s: %s %s" % \
-                    (c['channel_name'],c['platform'],c['open']))
-            if verbose:
-                console_output("    %s" % json.dumps(c))
-        console_output("\n")
+        try:
+            with open(abspath(fn_pocket), "r") as fp:
+                allinfo = json.load(fp)
+                self.jsonconf = allinfo
+        except IOError:
+            raise errors.NoConfigFile
 
     def save_config(self, \
             fn_channel = 'conf/channel.json',\
@@ -96,8 +93,29 @@ class SNSPocket(dict):
         will be the unified place to handle file transactions.  
         
         """
-        pass
+
+        conf_channel = []
+        for c in self.itervalues():
+            conf_channel.append(c.jsonconf)
+
+        conf_pocket = self.jsonconf
+
+        try:
+            json.dump(conf_channel, open(fn_channel, "w"), indent = 2)
+            json.dump(conf_pocket, open(fn_pocket, "w"), indent = 2)
+        except:
+            raise errors.SNSPocketSaveConfigError
         
+    def list(self, verbose = False):
+        console_output("\n")
+        console_output("Current channels:")
+        for cname in self.iterkeys():
+            c = self[cname].jsonconf
+            console_output("   * %s: %s %s" % \
+                    (c['channel_name'],c['platform'],c['open']))
+            if verbose:
+                console_output("    %s" % json.dumps(c))
+        console_output("\n")
 
     def auth(self, channel = None):
         """docstring for auth"""
