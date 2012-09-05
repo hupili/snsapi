@@ -39,7 +39,7 @@ class SNSPocket(dict):
                 l.append(c.jsonconf['channel_name'])
         return iter(l)
 
-    def add(self, jsonconf):
+    def add_channel(self, jsonconf):
         logger.debug(json.dumps(jsonconf))
         cname = jsonconf['channel_name']
         if cname in self:
@@ -76,7 +76,7 @@ class SNSPocket(dict):
             with open(abspath(fn_channel), "r") as fp:
                 allinfo = json.load(fp)
                 for site in allinfo:
-                    self.add(site)
+                    self.add_channel(site)
         except IOError:
             raise errors.NoConfigFile
 
@@ -114,7 +114,10 @@ class SNSPocket(dict):
             raise errors.SNSPocketSaveConfigError
 
         logger.info("save configs done")
-        
+
+    def new_channel(self):
+        return JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))   
+
     def list_channel(self, verbose = False):
         console_output("\n")
         console_output("Current channels:")
