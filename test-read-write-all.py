@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+from snsapi.snspocket import SNSPocket
+from snsapi.utils import console_input,console_output
         
 if __name__ == "__main__":
     '''
@@ -12,12 +15,12 @@ if __name__ == "__main__":
     sp.auth()
     
     for cname in sp:
-        print "listen first___________________________"
+        print "listen first___________________________%s" % cname
         sl = sp.home_timeline(channel = cname)
         print sl
         
-        print "update status__________________________"
+        print "update status__________________________%s" % cname
         print "Input text:"
         text = raw_input()
-        ret = cli.update(text, channel = cname)
+        ret = sp.update(text, channel = cname)
         print ret

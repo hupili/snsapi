@@ -3,6 +3,12 @@ from snsapi.utils import console_input,console_output
 
 sp = SNSPocket()
 sp.read_config()
+
+#======= test iter dict ====
+
+for cname in sp:
+    print cname
+
 #s.list(verbose = True)
 sp.list()
 sp.auth()
@@ -21,3 +27,4 @@ print s_list
 
 #======= reply status ====
 #sp.reply(s_list[0].ID, 'haha')
+
