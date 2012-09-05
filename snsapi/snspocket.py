@@ -6,18 +6,10 @@ snspocket: the container class for snsapi's
 '''
 
 # === system imports ===
-import webbrowser
 try:
     import json
 except ImportError:
     import simplejson as json
-import time
-import urllib
-import errors
-import base64
-import urlparse
-import datetime
-import subprocess
 from os.path import abspath
 
 # === snsapi modules ===
@@ -30,7 +22,6 @@ logger = SNSLog
 import plugin
 
 # === 3rd party modules ===
-from third import oauth
 
 class SNSPocket(dict):
     """The container class for snsapi's"""
