@@ -28,6 +28,16 @@ class SNSPocket(dict):
     def __init__(self):
         super(SNSPocket, self).__init__()
 
+    def __iter__(self):
+        """
+        By default, the iterator only return opened channels.
+        """
+        l = []
+        for c in self.itervalues():
+            if c.jsonconf['open'] == 'yes':
+                l.append(c.jsonconf['channel_name'])
+        return iter(l)
+
     def read_config(self, \
             fn_channel = 'conf/channel.json',\
             fn_pocket = 'conf/pocket.json'):
@@ -67,7 +77,7 @@ class SNSPocket(dict):
     def list(self, verbose = False):
         console_output("\n")
         console_output("Current channels:")
-        for cname in self:
+        for cname in self.iterkeys():
             c = self[cname].jsonconf
             console_output("   * %s: %s %s" % \
                     (c['channel_name'],c['platform'],c['open']))
@@ -91,8 +101,11 @@ class SNSPocket(dict):
 
     def auth(self, channel = None):
         """docstring for auth"""
-        for c in self.itervalues():
-            c.auth()
+        if channel:
+            self[c].auth()
+        else:
+            for c in self.itervalues():
+                c.auth()
 
     def home_timeline(self, count = 20, channel = None):
         """
@@ -102,9 +115,12 @@ class SNSPocket(dict):
             The channel name. Use None to read all channels
         """
         status_list = snstype.StatusList()
-        for c in self.itervalues():
-            if c.jsonconf['open'] == "yes":
-                status_list.extend(c.home_timeline(count))
+        if channel:
+            status_list.extend(self[channel].home_timeline(count))
+        else:
+            for c in self.itervalues():
+                if c.jsonconf['open'] == "yes":
+                    status_list.extend(c.home_timeline(count))
         return status_list
 
     def update(self, text, channel = None):
@@ -114,9 +130,14 @@ class SNSPocket(dict):
         :param channel:
             The channel name. Use None to update all channels
         """
-        for c in self.itervalues():
-            if c.jsonconf['open'] == "yes":
-                c.update(text)
+        if channel:
+            return self[channel].update(text)
+        else:
+            re = {}
+            for c in self.itervalues():
+                if c.jsonconf['open'] == "yes":
+                    re[c.jsonconf['channel_name']] = c.update(text)
+            return re
 
     def reply(self, statusID, text, channel = None):
         """
@@ -126,8 +147,10 @@ class SNSPocket(dict):
             The channel name. Use None to automatically select
             one compatible channel. 
         """
-        for c in self.itervalues():
-            if c.jsonconf['open'] == "yes":
-                if c.jsonconf['platform'] == statusID.platform:
-                    c.reply(statusID, text)
-                    break
+        if channel:
+            return self[channel].reply(statusID, text)
+        else:
+            for c in self.itervalues():
+                if c.jsonconf['open'] == "yes":
+                    if c.jsonconf['platform'] == statusID.platform:
+                        return c.reply(statusID, text)
