@@ -112,7 +112,8 @@ class SNSPocket(dict):
         """
         status_list = snstype.StatusList()
         for c in self.itervalues():
-            status_list.extend(c.home_timeline(count))
+            if c.jsonconf['open'] == "yes":
+                status_list.extend(c.home_timeline(count))
         return status_list
 
     def update(self, text, channel = None):
@@ -123,7 +124,8 @@ class SNSPocket(dict):
             The channel name. Use None to update all channels
         """
         for c in self.itervalues():
-            c.update(text)
+            if c.jsonconf['open'] == "yes":
+                c.update(text)
 
     def reply(self, statusID, text, channel = None):
         """
