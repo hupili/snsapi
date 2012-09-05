@@ -135,4 +135,8 @@ class SNSPocket(dict):
             The channel name. Use None to automatically select
             one compatible channel. 
         """
-        pass
+        for c in self.itervalues():
+            if c.jsonconf['open'] == "yes":
+                if c.jsonconf['platform'] == statusID.platform:
+                    c.reply(statusID, text)
+                    break
