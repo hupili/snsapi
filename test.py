@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from snsapi.snspocket import SNSPocket
 from snsapi.utils import console_input,console_output
 
