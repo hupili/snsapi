@@ -39,6 +39,31 @@ class SNSPocket(dict):
                 l.append(c.jsonconf['channel_name'])
         return iter(l)
 
+    def add(self, jsonconf):
+        logger.debug(json.dumps(jsonconf))
+        cname = jsonconf['channel_name']
+        if cname in self:
+            raise errors.SNSPocketDuplicateName
+        p = getattr(plugin, jsonconf['platform'])
+        c = getattr(p, p._entry_class_)
+        if c:
+            self[cname] = c(jsonconf)
+            #TODO:
+            #    This is a work around to store rich 
+            #    channel information in the snsapi 
+            #    class. The snsapi class should be 
+            #    upgrade so that jsonconf is its 
+            #    default entrance to access all 
+            #    config matters. The current hard 
+            #    code attributes are not friendly to
+            #    upgrades. Say you have to write one
+            #    more assignment if there is one more 
+            #    config entry. e.g.
+            #    self.open = channel['open']
+            self[cname].jsonconf = jsonconf
+        else:
+            raise errors.NoSuchPlatform
+
     def read_config(self, \
             fn_channel = 'conf/channel.json',\
             fn_pocket = 'conf/pocket.json'):
@@ -51,27 +76,7 @@ class SNSPocket(dict):
             with open(abspath(fn_channel), "r") as fp:
                 allinfo = json.load(fp)
                 for site in allinfo:
-                    logger.debug(json.dumps(site))
-                    #if site['open'] == "yes" :
-                    p = getattr(plugin, site['platform'])
-                    c = getattr(p, p._entry_class_)
-                    if c:
-                        self[site['channel_name']] = c(site)
-                        #TODO:
-                        #    This is a work around to store rich 
-                        #    channel information in the snsapi 
-                        #    class. The snsapi class should be 
-                        #    upgrade so that jsonconf is its 
-                        #    default entrance to access all 
-                        #    config matters. The current hard 
-                        #    code attributes are not friendly to
-                        #    upgrades. Say you have to write one
-                        #    more assignment if there is one more 
-                        #    config entry. e.g.
-                        #    self.open = channel['open']
-                        self[site['channel_name']].jsonconf = site
-                    else:
-                        raise errors.NoSuchPlatform
+                    self.add(site)
         except IOError:
             raise errors.NoConfigFile
 
