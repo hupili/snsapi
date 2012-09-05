@@ -37,7 +37,7 @@ def console_input():
 
 def console_output(string):
     '''
-    The sister function of console_intput()!
+    The sister function of console_input()!
 
     Actually it has a much longer story. See Issue#8: 
     the discussion of console encoding~
