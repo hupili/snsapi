@@ -67,7 +67,7 @@ class SNSPocket(dict):
         else:
             raise errors.NoSuchPlatform
 
-    def read_config(self, \
+    def load_config(self, \
             fn_channel = 'conf/channel.json',\
             fn_pocket = 'conf/pocket.json'):
         """
@@ -79,7 +79,7 @@ class SNSPocket(dict):
             with open(abspath(fn_channel), "r") as fp:
                 allinfo = json.load(fp)
                 for site in allinfo:
-                    self.add_channel(site)
+                    self.add_channel(JsonDict(site))
         except IOError:
             raise errors.NoConfigFile
 
@@ -96,7 +96,7 @@ class SNSPocket(dict):
             fn_channel = 'conf/channel.json',\
             fn_pocket = 'conf/pocket.json'):
         """
-        Save configs: reverse of read_config
+        Save configs: reverse of load_config
 
         Configs can be modified during execution. snsapi components 
         communicate with upper layer using Python objects. Pocket 
