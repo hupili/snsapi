@@ -70,6 +70,12 @@ class RenRenAPIError(SNSError):
         Exception.__init__(self, message)
         self.code = code
 
+class SNSPocketDuplicateName(SNSError):
+    def __init__(self):
+        super(SNSPocketError, self).__init__()
+    def __str__(self):
+        return "Encounter a duplicate channel name!"
+
 class SNSPocketError(SNSError):
     def __init__(self):
         super(SNSPocketError, self).__init__()

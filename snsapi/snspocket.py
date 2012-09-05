@@ -15,7 +15,7 @@ from os.path import abspath
 # === snsapi modules ===
 import snstype
 import utils
-from utils import JsonObject
+from utils import JsonDict
 from utils import console_output
 from snslog import SNSLog
 logger = SNSLog
@@ -38,6 +38,9 @@ class SNSPocket(dict):
             if c.jsonconf['open'] == 'yes':
                 l.append(c.jsonconf['channel_name'])
         return iter(l)
+
+    def clear_channel(self):
+        self.clear()
 
     def add_channel(self, jsonconf):
         logger.debug(json.dumps(jsonconf))
