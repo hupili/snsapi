@@ -72,7 +72,7 @@ Section 0. Introduction
         self.sections.append(""" 
 Section 1. Help and Principles
 
-    Type "print help" whenever you forget commands. 
+    Type "print helpdoc" whenever you forget commands. 
 
     Note that those commands are essentially Python 
     functions derived from SNSPocket class. You 
@@ -243,7 +243,7 @@ Section 7. Cross Channel Operation
         self.sections.append("""
 Section 8. Advanced Use Case
     
-    Congratulations! You have graspe all basics of SNSAPI. 
+    Congratulations! You have grasped all basics of SNSAPI. 
     Feeling interested? Um, let's look at one more complex 
     idea:
        * Follow (being friends with) different users on 
@@ -273,7 +273,7 @@ Section 9. Programming Interface
     will find it more convenient to use the class directly)
 
     e.g.
-        echo -e 'load_config()\nauth()\nprint home_timeline(5)\nquit()' | python -i snscli.py
+        echo -e 'load_config()\\nauth()\\nprint home_timeline(5)\\nquit()' | python -i snscli.py
 
     You can use the above line to get home timeline from 
     bash. You can deal with it using grep, awk, etc. Same 
