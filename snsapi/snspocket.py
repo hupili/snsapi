@@ -132,16 +132,22 @@ class SNSPocket(dict):
     def new_channel(self):
         return JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))   
 
-    def list_channel(self, verbose = False):
-        console_output("\n")
-        console_output("Current channels:")
-        for cname in self.iterkeys():
-            c = self[cname].jsonconf
-            console_output("   * %s: %s %s" % \
-                    (c['channel_name'],c['platform'],c['open']))
-            if verbose:
-                console_output("    %s" % json.dumps(c))
-        console_output("\n")
+    def list_channel(self, channel = None, verbose = False):
+        if channel:
+            try:
+                console_output(str(self[channel].jsonconf))
+            except KeyError:
+                logger.warning("No such channel '%s'.", channel)
+        else:
+            console_output("")
+            console_output("Current channels:")
+            for cname in self.iterkeys():
+                c = self[cname].jsonconf
+                console_output("   * %s: %s %s" % \
+                        (c['channel_name'],c['platform'],c['open']))
+                if verbose:
+                    console_output("    %s" % json.dumps(c))
+            console_output("")
 
     def auth(self, channel = None):
         """docstring for auth"""
