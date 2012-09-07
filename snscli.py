@@ -11,16 +11,16 @@ from snsapi.snspocket import SNSPocket
 
 sp = SNSPocket()
 
-load_config = lambda *al, **ad : sp.load_config(*al, **ad)
-save_config = lambda *al, **ad  : sp.save_config(*al, **ad)
-list_channel = lambda  *al, **ad : sp.list_channel(*al, **ad)
-new_channel = lambda *al, **ad : sp.new_channel(*al, **ad)
-add_channel = lambda *al, **ad : sp.add_channel(*al, **ad)
-clear_channel = lambda *al, **ad : sp.clear_channel(*al, **ad)
+lc = load_config = lambda *al, **ad : sp.load_config(*al, **ad)
+sc = save_config = lambda *al, **ad  : sp.save_config(*al, **ad)
+lsc = list_channel = lambda  *al, **ad : sp.list_channel(*al, **ad)
+newc = new_channel = lambda *al, **ad : sp.new_channel(*al, **ad)
+addc = add_channel = lambda *al, **ad : sp.add_channel(*al, **ad)
+clc = clear_channel = lambda *al, **ad : sp.clear_channel(*al, **ad)
 auth = lambda  *al, **ad : sp.auth(*al, **ad)
-home_timeline = lambda *al, **ad : sp.home_timeline(*al, **ad)
-update = lambda  *al, **ad : sp.update(*al, **ad)
-reply = lambda  *al, **ad : sp.reply(*al, **ad)
+ht = home_timeline = lambda *al, **ad : sp.home_timeline(*al, **ad)
+up = update = lambda  *al, **ad : sp.update(*al, **ad)
+re = reply = lambda  *al, **ad : sp.reply(*al, **ad)
 
 #==== documentation ====
 
