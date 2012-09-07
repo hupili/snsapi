@@ -15,6 +15,7 @@ from os.path import abspath
 # === snsapi modules ===
 import snstype
 import utils
+from snsapi import errors
 from utils import JsonDict
 from utils import console_output
 from snslog import SNSLog
@@ -45,11 +46,15 @@ class SNSPocket(dict):
     def add_channel(self, jsonconf):
         logger.debug(json.dumps(jsonconf))
         cname = jsonconf['channel_name']
+
         if cname in self:
-            raise errors.SNSPocketDuplicateName
-        p = getattr(plugin, jsonconf['platform'])
-        c = getattr(p, p._entry_class_)
-        if c:
+            #raise errors.SNSPocketDuplicateName(cname)
+            logger.warning("Duplicate channel_name '%s'. Nothing happens to it. ", cname)
+            return False
+
+        try:
+            p = getattr(plugin, jsonconf['platform'])
+            c = getattr(p, p._entry_class_)
             self[cname] = c(jsonconf)
             #TODO:
             #    This is a work around to store rich 
@@ -64,8 +69,11 @@ class SNSPocket(dict):
             #    config entry. e.g.
             #    self.open = channel['open']
             self[cname].jsonconf = jsonconf
-        else:
-            raise errors.NoSuchPlatform
+        except AttributeError:
+            logger.warning("No such platform '%s'. Nothing happens to it. ", jsonconf['platform'])
+            #raise errors.NoSuchPlatform
+
+        return True
 
     def load_config(self, \
             fn_channel = 'conf/channel.json',\
@@ -75,11 +83,14 @@ class SNSPocket(dict):
         * channel.conf
         * pocket.conf
         """
+
+        count_add_channel = 0 
         try:
             with open(abspath(fn_channel), "r") as fp:
                 allinfo = json.load(fp)
                 for site in allinfo:
-                    self.add_channel(JsonDict(site))
+                    if self.add_channel(JsonDict(site)):
+                        count_add_channel += 1
         except IOError:
             raise errors.NoConfigFile
 
@@ -90,7 +101,7 @@ class SNSPocket(dict):
         except IOError:
             raise errors.NoConfigFile
 
-        logger.info("read configs done")
+        logger.info("Read configs done. Add %d channels" % count_add_channel)
 
     def save_config(self, \
             fn_channel = 'conf/channel.json',\

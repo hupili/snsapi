@@ -322,5 +322,5 @@ tut = SNSAPITutorial()
 
 print helpdoc
 #load_config()
-#list()
+#list_channel()
 #auth()
