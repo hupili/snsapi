@@ -71,6 +71,27 @@ snscli上手测试：
 
 还等什么？赶快开启snscli的教程吧。
 
+stdin/stdout测试
+----
+
+下面这行linux命令将向你展示snsapi的stdin/stdout接口。
+
+```
+$echo -e 'load_config()\nauth()\nprint home_timeline(10)' | python -i snscli.py -c | grep "snsapi_test" -A 1
+>>> [INFO][20120911-165746]Read configs done. Add 1 channels
+>>> [INFO][20120911-165746]Read saved token for 'sina_account_1' successfully
+>>> [INFO][20120911-165748]Read 10 statuses
+>>> 
+[snsapi_test] at Tue Sep 11 16:39:46 +0800 2012 
+  test
+```
+
+在新浪微波上关注`snsapi_test`，然后运行这个命令。
+如果前10条消息中，有`snsapi_test`发的，你将能把它grep出来。
+你完全可以用脚本实现更复杂的功能，
+通过stdin对snscli输入命令，并从stdout得到结果。
+你可以定制自己的过滤规则、转发规则，等等。
+
 其他测试：
 ----
 
