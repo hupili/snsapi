@@ -81,6 +81,23 @@ class QQAPI(SNSAPI):
             return True
         return ret
         
+    def reply(self, statusID, text):
+        '''reply to a status
+        @param text: the comment text
+        @return: success or not
+        '''
+        url = "https://open.t.qq.com/api/t/reply"
+        params = {}
+        params["content"] = text
+        params["reid"] = statusID.reid
+        self.attachAuthinfo(params)
+        
+        ret = self._http_post(url, params)
+        if(ret['msg'] == "ok"):
+            return True
+        logger.info("Reply '%s' to status '%s' fail: %s", text, self.channel_name, ret)
+        return ret
+        
 class QQStatus(Status):
     def parse(self, dct):
         self.id = dct['id']
@@ -93,6 +110,8 @@ class QQStatus(Status):
         #         other fields for future use. 
         #      2. Defaultly convert every fields into unicode string. 
         #         Upper layer can tackle with a unified interface
+        self.ID.platform = "qq"
+        self.ID.reid = self.id
         self.created_at = dct['timestamp']
         self.text = dct['text']
         self.reposts_count = dct['count']
