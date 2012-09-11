@@ -55,10 +55,8 @@ class SNSPocket(dict):
     def __dummy_method(self, channel, name):
 
         def dummy(*al, **ad):
-            #logger.warning("dummy")
             logger.warning("'%s' does not have method '%s'", channel, name)
 
-        #return lambda *al, **ad: dummy(*al, **ad)
         return dummy
 
     def __method_routing(self, channel, mapping = None):
@@ -75,34 +73,34 @@ class SNSPocket(dict):
         #    It's also unclear that where is the best place 
         #    for this function. here, or in the base class
         #    'snsapi'?
+        #
+        #    The implementation does not look good. 
+        #    I need two scan:
+        #       * The first is to determine who is dummy. 
+        #       * The second is to really assign dummy. 
+        # 
+        #    If we do everything in one scan, after assigning 
+        #    dummy, the later reference will find it "hasattr". 
+        #    Then we do not get the correct method name in 
+        #    log message. 
 
         if not mapping:
             mapping = SNSPocket.__default_mapping
 
         c = self[channel]
-
-        print mapping
+        d = {}
 
         for src in mapping:
             dst = mapping[src]
-            #print "============="
-            #print src
-            #print dst
             if not hasattr(c, dst):
-                #setattr(c, dst, \
-                #        (lambda *al, **ad: \
-                #        logger.warning("'%s' does not have method '%s'", channel, dst)))
-                #setattr(c, dst, self.__dummy_method(channel, dst))
-                setattr(c, src, self.__dummy_method(channel, src))
-            else:
+                d[dst] = 1
+                d[src] = 1
+            else :
                 if src != dst:
-                    print "map!---"
-                    #setattr(c, src, \
-                    #        (lambda *al, **ad: getattr(c,dst)(*al, **ad)))
                     setattr(c, src, getattr(c,dst))
-            #print getattr(c, src)()
-            #print "============="
 
+        for m in d:
+            setattr(c, m, self.__dummy_method(channel, m))
 
     def add_channel(self, jsonconf):
         logger.debug(json.dumps(jsonconf))
