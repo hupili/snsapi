@@ -50,7 +50,7 @@ class SNSConf(object):
     See the discussion: https://github.com/uxian/snsapi/issues/8
     '''
 
-    SNSAPI_LOG_INIT_LEVEL = SNSLog.DEBUG
+    SNSAPI_LOG_INIT_LEVEL = SNSLog.INFO
 
     '''
     Possible values: 

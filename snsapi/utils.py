@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
 
+#TODO:
+#    This json import piece appears too frequently
+#    We'd better make this file the real entrance. 
+#    All other files refer to json from utils.py.
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 from snsconf import SNSConf
 
 '''
@@ -15,6 +24,24 @@ class JsonObject(dict):
 
     def __setattr__(self, attr, value):
         self[attr] = value
+
+class JsonDict(dict):
+    """
+    The wrapper class for Python dict. 
+
+    It is intended to host Json compatible objects. 
+    In the interative CLI, the users are expected 
+    to configure SNSAPI during execution. To present
+    the current config in a nice way. We should add
+    indentation for the dump method.
+    """
+    def __init__(self, jsonconf = None):
+        super(JsonDict, self).__init__()
+        self.update(jsonconf)
+
+    def __str__(self):
+        return json.dumps(self, indent=2)
+        
         
 #TODO: 
 #The name of this function is non-informative
@@ -37,7 +64,7 @@ def console_input():
 
 def console_output(string):
     '''
-    The sister function of console_intput()!
+    The sister function of console_input()!
 
     Actually it has a much longer story. See Issue#8: 
     the discussion of console encoding~

@@ -5,6 +5,7 @@ SNS type: status, user, comment
 '''
 import utils
 import errors
+from snsconf import SNSConf
 
 class StatusID(object):
     """
@@ -64,11 +65,33 @@ class Status(object):
     #    return "[%s] at %s \n  %s" % \
     #            (self.username, self.created_at, self.text)
     def __str__(self):
-        raise errors.SNSEncodingError()
+        #raise errors.SNSEncodingError()
+        #return unicode(self).encode('utf-8')
+        return unicode(self).encode(SNSConf.SNSAPI_CONSOLE_STDOUT_ENCODING)
 
     def __unicode__(self):
         return "[%s] at %s \n  %s" % \
                 (self.username, self.created_at, self.text)
+
+class StatusList(list):
+    """
+    A list of Status object 
+    """
+    def __init__(self):
+        super(StatusList, self).__init__()
+
+    def __str__(self):
+        tmp = ""
+        for s in self:
+            tmp = tmp + str(s) + "\n"
+        return tmp
+
+    def __unicode__(self):
+        tmp = ""
+        for s in self:
+            tmp = tmp + unicode(s) + "\n"
+        return tmp
+        
     
 class User(object):
     def __init__(self, jobj=None):
