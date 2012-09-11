@@ -99,9 +99,31 @@ class SinaAPI(SNSAPI):
         #except errors.SNSError:
         #    return False
         
+    def reply(self, statusID, text):
+        '''reply to a status
+        @param text: the comment text
+        @return: success or not
+        '''
+        url = "https://api.weibo.com/2/comments/create.json"
+        params = {}
+        params['id'] = statusID.id
+        params['comment'] = text
+        params['access_token'] = self.token.access_token
+        
+        ret = self._http_post(url, params)
+        try:
+            ret['id']
+            return True
+        except Exception as e:
+            logger.info("Reply '%s' to status '%s' fail: %s", text, self.channel_name, ret)
+            return False
+
+        
 class SinaStatus(Status):
     def parse(self, dct):
         self.id = dct["id"]
+        self.ID.platform = "sina"
+        self.ID.id = self.id
         self.created_at = dct["created_at"]
         self.text = dct['text']
         self.reposts_count = dct['reposts_count']
