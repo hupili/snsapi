@@ -26,6 +26,15 @@ import plugin
 
 class SNSPocket(dict):
     """The container class for snsapi's"""
+
+    __default_mapping = {
+        "home_timeline" : "home_timeline", 
+        "update" : "update", 
+        "reply" : "reply",
+        "read" : "home_timeline", 
+        "write" : "update", 
+        "writeto" : "reply"}
+
     def __init__(self):
         super(SNSPocket, self).__init__()
         self.jsonconf = {}
@@ -42,6 +51,58 @@ class SNSPocket(dict):
 
     def clear_channel(self):
         self.clear()
+
+    def __dummy_method(self, channel, name):
+
+        def dummy(*al, **ad):
+            #logger.warning("dummy")
+            logger.warning("'%s' does not have method '%s'", channel, name)
+
+        #return lambda *al, **ad: dummy(*al, **ad)
+        return dummy
+
+    def __method_routing(self, channel, mapping = None):
+        #TODO:
+        #    This function can support higher layer method 
+        #    routing. The basic usage is to enable alias to
+        #    lower level methods. e.g. you can call "read",
+        #    which may be routed to "home_timeline" for 
+        #    real business. 
+        #
+        #    Currently, it is here to map non existing methods 
+        #    to dummy methods. 
+        #  
+        #    It's also unclear that where is the best place 
+        #    for this function. here, or in the base class
+        #    'snsapi'?
+
+        if not mapping:
+            mapping = SNSPocket.__default_mapping
+
+        c = self[channel]
+
+        print mapping
+
+        for src in mapping:
+            dst = mapping[src]
+            #print "============="
+            #print src
+            #print dst
+            if not hasattr(c, dst):
+                #setattr(c, dst, \
+                #        (lambda *al, **ad: \
+                #        logger.warning("'%s' does not have method '%s'", channel, dst)))
+                #setattr(c, dst, self.__dummy_method(channel, dst))
+                setattr(c, src, self.__dummy_method(channel, src))
+            else:
+                if src != dst:
+                    print "map!---"
+                    #setattr(c, src, \
+                    #        (lambda *al, **ad: getattr(c,dst)(*al, **ad)))
+                    setattr(c, src, getattr(c,dst))
+            #print getattr(c, src)()
+            #print "============="
+
 
     def add_channel(self, jsonconf):
         logger.debug(json.dumps(jsonconf))
@@ -69,6 +130,7 @@ class SNSPocket(dict):
             #    config entry. e.g.
             #    self.open = channel['open']
             self[cname].jsonconf = jsonconf
+            self.__method_routing(cname, SNSPocket.__default_mapping) 
         except AttributeError:
             logger.warning("No such platform '%s'. Nothing happens to it. ", jsonconf['platform'])
             #raise errors.NoSuchPlatform
