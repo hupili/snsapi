@@ -104,7 +104,7 @@ Section 2. Create Your First Channel
     We subscribe the RSS feed of SNSAPI wiki pages. 
     Configure accordingly, and add this channel:
     >>> nc["channel_name"] = "test_rss"
-    >>> nc["url"] = "https://github.com/uxian/snsapi/wiki.atom"
+    >>> nc["url"] = "https://github.com/hupili/snsapi/wiki.atom"
     >>> nc["platform"] = "rss"
     >>> add_channel(nc)
 
@@ -163,7 +163,7 @@ Section 5. Configure one "Real" SNS (OSN)
 
     See our wiki page if you haven't done so or you need
     troubleshooting assistance:
-        https://github.com/uxian/snsapi/wiki/Apply-for-app-key
+        https://github.com/hupili/snsapi/wiki/Apply-for-app-key
 
     Try:
     >>> clear_channel()
@@ -172,7 +172,7 @@ Section 5. Configure one "Real" SNS (OSN)
     >>> nc["app_secret"] = "YOU_APP_SECRET_KEY"
     >>> nc["app_key"] = "YOU_APP_KEY"
     >>> nc["channel_name"] = "test_renren"
-    >>> nc["auth_info"]["callback_url"] = "http://uxianli.com/auth.php"
+    >>> nc["auth_info"]["callback_url"] = "https://snsapi.ie.cuhk.edu.hk/aux/auth.php"
     >>> add_channel(nc)
     >>> auth()
     >>> sl = home_timeline(count = 5)

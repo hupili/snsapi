@@ -42,7 +42,7 @@ First Test
    the current folder. Here's how the directory tree
    looks then
 
-<img src="https://raw.github.com/uxian/snsapi/master/src/app/mysofa/pics/renren_sofa_1.jpg" />
+<img src="https://raw.github.com/hupili/snsapi/master/src/app/mysofa/pics/renren_sofa_1.jpg" />
 
    * Copy 'conf/channel.json.example' to 
    'conf/channel.json' and configure your 
@@ -75,7 +75,7 @@ First Test
    * Run 'python mysofa.py' .
    It runs like this. 
 
-<img src="https://raw.github.com/uxian/snsapi/master/src/app/mysofa/pics/renren_sofa_2.jpg" />
+<img src="https://raw.github.com/hupili/snsapi/master/src/app/mysofa/pics/renren_sofa_2.jpg" />
 
 A Step Further
 ----

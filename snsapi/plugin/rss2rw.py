@@ -104,7 +104,7 @@ class RSS2RWAPI(RSSAPI):
 
         rss = PyRSS2Gen.RSS2(
             title = "snsapi, RSS2 R/W Channel",
-            link = "https://github.com/uxian/snsapi",
+            link = "https://github.com/hupili/snsapi",
             description = "RSS2 R/W channel based on feedparser and PyRSS2Gen",
             lastBuildDate = datetime.datetime.now(),
             items = items
