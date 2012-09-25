@@ -149,6 +149,17 @@ Other:
 项目还在成长，所以还有很多考虑不到的东西请多包涵，也请给我们多提建议，更加欢迎你能参与进来，与我们
 一起改造社交网络！
 
-
+Copy Left:
 ---
 
+![copyleft](http://unlicense.org/pd-icon.png)
+
+[http://unlicense.org](http://unlicense.org)
+
+All files of this project are released to public domain, 
+except for the followings:
+
+   * `snsapi/third/*`: The third party modules. 
+   Please refer to their original LICENSE. 
+   We have pointers in `snsapi/third/README.md`
+   for those third party modules. 
