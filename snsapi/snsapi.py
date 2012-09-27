@@ -92,8 +92,8 @@ class SNSAPI(object):
             # TODO: move it to config file or wherever suitable.
             host = "localhost"
             port = 12121;
-            from server import ClientRedirectServer
-            from server import ClientRedirectHandler
+            from third.server import ClientRedirectServer
+            from third.server import ClientRedirectHandler
             import socket
             try:
                 self.httpd = ClientRedirectServer((host, port), ClientRedirectHandler)
