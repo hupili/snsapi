@@ -8,7 +8,7 @@
     "user_id": "",
 	"auth_info":
 	{
-	  "callback_url": "http://copy.the.code.to.client/",
+	  "callback_url": "http://localhost:12121/auth.php",
 	  "cmd_fetch_code": "(built-in)",
 	  "cmd_request_url": "(built-in)",
 	  "save_token_file": "(built-in)"
@@ -26,11 +26,5 @@
     "open": "yes",
     "platform": "rss", 
     "url": "test/sample-rss/feed1.xml" 
-  },
-  {
-    "channel_name": "test_feed_2", 
-    "open": "yes",
-    "platform": "rss", 
-    "url": "test/sample-rss/feed2.xml" 
   }
 ]
