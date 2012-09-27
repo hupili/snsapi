@@ -61,6 +61,10 @@ class snsAuthFail(SNSError):
     def __str__(self):
         return "Authentication Failed!"
 
+class SNSAuthFechCodeError(SNSError):
+    def __str__(self):
+        return "Fetch Code Error!"
+
 class snsWriteFail(SNSError):
     def __str__(self):
         return "This channel is non-writable"

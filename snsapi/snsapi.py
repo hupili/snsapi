@@ -58,12 +58,14 @@ class SNSAPI(object):
             return url.strip()
         elif self.auth_info.cmd_fetch_code == "local_webserver":
             self.httpd.handle_request()
-            if 'error' in self.httpd.query_params:
-                sys.exit('Authentication request was rejected.')
+            #if 'error' in self.httpd.query_params:
+            #    sys.exit('Authentication request was rejected.')
             if 'code' in self.httpd.query_params:
                 code = self.httpd.query_params['code']
-                print "get code from local server", code
-                return "http://localhost/?code=%s" % code
+                logger.info("Get code from local server: %s", code)
+                return "http://localhost/?%s" % urllib.urlencode(self.httpd.query_params)
+            else:
+                raise errors.SNSAuthFechCodeError
         else :
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
             logger.debug("fetch_code command is: %s", cmd) 
@@ -78,6 +80,18 @@ class SNSAPI(object):
             return ret
 
     def request_url(self, url):
+        if self.auth_info.cmd_fetch_code == "local_webserver":
+            # open webserver
+            # TODO: move it to config file or wherever suitable.
+            host = "localhost"
+            port = 12121;
+            from server import ClientRedirectServer
+            from server import ClientRedirectHandler
+            try:
+                self.httpd = ClientRedirectServer((host, port), ClientRedirectHandler)
+            except socket.error:
+                raise errors.snsAuthFail
+            
         if self.auth_info.cmd_request_url == "(built-in)" :
             self.__request_url(url)
         else :
@@ -128,18 +142,6 @@ class SNSAPI(object):
 
         url = self.authClient.get_authorize_url()
 
-        if self.auth_info.cmd_fetch_code == "local_webserver":
-            # open webserver
-            # TODO: move it to config file or wherever suitable.
-            host = "localhost"
-            port = 12121;
-            from server import ClientRedirectServer
-            from server import ClientRedirectHandler
-            try:
-                self.httpd = ClientRedirectServer((host, port), ClientRedirectHandler)
-            except socket.error:
-                raise errors.snsAuthFail
-            
         self.request_url(url)
 
     def _oauth2_second(self):
