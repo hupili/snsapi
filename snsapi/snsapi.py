@@ -57,15 +57,19 @@ class SNSAPI(object):
             utils.console_output("Please input the whole url from Broswer's address bar:")
             return self.console_input().strip()
         elif self.auth_info.cmd_fetch_code == "(local_webserver)":
-            self.httpd.handle_request()
-            #if 'error' in self.httpd.query_params:
-            #    sys.exit('Authentication request was rejected.')
-            if 'code' in self.httpd.query_params:
-                code = self.httpd.query_params['code']
-                logger.info("Get code from local server: %s", code)
-                return "http://localhost/?%s" % urllib.urlencode(self.httpd.query_params)
-            else:
-                raise errors.SNSAuthFechCodeError
+            try: 
+                self.httpd.handle_request()
+                #if 'error' in self.httpd.query_params:
+                #    sys.exit('Authentication request was rejected.')
+                if 'code' in self.httpd.query_params:
+                    code = self.httpd.query_params['code']
+                    logger.info("Get code from local server: %s", code)
+                    return "http://localhost/?%s" % urllib.urlencode(self.httpd.query_params)
+                else:
+                    raise errors.SNSAuthFechCodeError
+            finally:
+                del self.httpd
+                #self.httpd.server_close()
         else :
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
             logger.debug("fetch_code command is: %s", cmd) 
