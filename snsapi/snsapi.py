@@ -56,6 +56,14 @@ class SNSAPI(object):
         if self.auth_info.cmd_fetch_code == "(built-in)" :
             url = self.__fetch_code()
             return url.strip()
+        elif self.auth_info.cmd_fetch_code == "local_webserver":
+            self.httpd.handle_request()
+            if 'error' in self.httpd.query_params:
+                sys.exit('Authentication request was rejected.')
+            if 'code' in self.httpd.query_params:
+                code = self.httpd.query_params['code']
+                print "get code from local server", code
+                return "http://localhost/?code=%s" % code
         else :
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
             logger.debug("fetch_code command is: %s", cmd) 
@@ -119,6 +127,19 @@ class SNSAPI(object):
         self.__init_oauth2_client()
 
         url = self.authClient.get_authorize_url()
+
+        if self.auth_info.cmd_fetch_code == "local_webserver":
+            # open webserver
+            # TODO: move it to config file or wherever suitable.
+            host = "localhost"
+            port = 12121;
+            from server import ClientRedirectServer
+            from server import ClientRedirectHandler
+            try:
+                self.httpd = ClientRedirectServer((host, port), ClientRedirectHandler)
+            except socket.error:
+                raise errors.snsAuthFail
+            
         self.request_url(url)
 
     def _oauth2_second(self):
