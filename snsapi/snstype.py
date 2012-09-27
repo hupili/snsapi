@@ -109,15 +109,25 @@ class AuthenticationInfo(utils.JsonObject):
     #default auth configurations
     def __init__(self, auth_info = None):
         if auth_info :
-            self.callback_url = auth_info['callback_url']
-            self.cmd_fetch_code = auth_info['cmd_fetch_code']
-            self.cmd_request_url = auth_info['cmd_request_url'] 
-            self.save_token_file = auth_info['save_token_file'] 
+            self.update(auth_info)
+            #self.callback_url = auth_info['callback_url']
+            #self.cmd_fetch_code = auth_info['cmd_fetch_code']
+            #self.cmd_request_url = auth_info['cmd_request_url'] 
+            #self.save_token_file = auth_info['save_token_file'] 
         else :
             self.callback_url = None
-            self.cmd_fetch_code = "(built-in)"
-            self.cmd_request_url = "(built-in)"
-            self.save_token_file = "(built-in)"
+            self.cmd_fetch_code = "(default)"
+            self.cmd_request_url = "(default)"
+            self.save_token_file = "(default)"
+
+    def set_defaults(self):
+        DEFAULT_MAPPING = {
+                "cmd_request_url": "(local_webserver)+(webbrowser)",
+                "cmd_fetch_code": "(local_webserver)"
+                }
+        for (k,v) in DEFAULT_MAPPING.items():
+            if (not (k in self)) or (self[k] == "(default)"):
+                self[k] = DEFAULT_MAPPING[k]
 
 if __name__ == "__main__":
     s = Status("fe")

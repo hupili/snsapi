@@ -8,8 +8,8 @@
   "auth_info":
   {
     "callback_url": "https://snsapi.ie.cuhk.edu.hk/aux/auth.php",
-    "cmd_fetch_code": "(built-in)",
-    "cmd_request_url": "(built-in)",
-    "save_token_file": "(built-in)"
+    "cmd_fetch_code": "(default)",
+    "cmd_request_url": "(default)",
+    "save_token_file": "(default)"
   }
 }

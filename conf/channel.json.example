@@ -9,16 +9,16 @@
 	"auth_info":
 	{
 	  "callback_url": "http://localhost:12121/auth.php",
-	  "cmd_fetch_code": "(built-in)",
-	  "cmd_request_url": "(built-in)",
-	  "save_token_file": "(built-in)"
+	  "cmd_fetch_code": "(default)",
+	  "cmd_request_url": "(default)",
+	  "save_token_file": "(default)"
 	},
 	"__auth_info(example to use individulized commands)":
 	{
 	  "callback_url": "http://copy.the.code.to.client/",
 	  "cmd_fetch_code": "./auxiliary/fetch_code_local.sh",
 	  "cmd_request_url": "./auxiliary/request_url_wget.sh",
-	  "save_token_file": "(built-in)"
+	  "save_token_file": "(default)"
 	}
   },
   {

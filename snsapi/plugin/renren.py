@@ -47,7 +47,6 @@ class RenrenAPI(SNSAPI):
         self.domain = "graph.renren.com"
         self.app_key = ""
         self.app_secret = ""
-        self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
         if channel:
             self.read_channel(channel)
 
@@ -57,6 +56,9 @@ class RenrenAPI(SNSAPI):
         self.channel_name = channel['channel_name']
         self.app_key = channel['app_key']
         self.app_secret = channel['app_secret']
+
+        if not "callback_url" in self.auth_info: 
+            self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
         
     def auth_first(self):
         args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)

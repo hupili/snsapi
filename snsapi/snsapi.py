@@ -53,10 +53,10 @@ class SNSAPI(object):
         self.authClient = None
 
     def fetch_code(self):
-        if self.auth_info.cmd_fetch_code == "(built-in)" :
-            url = self.__fetch_code()
-            return url.strip()
-        elif self.auth_info.cmd_fetch_code == "local_webserver":
+        if self.auth_info.cmd_fetch_code == "(console_input)" :
+            utils.console_output("Please input the whole url from Broswer's address bar:")
+            return self.console_input().strip()
+        elif self.auth_info.cmd_fetch_code == "(local_webserver)":
             self.httpd.handle_request()
             #if 'error' in self.httpd.query_params:
             #    sys.exit('Authentication request was rejected.')
@@ -80,20 +80,22 @@ class SNSAPI(object):
             return ret
 
     def request_url(self, url):
-        if self.auth_info.cmd_fetch_code == "local_webserver":
-            # open webserver
+        if self.auth_info.cmd_request_url == "(webbrowser)" :
+            self.open_brower(url)
+        elif self.auth_info.cmd_request_url == "(console_output)" :
+            utils.console_output(url)
+        elif self.auth_info.cmd_request_url == "(local_webserver)+(webbrowser)" :
             # TODO: move it to config file or wherever suitable.
             host = "localhost"
             port = 12121;
             from server import ClientRedirectServer
             from server import ClientRedirectHandler
+            import socket
             try:
                 self.httpd = ClientRedirectServer((host, port), ClientRedirectHandler)
+                self.open_brower(url)
             except socket.error:
                 raise errors.snsAuthFail
-            
-        if self.auth_info.cmd_request_url == "(built-in)" :
-            self.__request_url(url)
         else :
             self.__last_request_time = time.time()
             cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
@@ -101,19 +103,6 @@ class SNSAPI(object):
             res = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
             logger.debug("request_url result is: %s", res) 
             return
-
-    #build-in fetch_code function: read from console
-    def __fetch_code(self):
-        #print "Please input the whole url from Broswer's address bar:";
-        utils.console_output("Please input the whole url from Broswer's address bar:")
-        return self.console_input()
-
-    #build-in request_url function: open default web browser
-    def __request_url(self, url):
-		#self.openBrower(url)
-        webbrowser.open(url)
-        #print url
-        return
 
     #The init process is separated out and we 
     #adopt an idle evaluation strategy for it. 
@@ -208,7 +197,7 @@ class SNSAPI(object):
         self.oauth2()
         self.save_token()
     
-    def openBrower(self, url):
+    def open_brower(self, url):
         return webbrowser.open(url)
     
     def parseCode(self, url):
@@ -230,7 +219,7 @@ class SNSAPI(object):
         #save token to file "token.save"
         #TODO make the file invisible or at least add it to .gitignore
         fname = self.auth_info.save_token_file
-        if fname == "(built-in)" :
+        if fname == "(default)" :
             fname = self.channel_name+".token.save"
         if fname != "(null)" :
             with open(fname,"w") as fp:
@@ -241,7 +230,7 @@ class SNSAPI(object):
     def get_saved_token(self):
         try:
             fname = self.auth_info.save_token_file
-            if fname == "(built-in)" :
+            if fname == "(default)" :
                 fname = self.channel_name+".token.save"
             if fname != "(null)" :
                 with open(fname, "r") as fp:
@@ -287,6 +276,7 @@ class SNSAPI(object):
         self.platform = channel['platform']
         if 'auth_info' in channel :
             self.auth_info.update(channel['auth_info'])
+            self.auth_info.set_defaults()
 
     def setup_app(self, app_key, app_secret):
         '''
