@@ -47,7 +47,7 @@ class SNSConf(object):
     change it to 'gbk'. For others, check the encoding of 
     your console and set it accordingly. 
 
-    See the discussion: https://github.com/uxian/snsapi/issues/8
+    See the discussion: https://github.com/hupili/snsapi/issues/8
     '''
 
     SNSAPI_LOG_INIT_LEVEL = SNSLog.INFO

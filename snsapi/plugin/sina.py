@@ -22,8 +22,6 @@ class SinaAPI(SNSAPI):
         #just you remind myself they exists
         self.app_key = ""
         self.app_secret = ""
-        self.auth_info.auth_url = "https://api.weibo.com/oauth2/"
-        self.auth_info.callback_url = "http://copy.the.code.to.client/"
         if channel:
             self.read_channel(channel)
 
@@ -34,10 +32,10 @@ class SinaAPI(SNSAPI):
         self.app_key = channel['app_key']
         self.app_secret = channel['app_secret']
 
-        #We invoke the past config reading method for the moment
-        #20120716: after the unifying upgrade of config, 
-        #          this is no longer needed
-        #self.read_config()
+        if not "auth_url" in self.auth_info:
+            self.auth_info.auth_url = "https://api.weibo.com/oauth2/"
+        if not "callback_url" in self.auth_info:
+            self.auth_info.callback_url = "http://copy.the.code.to.client/"
         return 
 
     def auth_first(self):

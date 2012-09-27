@@ -17,8 +17,8 @@ snscli上手测试：
    * 首先你需要装Python2.7。
    其他兼容版本见相关的wiki页面。
    * 获得该项目： 
-      * 使用Git： `git clone https://github.com/uxian/snsapi.git`。 
-      * 直接下载zip包： [https://github.com/uxian/snsapi/zipball/master](https://github.com/uxian/snsapi/zipball/master)
+      * 使用Git： `git clone https://github.com/hupili/snsapi.git`。 
+      * 直接下载zip包： [https://github.com/hupili/snsapi/zipball/master](https://github.com/hupili/snsapi/zipball/master)
    * 进入项目根目录，`python -i snscli.py`。
 
 我们在`snscli.py`中集成完整的教程，
@@ -137,8 +137,8 @@ APP:
 平台，你需要做地只是填写配置文件，告诉它接收哪个平台信息，发布到哪些平台上。mysofa我想你已经猜到了，
 就是用来抢沙发的 :D
 
-   * forwarder: [https://github.com/uxian/snsapi/tree/master/app/forwarder](https://github.com/uxian/snsapi/tree/master/app/forwarder)
-   * mysofa: [https://github.com/uxian/snsapi/tree/master/app/mysofa](https://github.com/uxian/snsapi/tree/master/app/mysofa)
+   * forwarder: [https://github.com/hupili/snsapi/tree/master/app/forwarder](https://github.com/hupili/snsapi/tree/master/app/forwarder)
+   * mysofa: [https://github.com/hupili/snsapi/tree/master/app/mysofa](https://github.com/hupili/snsapi/tree/master/app/mysofa)
 
 Other:
 ----
@@ -148,3 +148,18 @@ Other:
 
 项目还在成长，所以还有很多考虑不到的东西请多包涵，也请给我们多提建议，更加欢迎你能参与进来，与我们
 一起改造社交网络！
+
+Copy Left:
+---
+
+![copyleft](http://unlicense.org/pd-icon.png)
+
+[http://unlicense.org](http://unlicense.org)
+
+All files of this project are released to public domain, 
+except for the followings:
+
+   * `snsapi/third/*`: The third party modules. 
+   Please refer to their original LICENSE. 
+   We have pointers in `snsapi/third/README.md`
+   for those third party modules. 
