@@ -10,7 +10,9 @@ export PYTHONPATH=$PYTHONPATH:$cur_dir:$cur_dir/../
 
 echo "begin Sphinx ============================" >> _build/log
 
-make html > .stdout 2> .stderr
+$HOME/.local/bin/sphinx-build -b html -d _build/doctrees . _build/html > .stdout 2> .stderr
+
+#make html > .stdout 2> .stderr
 #make html 
 cat .stdout >> _build/log
 cat .stderr >> _build/log
