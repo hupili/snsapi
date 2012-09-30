@@ -321,6 +321,6 @@ tut = SNSAPITutorial()
 #==== default initialization one may like ====
 
 print helpdoc
-#load_config()
-#list_channel()
-#auth()
+load_config()
+list_channel()
+auth()

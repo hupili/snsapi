@@ -20,7 +20,7 @@ from utils import JsonDict
 from utils import console_output
 from snslog import SNSLog
 logger = SNSLog
-import plugin
+import platform
 
 # === 3rd party modules ===
 
@@ -112,8 +112,9 @@ class SNSPocket(dict):
             return False
 
         try:
-            p = getattr(plugin, jsonconf['platform'])
-            c = getattr(p, p._entry_class_)
+            p = getattr(platform, jsonconf['platform'])
+            #c = getattr(p, p._entry_class_)
+            c = p
             self[cname] = c(jsonconf)
             #TODO:
             #    This is a work around to store rich 

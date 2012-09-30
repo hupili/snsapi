@@ -1,2 +1,2 @@
 #-*- encoding: utf-8 -*-
-__all__ = ['renren_share']
+#__all__ = ['renren_share']
