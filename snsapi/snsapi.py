@@ -35,7 +35,6 @@ class SNSAPI(object):
     def __init__(self):
         self.app_key = None
         self.app_secret = None
-        self.domain = None
         self.token = None
         self.channel_name = None
 

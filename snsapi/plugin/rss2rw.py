@@ -41,8 +41,6 @@ class RSS2RW(RSS):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
-        self.domain = "null"
-
         #default parameter for writing RSS2 feeds
         self.author = "snsapi"
         self.entry_timeout = 3600 #in seconds, default 1 hour

@@ -42,7 +42,6 @@ class RenrenShareAPI(SNSAPI):
         super(RenrenShareAPI, self).__init__()
         
         self.platform = "renren_share"
-        self.domain = "graph.renren.com"
         self.app_key = ""
         self.app_secret = ""
         self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"

@@ -68,7 +68,6 @@ class RSS(SNSAPI):
         
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
-        self.domain = "null"
         
         if channel: 
             self.read_channel(channel)

@@ -73,7 +73,6 @@ class RenrenStatus(SNSAPI):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
         
-        self.domain = "graph.renren.com"
         self.app_key = ""
         self.app_secret = ""
         if channel:

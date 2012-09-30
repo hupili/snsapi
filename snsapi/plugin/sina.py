@@ -34,7 +34,6 @@ class SinaWeiboStatus(SNSAPI):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
-        self.domain = "api.sina.com"
         #just you remind myself they exists
         self.app_key = ""
         self.app_secret = ""
