@@ -189,6 +189,14 @@ class SNSPocket(dict):
     def new_channel(self):
         return JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))   
 
+    def list_platform(self):
+        console_output("")
+        console_output("Supported platforms:")
+        for p in platform.platform_list:
+            console_output("   * %s" % p)
+        console_output("")
+
+
     def list_channel(self, channel = None, verbose = False):
         if channel:
             try:
