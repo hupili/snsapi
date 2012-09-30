@@ -7,13 +7,35 @@ QQ micro-blog client
 from ..snslog import SNSLog 
 logger = SNSLog
 from ..snsapi import SNSAPI
-from ..snstype import Status,User
+from .. import snstype
 
 logger.debug("%s plugged!", __file__)
 
-class QQAPI(SNSAPI):
+class TencentWeiboStatus(SNSAPI):
+
+    class Message(snstype.Status):
+        def parse(self, dct):
+            self.id = dct['id']
+            #TODO: unify the data type
+            #      In SinaAPI, 'created_at' is a string
+            #      In TecentWeibo, 'created_at' is an int
+            #Proposal:
+            #      1. Store a copy of dct object in the Status object. 
+            #         Derived class of TecentWeibo or SinaAPI can extract 
+            #         other fields for future use. 
+            #      2. Defaultly convert every fields into unicode string. 
+            #         Upper layer can tackle with a unified interface
+            self.ID.platform = "qq"
+            self.ID.reid = self.id
+            self.created_at = dct['timestamp']
+            self.text = dct['text']
+            self.reposts_count = dct['count']
+            self.comments_count = dct['mcount']
+            self.username = dct['name']
+            self.usernick = dct['nick']
+
     def __init__(self, channel = None):
-        super(QQAPI, self).__init__()
+        super(TencentWeiboStatus, self).__init__()
         self.platform = "qq"
         self.domain = "open.t.qq.com"
         self.app_key = ""
@@ -22,7 +44,7 @@ class QQAPI(SNSAPI):
             self.read_channel(channel)
             
     def read_channel(self, channel):
-        super(QQAPI, self).read_channel(channel) 
+        super(TencentWeiboStatus, self).read_channel(channel) 
 
         self.channel_name = channel['channel_name']
         self.app_key = channel['app_key']
@@ -38,7 +60,6 @@ class QQAPI(SNSAPI):
 
     def auth_second(self):
         self._oauth2_second()
-        
         
     def attachAuthinfo(self, params):
         params['access_token'] = self.token.access_token
@@ -63,7 +84,8 @@ class QQAPI(SNSAPI):
         statuslist = []
         try:
             for j in jsonobj['data']['info']:
-                statuslist.append(QQStatus(j))
+                #statuslist.append(TencentWeiboStatus.Message(j))
+                statuslist.append(self.Message(j))
         except TypeError:
             return "Wrong response. " + str(jsonobj)
         return statuslist
@@ -100,26 +122,3 @@ class QQAPI(SNSAPI):
         logger.info("Reply '%s' to status '%s' fail: %s", text, self.channel_name, ret)
         return ret
         
-class QQStatus(Status):
-    def parse(self, dct):
-        self.id = dct['id']
-        #TODO: unify the data type
-        #      In SinaAPI, 'created_at' is a string
-        #      In QQAPI, 'created_at' is an int
-        #Proposal:
-        #      1. Store a copy of dct object in the Status object. 
-        #         Derived class of QQAPI or SinaAPI can extract 
-        #         other fields for future use. 
-        #      2. Defaultly convert every fields into unicode string. 
-        #         Upper layer can tackle with a unified interface
-        self.ID.platform = "qq"
-        self.ID.reid = self.id
-        self.created_at = dct['timestamp']
-        self.text = dct['text']
-        self.reposts_count = dct['count']
-        self.comments_count = dct['mcount']
-        self.username = dct['name']
-        self.usernick = dct['nick']
-        
-    #def show(self):
-    #    print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
