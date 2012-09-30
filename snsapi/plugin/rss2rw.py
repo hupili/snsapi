@@ -27,6 +27,7 @@ class RSS2RW(RSS):
     class Message(RSS.Message):
         def parse(self, dct):
             super(RSS2RW.Message, self).parse(dct)
+            self.ID.platform = self.platform
 
             # RSS2RW channel is intended for snsapi-standardized communication.
             # It does not have to digest RSS entry as is in RSSStatus. 
@@ -36,7 +37,10 @@ class RSS2RW(RSS):
     def __init__(self, channel = None):
         super(RSS2RW, self).__init__()
 
-        self.platform = "rss2rw"
+
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
+
         self.domain = "null"
 
         #default parameter for writing RSS2 feeds

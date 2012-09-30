@@ -16,8 +16,9 @@ class SinaWeiboStatus(SNSAPI):
 
     class Message(snstype.Status):
         def parse(self, dct):
+            self.ID.platform = self.platform
+
             self.id = dct["id"]
-            self.ID.platform = "sina"
             self.ID.id = self.id
             self.created_at = dct["created_at"]
             self.text = dct['text']
@@ -30,7 +31,9 @@ class SinaWeiboStatus(SNSAPI):
     def __init__(self, channel = None):
         super(SinaWeiboStatus, self).__init__()
         
-        self.platform = "sina"
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
+
         self.domain = "api.sina.com"
         #just you remind myself they exists
         self.app_key = ""

@@ -34,7 +34,7 @@ class RenrenStatus(SNSAPI):
     #    Ref: http://wiki.dev.renren.com/wiki/Type%E5%88%97%E8%A1%A8
     class Message(snstype.Status):
         def parse(self, dct):
-            self.ID.platform = "renren"
+            self.ID.platform = self.platform
             self._parse_feed_status(dct)
 
         def _parse_feed_status(self, dct):
@@ -69,8 +69,10 @@ class RenrenStatus(SNSAPI):
 
     def __init__(self, channel = None):
         super(RenrenStatus, self).__init__()
+
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
         
-        self.platform = "renren"
         self.domain = "graph.renren.com"
         self.app_key = ""
         self.app_secret = ""

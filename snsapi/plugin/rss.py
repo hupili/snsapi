@@ -46,6 +46,7 @@ class RSS(SNSAPI):
                 setattr(self, attr, "(null)")
             
         def parse(self, dct):
+            self.ID.platform = self.platform
 
             # For RSS, one entry will be brought up if it is updated. 
             # We use 'update' of RSS as 'created_at' field of SNS stauts. 
@@ -65,7 +66,8 @@ class RSS(SNSAPI):
     def __init__(self, channel = None):
         super(RSS, self).__init__()
         
-        self.platform = "rss"
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
         self.domain = "null"
         
         if channel: 

@@ -15,6 +15,8 @@ class TencentWeiboStatus(SNSAPI):
 
     class Message(snstype.Status):
         def parse(self, dct):
+            self.ID.platform = self.platform
+
             self.id = dct['id']
             #TODO: unify the data type
             #      In SinaAPI, 'created_at' is a string
@@ -25,7 +27,6 @@ class TencentWeiboStatus(SNSAPI):
             #         other fields for future use. 
             #      2. Defaultly convert every fields into unicode string. 
             #         Upper layer can tackle with a unified interface
-            self.ID.platform = "qq"
             self.ID.reid = self.id
             self.created_at = dct['timestamp']
             self.text = dct['text']
@@ -36,7 +37,10 @@ class TencentWeiboStatus(SNSAPI):
 
     def __init__(self, channel = None):
         super(TencentWeiboStatus, self).__init__()
-        self.platform = "qq"
+
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
+
         self.domain = "open.t.qq.com"
         self.app_key = ""
         self.app_secret = ""
