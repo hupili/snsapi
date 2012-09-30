@@ -10,8 +10,7 @@ from ..snsapi import SNSAPI
 from ..snstype import Status,User,Error
 from .. import errors
 
-_entry_class_ = "SinaAPI"
-logger.debug("%s plugged!", _entry_class_)
+logger.debug("%s plugged!", __file__)
 
 class SinaAPI(SNSAPI):
     def __init__(self, channel = None):

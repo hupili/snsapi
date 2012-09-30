@@ -20,8 +20,7 @@ from ..third import feedparser
 from ..third import PyRSS2Gen
 from ..snsapi import errors
 
-_entry_class_ = "RSS2RWAPI"
-logger.debug("%s plugged!", _entry_class_)
+logger.debug("%s plugged!", __file__)
 
 class RSS2RWAPI(RSSAPI):
     def __init__(self, channel = None):

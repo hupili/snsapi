@@ -16,3 +16,5 @@ Basic requirements to bring a trial plugin to formal plugin:
    * Only keep essential functionality. 
    * Reuse common operations provided in lower layer. 
    e.g. `_http_get` in SNSAPI. 
+
+To disable/enable trial plugins please see "../platform.py". 

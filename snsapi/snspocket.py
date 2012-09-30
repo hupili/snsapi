@@ -113,9 +113,7 @@ class SNSPocket(dict):
 
         try:
             p = getattr(platform, jsonconf['platform'])
-            #c = getattr(p, p._entry_class_)
-            c = p
-            self[cname] = c(jsonconf)
+            self[cname] = p(jsonconf)
             #TODO:
             #    This is a work around to store rich 
             #    channel information in the snsapi 
@@ -132,7 +130,6 @@ class SNSPocket(dict):
             self.__method_routing(cname, SNSPocket.__default_mapping) 
         except AttributeError:
             logger.warning("No such platform '%s'. Nothing happens to it. ", jsonconf['platform'])
-            #raise errors.NoSuchPlatform
 
         return True
 

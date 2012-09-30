@@ -28,8 +28,7 @@ except ImportError:
         from django.utils import simplejson
         _parse_json = lambda s: simplejson.loads(s)
 
-_entry_class_ = "RenrenAPI"
-logger.debug("%s plugged!", _entry_class_)
+logger.debug("%s plugged!", __file__)
 
 # Inteface URLs.
 # This differs from other platforms

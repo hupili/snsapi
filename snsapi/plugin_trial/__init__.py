@@ -1,2 +1,3 @@
 #-*- encoding: utf-8 -*-
-#__all__ = ['renren_share']
+
+from renren_share import RenrenShareAPI

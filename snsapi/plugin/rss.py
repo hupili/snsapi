@@ -20,8 +20,7 @@ from ..snsapi import SNSAPI
 from ..snstype import Status,User
 from ..third import feedparser
 
-_entry_class_ = "RSSAPI"
-logger.debug("%s plugged!", _entry_class_)
+logger.debug("%s plugged!", __file__)
 
 class RSSAPI(SNSAPI):
     def __init__(self, channel = None):
