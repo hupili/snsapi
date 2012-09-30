@@ -7,7 +7,7 @@ renren client
 from ..snslog import SNSLog
 logger = SNSLog
 from ..snsapi import SNSAPI
-from ..snstype import Status,User,Error
+from .. import snstype
 from .. import errors
 from ..utils import console_output
 
@@ -33,7 +33,7 @@ class RenrenStatus(SNSAPI):
     #    There are many types of messages on renren. 
     #    There are even many types for new feeds alone. 
     #    Ref: http://wiki.dev.renren.com/wiki/Type%E5%88%97%E8%A1%A8
-    class Message(Status):
+    class Message(snstype.Status):
         def parse(self, dct):
             self.ID.platform = "renren"
             self._parse_feed_status(dct)

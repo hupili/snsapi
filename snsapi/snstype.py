@@ -97,14 +97,6 @@ class User(object):
     def __init__(self, jobj=None):
         self.id = 0
         
-#TODO:
-#    This class is not used anywhere in the project. 
-#    Retire it in the next upgrades?
-class Error(dict):
-    def show(self):
-        #print self
-        utils.console_output(self)
-
 class AuthenticationInfo(utils.JsonObject):
     #default auth configurations
     def __init__(self, auth_info = None):

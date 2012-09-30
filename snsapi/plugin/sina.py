@@ -7,14 +7,14 @@ SINA micro-blog client
 from ..snslog import SNSLog 
 logger = SNSLog
 from ..snsapi import SNSAPI
-from ..snstype import Status,User,Error
+from .. import snstype
 from .. import errors
 
 logger.debug("%s plugged!", __file__)
 
 class SinaWeiboStatus(SNSAPI):
 
-    class Message(Status):
+    class Message(snstype.Status):
         def parse(self, dct):
             self.id = dct["id"]
             self.ID.platform = "sina"
