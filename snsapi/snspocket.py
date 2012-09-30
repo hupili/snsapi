@@ -15,7 +15,7 @@ from os.path import abspath
 # === snsapi modules ===
 import snstype
 import utils
-from snsapi import errors
+from errors import snserror
 from utils import JsonDict
 from utils import console_output
 from snslog import SNSLog
@@ -107,7 +107,6 @@ class SNSPocket(dict):
         cname = jsonconf['channel_name']
 
         if cname in self:
-            #raise errors.SNSPocketDuplicateName(cname)
             logger.warning("Duplicate channel_name '%s'. Nothing happens to it. ", cname)
             return False
 
@@ -150,14 +149,14 @@ class SNSPocket(dict):
                     if self.add_channel(JsonDict(site)):
                         count_add_channel += 1
         except IOError:
-            raise errors.NoConfigFile
+            raise errors.sns.config.nofile(fn_channel)
 
         try:
             with open(abspath(fn_pocket), "r") as fp:
                 allinfo = json.load(fp)
                 self.jsonconf = allinfo
         except IOError:
-            raise errors.NoConfigFile
+            raise errors.sns.config.nofile(fn_pocket)
 
         logger.info("Read configs done. Add %d channels" % count_add_channel)
 
@@ -183,7 +182,7 @@ class SNSPocket(dict):
             json.dump(conf_channel, open(fn_channel, "w"), indent = 2)
             json.dump(conf_pocket, open(fn_pocket, "w"), indent = 2)
         except:
-            raise errors.SNSPocketSaveConfigError
+            raise snserror.config.save
 
         logger.info("save configs done")
 

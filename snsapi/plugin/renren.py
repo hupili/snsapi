@@ -8,7 +8,6 @@ from ..snslog import SNSLog
 logger = SNSLog
 from ..snsapi import SNSAPI
 from .. import snstype
-from .. import errors
 from ..utils import console_output
 
 #Used by renren_request
@@ -153,7 +152,7 @@ class RenrenStatus(SNSAPI):
 
         if type(response) is not list and "error_code" in response:
             logger.warning(response["error_msg"]) 
-            raise errors.RenRenAPIError(response["error_code"], response["error_msg"])
+            raise RenrenAPIError(response["error_code"], response["error_msg"])
         return response
 
     def __hash_params(self, params = None):
@@ -223,3 +222,11 @@ class RenrenStatus(SNSAPI):
         return False
 
         
+# This error is moved back to "renren.py". 
+# It's platform specific and we do not expect other 
+# file to raise this error. 
+class RenrenAPIError(Exception):
+    def __init__(self, code, message):
+        super(RenrenAPIError, self).__init__(message)
+        self.code = code
+

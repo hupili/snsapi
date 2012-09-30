@@ -18,7 +18,7 @@ import datetime
 from rss import RSSAPI, RSSStatus
 from ..third import feedparser
 from ..third import PyRSS2Gen
-from ..snsapi import errors
+from ..snsapi.errors import snserror
 
 logger.debug("%s plugged!", __file__)
 
@@ -112,7 +112,7 @@ class RSS2RWAPI(RSSAPI):
         try:
             rss.write_xml(open(self.url, "w"))
         except:
-            raise errors.snsWriteFail
+            raise snserror.op.write
 
         return True
 

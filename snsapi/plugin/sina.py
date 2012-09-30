@@ -8,7 +8,7 @@ from ..snslog import SNSLog
 logger = SNSLog
 from ..snsapi import SNSAPI
 from .. import snstype
-from .. import errors
+from ..errors import snserror
 
 logger.debug("%s plugged!", __file__)
 
@@ -107,8 +107,6 @@ class SinaWeiboStatus(SNSAPI):
 #KeyError: 'id'
         except:
             return False
-        #except errors.SNSError:
-        #    return False
         
     def reply(self, statusID, text):
         '''reply to a status

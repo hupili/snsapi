@@ -15,7 +15,7 @@ except ImportError:
     import simplejson as json
 import time
 import urllib
-import errors
+from errors import snserror
 import base64
 import urlparse
 import datetime
@@ -68,7 +68,7 @@ class SNSAPI(object):
                     logger.info("Get code from local server: %s", code)
                     return "http://localhost/?%s" % urllib.urlencode(self.httpd.query_params)
                 else:
-                    raise errors.SNSAuthFechCodeError
+                    raise snserror.auth.fetchcode
             finally:
                 del self.httpd
                 #self.httpd.server_close()
@@ -101,7 +101,7 @@ class SNSAPI(object):
                 self.httpd = ClientRedirectServer((host, port), ClientRedirectHandler)
                 self.open_brower(url)
             except socket.error:
-                raise errors.snsAuthFail
+                raise snserror.auth
         else :
             self.__last_request_time = time.time()
             cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
@@ -126,7 +126,7 @@ class SNSAPI(object):
                         auth_url = self.auth_info.auth_url)
             except:
                 logger.critical("authClient init error")
-                raise errors.snsAuthFail
+                raise snserror.auth
 
     def _oauth2_first(self):
         '''
@@ -148,7 +148,7 @@ class SNSAPI(object):
 
         url = self.fetch_code() 
         if url == "(null)" :
-            raise errors.snsAuthFail
+            raise snserror.auth
         self.token = self.parseCode(url)
         self.token.update(self.authClient.request_access_token(self.token.code))
         logger.debug("Authorized! access token is " + str(self.token))
@@ -175,22 +175,7 @@ class SNSAPI(object):
         '''
         
         logger.info("Try to authenticate '%s' using OAuth2", self.channel_name)
-
-        #authClient = oauth.APIClient(self.app_key, self.app_secret, callback_url, auth_url=auth_url)
-        #url = authClient.get_authorize_url()
-        #self.request_url(url)
-
         self._oauth2_first()
-        
-        #Wait for input
-        #url = self.fetch_code()
-        #if url == "(null)" :
-        #    raise errors.snsAuthFail
-        #self.token = self.parseCode(url)
-        #self.token.update(authClient.request_access_token(self.token.code))
-        ##print "Authorized! access token is " + str(self.token)
-        #logger.debug("Authorized! access token is " + str(self.token))
-        #logger.info("Channel '%s' is authorized", self.channel_name)
         self._oauth2_second()
 
     def auth(self):

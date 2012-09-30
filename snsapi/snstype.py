@@ -4,7 +4,7 @@
 SNS type: status, user, comment
 '''
 import utils
-import errors
+from errors import snserror
 from snsconf import SNSConf
 
 class StatusID(object):
@@ -52,8 +52,9 @@ class Status(object):
         
         try:
             self.parse(dct)
-        except AttributeError:
-            raise errors.snsTypeParseError
+        #except AttributeError:
+        except KeyError:
+            raise snserror.type.parse
             
     def parse(self, dct):
         pass
@@ -61,12 +62,7 @@ class Status(object):
     def show(self):
         utils.console_output(unicode(self))
     
-    #def __str__(self):
-    #    return "[%s] at %s \n  %s" % \
-    #            (self.username, self.created_at, self.text)
     def __str__(self):
-        #raise errors.SNSEncodingError()
-        #return unicode(self).encode('utf-8')
         return unicode(self).encode(SNSConf.SNSAPI_CONSOLE_STDOUT_ENCODING)
 
     def __unicode__(self):

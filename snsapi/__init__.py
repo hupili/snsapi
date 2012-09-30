@@ -4,7 +4,7 @@ import snslog
 import utils
 import snsapi
 import snstype
-import errors
+from errors import snserror
 import snscrypt
 from third import *
 #from plugin import *
