@@ -17,14 +17,53 @@ Supported Methods
 from ..snslog import SNSLog 
 logger = SNSLog
 from ..snsapi import SNSAPI
-from ..snstype import Status,User
+from .. import snstype
 from ..third import feedparser
 
 logger.debug("%s plugged!", __file__)
 
-class RSSAPI(SNSAPI):
+class RSS(SNSAPI):
+        
+    class Message(snstype.Status):
+        def __get_dict_entry(self, attr, dct, field):
+            # dict entry reading with fault tolerance. 
+            #   self.attr = dct['field']
+            # RSS format is very diverse. 
+            # To my current knowledge, some format have 
+            # 'author' fields, but others do not:
+            #    * rss : no
+            #    * rss2 : yes
+            #    * atom : yes
+            #    * rdf : yes
+            # This function will return a string "(null)"
+            # by default if the field does not exist. 
+            # The purpose is to expose unified interface
+            # to upper layers. (seeing "(null)" is better 
+            # than catching an error. 
+            try:
+                setattr(self, attr, dct[field])
+            except KeyError:
+                setattr(self, attr, "(null)")
+            
+        def parse(self, dct):
+
+            # For RSS, one entry will be brought up if it is updated. 
+            # We use 'update' of RSS as 'created_at' field of SNS stauts. 
+            # This is for better message deduplicate
+            self.__get_dict_entry('username', dct, 'author')
+            self.__get_dict_entry('created_at', dct, 'updated')
+            self.__get_dict_entry('title', dct, 'title')
+            self.__get_dict_entry('link', dct, 'link')
+
+            # Other plugins' statuses have 'text' field
+            # The RSS channel is supposed to read contents from
+            # different places with different formats. 
+            # The entries are usually page update notifications. 
+            # We format them in a unified way and use this as 'text'. 
+            self.text = "Article \"%s\" is updated(published)! (%s)" % (self.title, self.link)
+
     def __init__(self, channel = None):
-        super(RSSAPI, self).__init__()
+        super(RSS, self).__init__()
         
         self.platform = "rss"
         self.domain = "null"
@@ -37,7 +76,6 @@ class RSSAPI(SNSAPI):
         self.url = channel['url']
         
     def auth(self):
-        #Nothing to do.
         logger.info("RSS platform do not need auth!")
         return 
         
@@ -53,49 +91,5 @@ class RSSAPI(SNSAPI):
         for j in d['items']:
             if len(statuslist) >= count:
                 break
-            statuslist.append(RSSStatus(j))
+            statuslist.append(self.Message(j))
         return statuslist
-
-        
-class RSSStatus(Status):
-    def __get_dict_entry(self, attr, dct, field):
-        #dict entry reading with fault tolerance. 
-        #  self.attr = dct['field']
-        #RSS format is very diverse. 
-        #To my current knowledge, some format have 
-        #'author' fields, but others do not:
-        #   * rss : no
-        #   * rss2 : yes
-        #   * atom : yes
-        #   * rdf : yes
-        #This function will return a string "(null)"
-        #by default if the field does not exist. 
-        #The purpose is to expose unified interface
-        #to upper layers. (seeing "(null)" is better 
-        #than catching an error. 
-        try:
-            setattr(self, attr, dct[field])
-        except KeyError:
-            setattr(self, attr, "(null)")
-        
-    def parse(self, dct):
-
-        #For RSS, one entry will be brought up if it is updated. 
-        #We use 'update' of RSS as 'created_at' field of SNS stauts. 
-        #This is for better message deduplicate
-        self.__get_dict_entry('username', dct, 'author')
-        self.__get_dict_entry('created_at', dct, 'updated')
-        self.__get_dict_entry('title', dct, 'title')
-        self.__get_dict_entry('link', dct, 'link')
-
-        #Other plugins' statuses have 'text' field
-        #The RSS channel is supposed to read contents from
-        #different places with different formats. 
-        #The entries are usually page update notifications. 
-        #We format them in a unified way and use this as 'text'. 
-        self.text = "Article \"%s\" is updated(published)! (%s)" % (self.title, self.link)
-        
-    #def show(self):
-    #    print "[%s] at %s \n  Article \"%s\" is updated(published)! (%s)" \
-    #        % (self.username.encode('utf-8'), self.created_at.encode('utf-8'), \
-    #        self.title.encode('utf-8'), self.link.encode('utf-8'))

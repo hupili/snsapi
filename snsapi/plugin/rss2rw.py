@@ -15,16 +15,26 @@ Supported Methods
 from ..snslog import SNSLog 
 logger = SNSLog
 import datetime
-from rss import RSSAPI, RSSStatus
+from rss import RSS
 from ..third import feedparser
 from ..third import PyRSS2Gen
-from ..snsapi.errors import snserror
+from ..errors import snserror
 
 logger.debug("%s plugged!", __file__)
 
-class RSS2RWAPI(RSSAPI):
+class RSS2RW(RSS):
+
+    class Message(RSS.Message):
+        def parse(self, dct):
+            super(RSS2RW.Message, self).parse(dct)
+
+            # RSS2RW channel is intended for snsapi-standardized communication.
+            # It does not have to digest RSS entry as is in RSSStatus. 
+            # The 'title' field is the place where we put our messages. 
+            self.text = self.title
+
     def __init__(self, channel = None):
-        super(RSS2RWAPI, self).__init__()
+        super(RSS2RW, self).__init__()
 
         self.platform = "rss2rw"
         self.domain = "null"
@@ -37,7 +47,7 @@ class RSS2RWAPI(RSSAPI):
             self.read_channel(channel)
 
     def read_channel(self, channel):
-        super(RSS2RWAPI, self).read_channel(channel)
+        super(RSS2RW, self).read_channel(channel)
         if 'author' in channel:
             self.author = channel['author']
         if 'entry_timeout' in channel:
@@ -58,7 +68,7 @@ class RSS2RWAPI(RSSAPI):
         for j in d['items']:
             if len(statuslist) >= count:
                 break
-            statuslist.append(RSS2RWStatus(j))
+            statuslist.append(self.Message(j))
         return statuslist
 
     def update(self, text):
@@ -80,7 +90,7 @@ class RSS2RWAPI(RSSAPI):
         #Old entries are disgarded to keep the file short and clean.
         d = feedparser.parse(self.url)
         for j in d['items']:
-            s = RSS2RWStatus(j)
+            s = self.Message(j)
             entry_time = dtparser.parse(s.created_at)
             if (cur_time - entry_time).seconds < self.entry_timeout:
                 items.append( 
@@ -115,17 +125,3 @@ class RSS2RWAPI(RSSAPI):
             raise snserror.op.write
 
         return True
-
-class RSS2RWStatus(RSSStatus):
-    def parse(self, dct):
-        super(RSS2RWStatus, self).parse(dct)
-
-        #RSS2RW channel is intended for snsapi-standardized communication.
-        #It does not have to digest RSS entry as is in RSSStatus. 
-        #The 'title' field is the place where we put our messages. 
-        self.text = self.title
-        
-    #def show(self):
-    #    print "[%s] at %s \n  %s" \
-    #        % (self.username.encode('utf-8'), self.created_at.encode('utf-8'), \
-    #        self.text.encode('utf-8'))
