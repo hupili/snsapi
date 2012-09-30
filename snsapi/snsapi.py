@@ -43,7 +43,9 @@ class SNSAPI(object):
         self.__fetch_code_timeout = 2
         self.__fetch_code_max_try = 30
 
+        # methods binding
         self.console_input = lambda : utils.console_input()
+        self._urlencode = lambda params : urllib.urlencode(params)
         
         #We can not init the auth client here. 
         #As the base class, this part is first 

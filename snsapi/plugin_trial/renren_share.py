@@ -1,7 +1,7 @@
 #-*- encoding: utf-8 -*-
 
 '''
-renren client
+renren-share client
 '''
 
 from ..snslog import SNSLog
@@ -28,7 +28,7 @@ except ImportError:
         from django.utils import simplejson
         _parse_json = lambda s: simplejson.loads(s)
 
-_entry_class_ = "RenrenAPI"
+_entry_class_ = "RenrenShareAPI"
 logger.debug("%s plugged!", _entry_class_)
 
 # Inteface URLs.
@@ -38,26 +38,24 @@ RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_SESSION_KEY_URI = "http://graph.renren.com/renren_api/session_key"
 RENREN_API_SERVER = "http://api.renren.com/restserver.do"
 
-class RenrenAPI(SNSAPI):
+class RenrenShareAPI(SNSAPI):
     def __init__(self, channel = None):
-        super(RenrenAPI, self).__init__()
+        super(RenrenShareAPI, self).__init__()
         
-        self.platform = "renren"
+        self.platform = "renren_share"
         self.domain = "graph.renren.com"
         self.app_key = ""
         self.app_secret = ""
+        self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
         if channel:
             self.read_channel(channel)
 
     def read_channel(self, channel):
-        super(RenrenAPI, self).read_channel(channel) 
+        super(RenrenShareAPI, self).read_channel(channel) 
 
         self.channel_name = channel['channel_name']
         self.app_key = channel['app_key']
         self.app_secret = channel['app_secret']
-
-        if not "callback_url" in self.auth_info: 
-            self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
         
     def auth_first(self):
         args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)
@@ -140,34 +138,37 @@ class RenrenAPI(SNSAPI):
         @param count: number of statuses
         '''
 
-        api_params = dict(method = "feed.get", type = 10, page = 1, count = count)
+        #api_params = dict(method = "feed.get", type = 10, page = 1, count = count)
+        api_params = dict(method = "feed.get", \
+                type = "21,32,33,50,51,52", \
+                page = 1, count = count)
         jsonlist = self.renren_request(api_params)
         
         statuslist = []
         for j in jsonlist:
-            statuslist.append(RenrenStatus(j))
+            statuslist.append(RenrenShareStatus(j))
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.channel_name)
         return statuslist
 
-    def update(self, text):
-        '''update a status
-        @param text: the update message
-        @return: success or not
-        '''
+    #def update(self, text):
+    #    '''update a status
+    #    @param text: the update message
+    #    @return: success or not
+    #    '''
 
-        api_params = dict(method = "status.set", status = text)
-        
-        try:
-            ret = self.renren_request(api_params)
-            if 'result' in ret and ret['result'] == 1:
-                logger.info("Update status '%s' on '%s' succeed", text, self.channel_name)
-                return True
-        except:
-            pass
+    #    api_params = dict(method = "status.set", status = text)
+    #    
+    #    try:
+    #        ret = self.renren_request(api_params)
+    #        if 'result' in ret and ret['result'] == 1:
+    #            logger.info("Update status '%s' on '%s' succeed", text, self.channel_name)
+    #            return True
+    #    except:
+    #        pass
 
-        logger.info("Update status '%s' on '%s' fail", text, self.channel_name)
-        return False
+    #    logger.info("Update status '%s' on '%s' fail", text, self.channel_name)
+    #    return False
 
     def reply(self, statusID, text):
         """reply status
@@ -179,8 +180,10 @@ class RenrenAPI(SNSAPI):
         #TODO: check platform and place a warning
         #      if it is not "renren"
 
-        api_params = dict(method = "status.addComment", content = text, \
-            status_id = statusID.status_id, owner_id = statusID.source_user_id)
+        #api_params = dict(method = "status.addComment", content = text, \
+        api_params = dict(method = "share.addComment", content = text, \
+            share_id = statusID.status_id, user_id = statusID.source_user_id)
+            #status_id = statusID.status_id, owner_id = statusID.source_user_id)
 
         try:
             ret = self.renren_request(api_params)
@@ -200,12 +203,12 @@ class RenrenAPI(SNSAPI):
 #    There are many types of messages on renren. 
 #    There are even many types for new feeds alone. 
 #    Ref: http://wiki.dev.renren.com/wiki/Type%E5%88%97%E8%A1%A8
-class RenrenStatus(Status):
+class RenrenShareStatus(Status):
     def parse(self, dct):
-        self.ID.platform = "renren"
-        self._parse_feed_status(dct)
+        self.ID.platform = "renren_share"
+        self._parse_feed_share(dct)
 
-    def _parse_feed_status(self, dct):
+    def _parse_feed_share(self, dct):
         #logger.debug(json.dumps(dct))
         #By trial, it seems:
         #   * 'post_id' : the id of news feeds
@@ -215,13 +218,20 @@ class RenrenStatus(Status):
         #self.id = dct["post_id"]
         self.id = dct["source_id"]
         self.created_at = dct["update_time"]
-        self.text = dct['message']
+        #self.text = dct['message']
+        #self.text = dct['content']
+        #self.text = dct['text']
+        #self.text = dct['source_text']
+        self.text = dct['message'] + " --> " + dct['description']
         self.reposts_count = 'N/A'
         self.comments_count = dct['comments']['count']
         self.username = dct['name']
         self.usernick = ""
         self.ID.status_id = dct["source_id"]
         self.ID.source_user_id = dct["actor_id"]
+
+    #def show(self):
+    #    print self.ID
 
     def _parse_status(self, dct):
         self.id = dct["status_id"]
