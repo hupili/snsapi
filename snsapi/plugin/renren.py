@@ -25,9 +25,51 @@ RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_SESSION_KEY_URI = "http://graph.renren.com/renren_api/session_key"
 RENREN_API_SERVER = "http://api.renren.com/restserver.do"
 
-class RenrenAPI(SNSAPI):
+class RenrenStatus(SNSAPI):
+
+    #TODO: 
+    #    "Status" is not an abstract enough word. 
+    #    Suggested to change it to "Message". 
+    #    There are many types of messages on renren. 
+    #    There are even many types for new feeds alone. 
+    #    Ref: http://wiki.dev.renren.com/wiki/Type%E5%88%97%E8%A1%A8
+    class Message(Status):
+        def parse(self, dct):
+            self.ID.platform = "renren"
+            self._parse_feed_status(dct)
+
+        def _parse_feed_status(self, dct):
+            #logger.debug(json.dumps(dct))
+            #By trial, it seems:
+            #   * 'post_id' : the id of news feeds
+            #   * 'source_id' : the id of status
+            #     equal to 'status_id' returned by 
+            #     'status.get' interface
+            #self.id = dct["post_id"]
+            self.id = dct["source_id"]
+            self.created_at = dct["update_time"]
+            self.text = dct['message']
+            self.reposts_count = 'N/A'
+            self.comments_count = dct['comments']['count']
+            self.username = dct['name']
+            self.usernick = ""
+            self.ID.status_id = dct["source_id"]
+            self.ID.source_user_id = dct["actor_id"]
+
+        def _parse_status(self, dct):
+            self.id = dct["status_id"]
+            self.created_at = dct["time"]
+            if 'root_message' in dct:
+                self.text = dct['root_message']
+            else:
+                self.text = dct['message']
+            self.reposts_count = dct['forward_count']
+            self.comments_count = dct['comment_count']
+            self.username = dct['uid']
+            self.usernick = ""
+
     def __init__(self, channel = None):
-        super(RenrenAPI, self).__init__()
+        super(RenrenStatus, self).__init__()
         
         self.platform = "renren"
         self.domain = "graph.renren.com"
@@ -37,7 +79,7 @@ class RenrenAPI(SNSAPI):
             self.read_channel(channel)
 
     def read_channel(self, channel):
-        super(RenrenAPI, self).read_channel(channel) 
+        super(RenrenStatus, self).read_channel(channel) 
 
         self.channel_name = channel['channel_name']
         self.app_key = channel['app_key']
@@ -132,7 +174,7 @@ class RenrenAPI(SNSAPI):
         
         statuslist = []
         for j in jsonlist:
-            statuslist.append(RenrenStatus(j))
+            statuslist.append(self.Message(j))
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.channel_name)
         return statuslist
@@ -181,44 +223,3 @@ class RenrenAPI(SNSAPI):
         return False
 
         
-#TODO: 
-#    "Status" is not an abstract enough word. 
-#    Suggested to change it to "Message". 
-#    There are many types of messages on renren. 
-#    There are even many types for new feeds alone. 
-#    Ref: http://wiki.dev.renren.com/wiki/Type%E5%88%97%E8%A1%A8
-class RenrenStatus(Status):
-    def parse(self, dct):
-        self.ID.platform = "renren"
-        self._parse_feed_status(dct)
-
-    def _parse_feed_status(self, dct):
-        #logger.debug(json.dumps(dct))
-        #By trial, it seems:
-        #   * 'post_id' : the id of news feeds
-        #   * 'source_id' : the id of status
-        #     equal to 'status_id' returned by 
-        #     'status.get' interface
-        #self.id = dct["post_id"]
-        self.id = dct["source_id"]
-        self.created_at = dct["update_time"]
-        self.text = dct['message']
-        self.reposts_count = 'N/A'
-        self.comments_count = dct['comments']['count']
-        self.username = dct['name']
-        self.usernick = ""
-        self.ID.status_id = dct["source_id"]
-        self.ID.source_user_id = dct["actor_id"]
-
-    def _parse_status(self, dct):
-        self.id = dct["status_id"]
-        self.created_at = dct["time"]
-        if 'root_message' in dct:
-            self.text = dct['root_message']
-        else:
-            self.text = dct['message']
-        self.reposts_count = dct['forward_count']
-        self.comments_count = dct['comment_count']
-        self.username = dct['uid']
-        self.usernick = ""
-

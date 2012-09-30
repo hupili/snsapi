@@ -12,9 +12,23 @@ from .. import errors
 
 logger.debug("%s plugged!", __file__)
 
-class SinaAPI(SNSAPI):
+class SinaWeiboStatus(SNSAPI):
+
+    class Message(Status):
+        def parse(self, dct):
+            self.id = dct["id"]
+            self.ID.platform = "sina"
+            self.ID.id = self.id
+            self.created_at = dct["created_at"]
+            self.text = dct['text']
+            self.reposts_count = dct['reposts_count']
+            self.comments_count = dct['comments_count']
+            self.username = dct['user']['name']
+            self.usernick = ""
+
+
     def __init__(self, channel = None):
-        super(SinaAPI, self).__init__()
+        super(SinaWeiboStatus, self).__init__()
         
         self.platform = "sina"
         self.domain = "api.sina.com"
@@ -25,7 +39,7 @@ class SinaAPI(SNSAPI):
             self.read_channel(channel)
 
     def read_channel(self, channel):
-        super(SinaAPI, self).read_channel(channel) 
+        super(SinaWeiboStatus, self).read_channel(channel) 
 
         self.channel_name = channel['channel_name']
         self.app_key = channel['app_key']
@@ -60,7 +74,7 @@ class SinaAPI(SNSAPI):
         
         statuslist = []
         for j in jsondict['statuses']:
-            statuslist.append(SinaStatus(j))
+            statuslist.append(self.Message(j))
         return statuslist
 
     def update(self, text):
@@ -75,7 +89,7 @@ class SinaAPI(SNSAPI):
         
         ret = self._http_post(url, params)
         try:
-            status = SinaStatus(ret)
+            status = self.Message(ret)
             return True
         #TODO:
         #Sometimes update fails, but we do not 
@@ -115,18 +129,3 @@ class SinaAPI(SNSAPI):
             logger.info("Reply '%s' to status '%s' fail: %s", text, self.channel_name, ret)
             return False
 
-        
-class SinaStatus(Status):
-    def parse(self, dct):
-        self.id = dct["id"]
-        self.ID.platform = "sina"
-        self.ID.id = self.id
-        self.created_at = dct["created_at"]
-        self.text = dct['text']
-        self.reposts_count = dct['reposts_count']
-        self.comments_count = dct['comments_count']
-        self.username = dct['user']['name']
-        self.usernick = ""
-        
-    #def show(self):
-    #    print "[%s] at %s \n  %s" % (self.username, self.created_at, self.text)
