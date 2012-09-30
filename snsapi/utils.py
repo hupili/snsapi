@@ -42,19 +42,6 @@ class JsonDict(dict):
     def __str__(self):
         return json.dumps(self, indent=2)
         
-        
-#TODO: 
-#The name of this function is non-informative
-#Probably change it to another one later
-def _obj_hook(pairs):
-    '''
-    convert json object to python object.
-    '''
-    o = JsonObject()
-    for k, v in pairs.iteritems():
-        o[str(k)] = v
-    return o
-
 def console_input():
     '''
     To make oauth2 testable, and more reusable, we use console_input to wrap raw_input.
