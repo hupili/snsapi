@@ -6,13 +6,13 @@ SINA micro-blog client
 
 from ..snslog import SNSLog 
 logger = SNSLog
-from ..snsapi import SNSAPI
+from ..snsbase import SNSBase
 from .. import snstype
 from ..errors import snserror
 
 logger.debug("%s plugged!", __file__)
 
-class SinaWeiboStatus(SNSAPI):
+class SinaWeiboStatus(SNSBase):
 
     class Message(snstype.Message):
         def parse(self, dct):

@@ -31,7 +31,7 @@ logger = SNSLog
 # === 3rd party modules ===
 from third import oauth
 
-class SNSAPI(object):
+class SNSBase(object):
     def __init__(self):
         self.app_key = None
         self.app_secret = None

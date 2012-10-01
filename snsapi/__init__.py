@@ -2,7 +2,6 @@
 import snsconf
 import snslog
 import utils
-import snsapi
 import snstype
 from errors import snserror
 import snscrypt

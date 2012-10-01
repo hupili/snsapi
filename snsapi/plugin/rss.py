@@ -16,13 +16,13 @@ Supported Methods
 
 from ..snslog import SNSLog 
 logger = SNSLog
-from ..snsapi import SNSAPI
+from ..snsbase import SNSBase
 from .. import snstype
 from ..third import feedparser
 
 logger.debug("%s plugged!", __file__)
 
-class RSS(SNSAPI):
+class RSS(SNSBase):
         
     class Message(snstype.Message):
         def __get_dict_entry(self, attr, dct, field):

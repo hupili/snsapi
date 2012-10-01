@@ -6,12 +6,12 @@ QQ micro-blog client
 
 from ..snslog import SNSLog 
 logger = SNSLog
-from ..snsapi import SNSAPI
+from ..snsbase import SNSBase
 from .. import snstype
 
 logger.debug("%s plugged!", __file__)
 
-class TencentWeiboStatus(SNSAPI):
+class TencentWeiboStatus(SNSBase):
 
     class Message(snstype.Message):
         def parse(self, dct):

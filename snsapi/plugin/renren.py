@@ -6,7 +6,7 @@ renren client
 
 from ..snslog import SNSLog
 logger = SNSLog
-from ..snsapi import SNSAPI
+from ..snsbase import SNSBase
 from .. import snstype
 from ..utils import console_output
 
@@ -24,7 +24,7 @@ RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_SESSION_KEY_URI = "http://graph.renren.com/renren_api/session_key"
 RENREN_API_SERVER = "http://api.renren.com/restserver.do"
 
-class RenrenStatus(SNSAPI):
+class RenrenStatus(SNSBase):
 
     #TODO: 
     #    "Status" is not an abstract enough word. 
