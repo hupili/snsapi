@@ -105,6 +105,8 @@ class TencentWeiboStatus(SNSAPI):
         
         ret = self._http_post(url, params)
         if(ret['msg'] == "ok"):
+            #logger.info("Update status '%s' on '%s' succeed", text.decode('utf-8'), self.channel_name)
+            logger.info("Update status '%s' on '%s' succeed", text, self.channel_name)
             return True
         return ret
         

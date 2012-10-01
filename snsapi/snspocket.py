@@ -149,14 +149,14 @@ class SNSPocket(dict):
                     if self.add_channel(JsonDict(site)):
                         count_add_channel += 1
         except IOError:
-            raise errors.sns.config.nofile(fn_channel)
+            raise snserror.config.nofile(fn_channel)
 
         try:
             with open(abspath(fn_pocket), "r") as fp:
                 allinfo = json.load(fp)
                 self.jsonconf = allinfo
         except IOError:
-            raise errors.sns.config.nofile(fn_pocket)
+            raise snserror.config.nofile(fn_pocket)
 
         logger.info("Read configs done. Add %d channels" % count_add_channel)
 

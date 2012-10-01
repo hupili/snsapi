@@ -41,10 +41,14 @@ class SNSConf(object):
     """Hardcode Confs for SNSAPI"""
     
     SNSAPI_CONSOLE_STDOUT_ENCODING = 'utf-8'
+    SNSAPI_CONSOLE_STDIN_ENCODING = 'utf-8'
 
     '''
     For chinese version windows systems, you may want to 
-    change it to 'gbk'. For others, check the encoding of 
+    change 
+        SNSAPI_CONSOLE_STDOUT_ENCODING = 'utf-8'
+        SNSAPI_CONSOLE_STDIN_ENCODING = 'utf-8'
+    to 'gbk'. For others, check the encoding of 
     your console and set it accordingly. 
 
     See the discussion: https://github.com/hupili/snsapi/issues/8

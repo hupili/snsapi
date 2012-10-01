@@ -276,6 +276,11 @@ class SNSAPI(object):
         self.app_secret = app_secret
 
     def _http_get(self, baseurl, params):
+        # Support unicode parameters. 
+        # We should encode them as exchanging stream (e.g. utf-8)
+        # before URL encoding and issue HTTP requests. 
+        for p in params:
+            params[p] = self._unicode_encode(params[p])
         uri = urllib.urlencode(params)
         url = baseurl + "?" + uri
         resp = urllib.urlopen(url)
@@ -283,16 +288,21 @@ class SNSAPI(object):
         return json_objs
     
     def _http_post(self, baseurl, params):
+        for p in params:
+            params[p] = self._unicode_encode(params[p])
         data = urllib.urlencode(params)
         resp = urllib.urlopen(baseurl,data)
         json_objs = json.loads(resp.read())
         return json_objs
 
-    def _unicode_encode(self, str):
+    def _unicode_encode(self, s):
         """
         Detect if a string is unicode and encode as utf-8 if necessary
         """
-        return isinstance(str, unicode) and str.encode('utf-8') or str
+        if isinstance(s, unicode):
+            return s.encode('utf-8') 
+        else:
+            return s
     
     def home_timeline(self, count=20):
         '''Get home timeline

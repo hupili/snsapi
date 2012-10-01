@@ -20,8 +20,8 @@ addc = add_channel = lambda *al, **ad : sp.add_channel(*al, **ad)
 clc = clear_channel = lambda *al, **ad : sp.clear_channel(*al, **ad)
 auth = lambda  *al, **ad : sp.auth(*al, **ad)
 ht = home_timeline = lambda *al, **ad : sp.home_timeline(*al, **ad)
-up = update = lambda  *al, **ad : sp.update(*al, **ad)
-re = reply = lambda  *al, **ad : sp.reply(*al, **ad)
+up = update = lambda  t, *al, **ad : sp.update(console_input(t), *al, **ad)
+re = reply = lambda  sid, t, *al, **ad : sp.reply(sid, console_input(t), *al, **ad)
 
 #==== documentation ====
 

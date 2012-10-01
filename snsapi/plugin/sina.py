@@ -92,6 +92,7 @@ class SinaWeiboStatus(SNSAPI):
         ret = self._http_post(url, params)
         try:
             status = self.Message(ret)
+            logger.info("Update status '%s' on '%s' succeed", text, self.channel_name)
             return True
         #TODO:
         #Sometimes update fails, but we do not 
