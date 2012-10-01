@@ -35,28 +35,28 @@ class RenrenBase(SNSBase):
             self.code = code
 
     def __init__(self, channel = None):
-        super(RenrenBase, self).__init__()
+        super(RenrenBase, self).__init__(channel)
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
         
-        self.app_key = ""
-        self.app_secret = ""
-        if channel:
-            self.read_channel(channel)
+        #self.app_key = ""
+        #self.app_secret = ""
+        #if channel:
+        #    self.read_channel(channel)
 
     def read_channel(self, channel):
         super(RenrenBase, self).read_channel(channel) 
 
-        self.channel_name = channel['channel_name']
-        self.app_key = channel['app_key']
-        self.app_secret = channel['app_secret']
+        #self.channel_name = channel['channel_name']
+        #self.app_key = channel['app_key']
+        #self.app_secret = channel['app_secret']
 
         if not "callback_url" in self.auth_info: 
             self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
         
     def auth_first(self):
-        args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)
+        args = dict(client_id=self.jsonconf.app_key, redirect_uri = self.auth_info.callback_url)
         args["response_type"] = "code"
         args["scope"] = "read_user_status status_update publish_comment"
         args["state"] = "snsapi! Stand up, Geeks! Step on the head of those evil platforms!"
@@ -70,8 +70,8 @@ class RenrenBase(SNSBase):
         #    Code is parsed from this url. 
         url = self.fetch_code()
         self.token = self.parseCode(url)
-        args = dict(client_id=self.app_key, redirect_uri = self.auth_info.callback_url)
-        args["client_secret"] = self.app_secret
+        args = dict(client_id=self.jsonconf.app_key, redirect_uri = self.auth_info.callback_url)
+        args["client_secret"] = self.jsonconf.app_secret
         args["code"] = self.token.code
         args["grant_type"] = "authorization_code"
         self.token.update(self._http_get(RENREN_ACCESS_TOKEN_URI, args))
@@ -100,7 +100,7 @@ class RenrenBase(SNSBase):
         session_key = str(response["renren_token"]["session_key"])
 
         #system parameters fill-in
-        params["api_key"] = self.app_key
+        params["api_key"] = self.jsonconf.app_key
         params["call_id"] = str(int(time.time() * 1000))
         params["format"] = "json"
         params["session_key"] = session_key
@@ -125,7 +125,7 @@ class RenrenBase(SNSBase):
 
     def __hash_params(self, params = None):
         hashstring = "".join(["%s=%s" % (self._unicode_encode(x), self._unicode_encode(params[x])) for x in sorted(params.keys())])
-        hashstring = hashstring + self._unicode_encode(self.app_secret)
+        hashstring = hashstring + self._unicode_encode(self.jsonconf.app_secret)
         #logger.debug(hashstring)
         hasher = hashlib.md5(hashstring)
         return hasher.hexdigest()
@@ -151,15 +151,15 @@ class RenrenShare(RenrenBase):
             self.ID.source_user_id = dct["actor_id"]
 
     def __init__(self, channel = None):
-        super(RenrenShare, self).__init__()
+        super(RenrenShare, self).__init__(channel)
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
         
-        self.app_key = ""
-        self.app_secret = ""
-        if channel:
-            self.read_channel(channel)
+        #self.app_key = ""
+        #self.app_secret = ""
+        #if channel:
+        #    self.read_channel(channel)
 
     def home_timeline(self, count=20):
         '''Get home timeline
@@ -238,15 +238,15 @@ class RenrenStatus(RenrenBase):
             self.usernick = ""
 
     def __init__(self, channel = None):
-        super(RenrenStatus, self).__init__()
+        super(RenrenStatus, self).__init__(channel)
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
         
-        self.app_key = ""
-        self.app_secret = ""
-        if channel:
-            self.read_channel(channel)
+        #self.app_key = ""
+        #self.app_secret = ""
+        #if channel:
+        #    self.read_channel(channel)
 
     def home_timeline(self, count=20):
         '''Get home timeline

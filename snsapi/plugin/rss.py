@@ -64,17 +64,19 @@ class RSS(SNSBase):
             self.text = "Article \"%s\" is updated(published)! (%s)" % (self.title, self.link)
 
     def __init__(self, channel = None):
-        super(RSS, self).__init__()
+        super(RSS, self).__init__(channel)
         
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
         
-        if channel: 
-            self.read_channel(channel)
+        #if channel: 
+        #    self.read_channel(channel)
     
     def read_channel(self, channel):
-        self.channel_name = channel['channel_name']
-        self.url = channel['url']
+        super(RSS, self).read_channel(channel)
+
+        #self.channel_name = channel['channel_name']
+        #self.url = channel['url']
         
     def auth(self):
         logger.info("RSS platform do not need auth!")
@@ -86,7 +88,7 @@ class RSS(SNSBase):
         @param count: number of statuses
         '''
 
-        d = feedparser.parse(self.url)
+        d = feedparser.parse(self.jsonconf.url)
         
         statuslist = []
         for j in d['items']:

@@ -29,29 +29,29 @@ class SinaWeiboStatus(SNSBase):
 
 
     def __init__(self, channel = None):
-        super(SinaWeiboStatus, self).__init__()
+        super(SinaWeiboStatus, self).__init__(channel)
         
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
-        #just you remind myself they exists
-        self.app_key = ""
-        self.app_secret = ""
-        if channel:
-            self.read_channel(channel)
+        ##just you remind myself they exists
+        #self.app_key = ""
+        #self.app_secret = ""
+        #if channel:
+        #    self.read_channel(channel)
 
     def read_channel(self, channel):
         super(SinaWeiboStatus, self).read_channel(channel) 
 
-        self.channel_name = channel['channel_name']
-        self.app_key = channel['app_key']
-        self.app_secret = channel['app_secret']
+        #self.channel_name = channel['channel_name']
+        #self.app_key = channel['app_key']
+        #self.app_secret = channel['app_secret']
 
         if not "auth_url" in self.auth_info:
             self.auth_info.auth_url = "https://api.weibo.com/oauth2/"
         if not "callback_url" in self.auth_info:
             self.auth_info.callback_url = "http://copy.the.code.to.client/"
-        return 
+        #return 
 
     def auth_first(self):
         self._oauth2_first()

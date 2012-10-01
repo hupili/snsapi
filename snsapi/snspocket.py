@@ -16,7 +16,7 @@ from os.path import abspath
 import snstype
 import utils
 from errors import snserror
-from utils import JsonDict
+#from utils import JsonDict
 from utils import console_output
 from snslog import SNSLog
 logger = SNSLog
@@ -113,19 +113,19 @@ class SNSPocket(dict):
         try:
             p = getattr(platform, jsonconf['platform'])
             self[cname] = p(jsonconf)
-            #TODO:
-            #    This is a work around to store rich 
-            #    channel information in the snsapi 
-            #    class. The snsapi class should be 
-            #    upgrade so that jsonconf is its 
-            #    default entrance to access all 
-            #    config matters. The current hard 
-            #    code attributes are not friendly to
-            #    upgrades. Say you have to write one
-            #    more assignment if there is one more 
-            #    config entry. e.g.
-            #    self.open = channel['open']
-            self[cname].jsonconf = jsonconf
+            ##TODO:
+            ##    This is a work around to store rich 
+            ##    channel information in the snsapi 
+            ##    class. The snsapi class should be 
+            ##    upgrade so that jsonconf is its 
+            ##    default entrance to access all 
+            ##    config matters. The current hard 
+            ##    code attributes are not friendly to
+            ##    upgrades. Say you have to write one
+            ##    more assignment if there is one more 
+            ##    config entry. e.g.
+            ##    self.open = channel['open']
+            #self[cname].jsonconf = jsonconf
             self.__method_routing(cname, SNSPocket.__default_mapping) 
         except AttributeError:
             logger.warning("No such platform '%s'. Nothing happens to it. ", jsonconf['platform'])
@@ -146,7 +146,7 @@ class SNSPocket(dict):
             with open(abspath(fn_channel), "r") as fp:
                 allinfo = json.load(fp)
                 for site in allinfo:
-                    if self.add_channel(JsonDict(site)):
+                    if self.add_channel(utils.JsonDict(site)):
                         count_add_channel += 1
         except IOError:
             raise snserror.config.nofile(fn_channel)

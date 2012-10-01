@@ -25,7 +25,7 @@ class JsonObject(dict):
     def __setattr__(self, attr, value):
         self[attr] = value
 
-class JsonDict(dict):
+class JsonDict(JsonObject):
     """
     The wrapper class for Python dict. 
 

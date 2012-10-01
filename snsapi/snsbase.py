@@ -24,7 +24,7 @@ import subprocess
 # === snsapi modules ===
 import snstype
 import utils
-from utils import JsonObject
+#from utils import JsonObject
 from snslog import SNSLog
 logger = SNSLog
 
@@ -32,9 +32,13 @@ logger = SNSLog
 from third import oauth
 
 class SNSBase(object):
-    def __init__(self):
-        self.app_key = None
-        self.app_secret = None
+    def __init__(self, channel = None):
+
+        #print "ccc"
+
+        #self.app_key = None
+        #self.app_secret = None
+
         self.token = None
         self.channel_name = None
 
@@ -52,6 +56,9 @@ class SNSBase(object):
         #class, e.g. sina.py, can we get all the
         #information to init an auth client. 
         self.authClient = None
+
+        if channel:
+            self.read_channel(channel)
 
     def fetch_code(self):
         if self.auth_info.cmd_fetch_code == "(console_input)" :
@@ -120,8 +127,8 @@ class SNSBase(object):
     def __init_oauth2_client(self):
         if self.authClient == None:
             try:
-                self.authClient = oauth.APIClient(self.app_key, \
-                        self.app_secret, self.auth_info.callback_url, \
+                self.authClient = oauth.APIClient(self.jsonconf.app_key, \
+                        self.jsonconf.app_secret, self.auth_info.callback_url, \
                         auth_url = self.auth_info.auth_url)
             except:
                 logger.critical("authClient init error")
@@ -221,10 +228,10 @@ class SNSBase(object):
         try:
             fname = self.auth_info.save_token_file
             if fname == "(default)" :
-                fname = self.channel_name+".token.save"
+                fname = self.jsonconf.channel_name+".token.save"
             if fname != "(null)" :
                 with open(fname, "r") as fp:
-                    token = JsonObject(json.load(fp))
+                    token = utils.JsonObject(json.load(fp))
                     #check expire time
                     if self.isExpired(token):
                         #print "Saved Access token is expired, try to get one through sns.auth() :D"
@@ -262,18 +269,21 @@ class SNSBase(object):
             return False
     
     def read_channel(self, channel):
-        self.channel_name = channel['channel_name']
-        self.platform = channel['platform']
+        #self.jsonconf = utils.JsonDict(channel)
+        self.jsonconf = channel
+
+        #self.channel_name = channel['channel_name']
+        #self.platform = channel['platform']
         if 'auth_info' in channel :
             self.auth_info.update(channel['auth_info'])
             self.auth_info.set_defaults()
 
-    def setup_app(self, app_key, app_secret):
+    def setup_oauth_key(self, app_key, app_secret):
         '''
-        If you do not want to use read_config, and want to set app_key on your own, here it is.
+        If you do not want to use read_channel, and want to set app_key on your own, here it is.
         '''
-        self.app_key = app_key
-        self.app_secret = app_secret
+        self.jsonconf.app_key = app_key
+        self.jsonconf.app_secret = app_secret
 
     def _http_get(self, baseurl, params):
         # Support unicode parameters. 

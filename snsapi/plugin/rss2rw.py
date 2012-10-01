@@ -35,7 +35,7 @@ class RSS2RW(RSS):
             self.text = self.title
 
     def __init__(self, channel = None):
-        super(RSS2RW, self).__init__()
+        super(RSS2RW, self).__init__(channel)
 
 
         self.platform = self.__class__.__name__
@@ -45,8 +45,8 @@ class RSS2RW(RSS):
         self.author = "snsapi"
         self.entry_timeout = 3600 #in seconds, default 1 hour
 
-        if channel: 
-            self.read_channel(channel)
+        #if channel: 
+        #    self.read_channel(channel)
 
     def read_channel(self, channel):
         super(RSS2RW, self).read_channel(channel)
@@ -64,7 +64,7 @@ class RSS2RW(RSS):
         get statuses of yours and your friends'
         @param count: number of statuses
         '''
-        d = feedparser.parse(self.url)
+        d = feedparser.parse(self.jsonconf.url)
 
         statuslist = []
         for j in d['items']:
@@ -76,7 +76,7 @@ class RSS2RW(RSS):
     def update(self, text):
         '''
         Update the RSS2 feeds. 
-        The file pointed to by self.url should be writable.
+        The file pointed to by self.jsonconf.url should be writable.
         Remember to set 'author' and 'entry_timeout' in configurations. 
         Or the default values are used. 
         @param text: messages to update in a feeds
@@ -90,7 +90,7 @@ class RSS2RW(RSS):
 
         #Read and filter existing entries.
         #Old entries are disgarded to keep the file short and clean.
-        d = feedparser.parse(self.url)
+        d = feedparser.parse(self.jsonconf.url)
         for j in d['items']:
             s = self.Message(j)
             entry_time = dtparser.parse(s.created_at)
@@ -122,7 +122,7 @@ class RSS2RW(RSS):
             )
 
         try:
-            rss.write_xml(open(self.url, "w"))
+            rss.write_xml(open(self.jsonconf.url, "w"))
         except:
             raise snserror.op.write
 

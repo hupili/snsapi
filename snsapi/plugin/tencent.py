@@ -36,22 +36,26 @@ class TencentWeiboStatus(SNSBase):
             self.usernick = dct['nick']
 
     def __init__(self, channel = None):
-        super(TencentWeiboStatus, self).__init__()
+        super(TencentWeiboStatus, self).__init__(channel)
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
-        self.app_key = ""
-        self.app_secret = ""
-        if channel:
-            self.read_channel(channel)
+        #print "bbb"
+
+        #self.app_key = ""
+        #self.app_secret = ""
+        #if channel:
+        #    self.read_channel(channel)
             
     def read_channel(self, channel):
         super(TencentWeiboStatus, self).read_channel(channel) 
 
-        self.channel_name = channel['channel_name']
-        self.app_key = channel['app_key']
-        self.app_secret = channel['app_secret']
+        #print "aaaa"
+
+        #self.channel_name = channel['channel_name']
+        #self.app_key = channel['app_key']
+        #self.app_secret = channel['app_secret']
 
         if not "auth_url" in self.auth_info:
             self.auth_info.auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
@@ -67,7 +71,7 @@ class TencentWeiboStatus(SNSBase):
     def attachAuthinfo(self, params):
         params['access_token'] = self.token.access_token
         params['openid'] = self.token.openid
-        params['oauth_consumer_key'] = self.app_key
+        params['oauth_consumer_key'] = self.jsonconf.app_key
         params['oauth_version'] = '2.a'
         params['scope'] = 'all'
         return params
