@@ -24,7 +24,7 @@ logger.debug("%s plugged!", __file__)
 
 class RSS(SNSAPI):
         
-    class Message(snstype.Status):
+    class Message(snstype.Message):
         def __get_dict_entry(self, attr, dct, field):
             # dict entry reading with fault tolerance. 
             #   self.attr = dct['field']

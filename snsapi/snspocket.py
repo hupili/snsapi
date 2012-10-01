@@ -229,7 +229,7 @@ class SNSPocket(dict):
         :param channel:
             The channel name. Use None to read all channels
         """
-        status_list = snstype.StatusList()
+        status_list = snstype.MessageList()
         if channel:
             status_list.extend(self[channel].home_timeline(count))
         else:

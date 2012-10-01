@@ -7,7 +7,7 @@ import utils
 from errors import snserror
 from snsconf import SNSConf
 
-class StatusID(object):
+class MessageID(object):
     """
     All information to locate one status is here. 
 
@@ -25,7 +25,7 @@ class StatusID(object):
 
     """
     def __init__(self, platform = None, status_id = None, source_user_id = None):
-        super(StatusID, self).__init__()
+        super(MessageID, self).__init__()
 
         self.platform = platform
         self.status_id = status_id
@@ -37,7 +37,7 @@ class StatusID(object):
                 (self.platform, self.status_id, self.source_user_id)
         
 
-class Status(object):
+class Message(object):
     def __init__(self, dct=None):
         self.created_at = ""
         self.id = 0
@@ -48,7 +48,7 @@ class Status(object):
         self.username = ""
         self.usernick = ""
 
-        self.ID = StatusID()
+        self.ID = MessageID()
         
         try:
             self.parse(dct)
@@ -69,12 +69,12 @@ class Status(object):
         return "[%s] at %s \n  %s" % \
                 (self.username, self.created_at, self.text)
 
-class StatusList(list):
+class MessageList(list):
     """
-    A list of Status object 
+    A list of Message object 
     """
     def __init__(self):
-        super(StatusList, self).__init__()
+        super(MessageList, self).__init__()
 
     def __str__(self):
         tmp = ""
@@ -120,5 +120,5 @@ class AuthenticationInfo(utils.JsonObject):
                 self[k] = DEFAULT_MAPPING[k]
 
 if __name__ == "__main__":
-    s = Status("fe")
+    s = Message("fe")
     s.show()

@@ -32,7 +32,7 @@ class RenrenStatus(SNSAPI):
     #    There are many types of messages on renren. 
     #    There are even many types for new feeds alone. 
     #    Ref: http://wiki.dev.renren.com/wiki/Type%E5%88%97%E8%A1%A8
-    class Message(snstype.Status):
+    class Message(snstype.Message):
         def parse(self, dct):
             self.ID.platform = self.platform
             self._parse_feed_status(dct)
@@ -233,7 +233,7 @@ class RenrenAPIError(Exception):
 
 class RenrenShare(RenrenStatus):
 
-    class Message(snstype.Status):
+    class Message(snstype.Message):
         def parse(self, dct):
             self.ID.platform = self.platform
             self._parse_feed_share(dct)

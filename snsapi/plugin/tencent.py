@@ -13,7 +13,7 @@ logger.debug("%s plugged!", __file__)
 
 class TencentWeiboStatus(SNSAPI):
 
-    class Message(snstype.Status):
+    class Message(snstype.Message):
         def parse(self, dct):
             self.ID.platform = self.platform
 
