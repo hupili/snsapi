@@ -81,12 +81,12 @@ class RenrenBase(SNSBase):
         if self.get_saved_token():
             return
 
-        logger.info("Try to authenticate '%s' using OAuth2", self.channel_name)
+        logger.info("Try to authenticate '%s' using OAuth2", self.jsonconf.channel_name)
         self.auth_first()
         self.auth_second()
         self.save_token()
         logger.debug("Authorized! access token is " + str(self.token))
-        logger.info("Channel '%s' is authorized", self.channel_name)
+        logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
 
     def renren_request(self, params = None):
         """
@@ -176,7 +176,7 @@ class RenrenShare(RenrenBase):
         for j in jsonlist:
             statuslist.append(self.Message(j))
 
-        logger.info("Read %d statuses from '%s'", len(statuslist), self.channel_name)
+        logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
 
     def reply(self, statusID, text):
@@ -261,7 +261,7 @@ class RenrenStatus(RenrenBase):
         for j in jsonlist:
             statuslist.append(self.Message(j))
 
-        logger.info("Read %d statuses from '%s'", len(statuslist), self.channel_name)
+        logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
 
     def update(self, text):
@@ -275,12 +275,12 @@ class RenrenStatus(RenrenBase):
         try:
             ret = self.renren_request(api_params)
             if 'result' in ret and ret['result'] == 1:
-                logger.info("Update status '%s' on '%s' succeed", text, self.channel_name)
+                logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
                 return True
         except:
             pass
 
-        logger.info("Update status '%s' on '%s' fail", text, self.channel_name)
+        logger.info("Update status '%s' on '%s' fail", text, self.jsonconf.channel_name)
         return False
 
     def reply(self, statusID, text):

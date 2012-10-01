@@ -110,7 +110,7 @@ class TencentWeiboStatus(SNSBase):
         ret = self._http_post(url, params)
         if(ret['msg'] == "ok"):
             #logger.info("Update status '%s' on '%s' succeed", text.decode('utf-8'), self.channel_name)
-            logger.info("Update status '%s' on '%s' succeed", text, self.channel_name)
+            logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
             return True
         return ret
         
@@ -128,6 +128,6 @@ class TencentWeiboStatus(SNSBase):
         ret = self._http_post(url, params)
         if(ret['msg'] == "ok"):
             return True
-        logger.info("Reply '%s' to status '%s' fail: %s", text, self.channel_name, ret)
+        logger.info("Reply '%s' to status '%s' fail: %s", text, self.jsonconf.channel_name, ret)
         return ret
         

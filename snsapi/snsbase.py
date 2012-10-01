@@ -40,7 +40,7 @@ class SNSBase(object):
         #self.app_secret = None
 
         self.token = None
-        self.channel_name = None
+        #self.channel_name = None
 
         self.auth_info = snstype.AuthenticationInfo()
         self.__fetch_code_timeout = 2
@@ -158,7 +158,7 @@ class SNSBase(object):
         self.token = self.parseCode(url)
         self.token.update(self.authClient.request_access_token(self.token.code))
         logger.debug("Authorized! access token is " + str(self.token))
-        logger.info("Channel '%s' is authorized", self.channel_name)
+        logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
     
     #def oauth2(self, auth_url, callback_url):
     def oauth2(self):
@@ -180,7 +180,7 @@ class SNSBase(object):
         callback_url MUST be the same one you set when you apply for an app in openSNS platform.
         '''
         
-        logger.info("Try to authenticate '%s' using OAuth2", self.channel_name)
+        logger.info("Try to authenticate '%s' using OAuth2", self.jsonconf.channel_name)
         self._oauth2_first()
         self._oauth2_second()
 
@@ -203,21 +203,21 @@ class SNSBase(object):
         @param url: contain code and openID
         @return: JsonObject within code and openid
         '''
-        return JsonObject(urlparse.parse_qsl(urlparse.urlparse(url).query))
+        return utils.JsonObject(urlparse.parse_qsl(urlparse.urlparse(url).query))
 
     def save_token(self):
         '''
         access token can be saved, it stays valid for a couple of days
         if successfully saved, invoke get_saved_token() to get it back
         '''
-        token = JsonObject(self.token)
+        token = utils.JsonObject(self.token)
         #TODO: encrypt access token
 
         #save token to file "token.save"
         #TODO make the file invisible or at least add it to .gitignore
         fname = self.auth_info.save_token_file
         if fname == "(default)" :
-            fname = self.channel_name+".token.save"
+            fname = self.jsonconf.channel_name+".token.save"
         if fname != "(null)" :
             with open(fname,"w") as fp:
                 json.dump(token, fp)
@@ -248,7 +248,7 @@ class SNSBase(object):
             logger.debug("No access token saved, try to get one through sns.auth() :D")
             return False
 
-        logger.info("Read saved token for '%s' successfully", self.channel_name)
+        logger.info("Read saved token for '%s' successfully", self.jsonconf.channel_name)
         return True
     
     def isExpired(self, token=None):
