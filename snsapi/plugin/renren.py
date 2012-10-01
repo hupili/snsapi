@@ -24,51 +24,18 @@ RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_SESSION_KEY_URI = "http://graph.renren.com/renren_api/session_key"
 RENREN_API_SERVER = "http://api.renren.com/restserver.do"
 
-class RenrenStatus(SNSBase):
+class RenrenBase(SNSBase):
 
-    #TODO: 
-    #    "Status" is not an abstract enough word. 
-    #    Suggested to change it to "Message". 
-    #    There are many types of messages on renren. 
-    #    There are even many types for new feeds alone. 
-    #    Ref: http://wiki.dev.renren.com/wiki/Type%E5%88%97%E8%A1%A8
-    class Message(snstype.Message):
-        def parse(self, dct):
-            self.ID.platform = self.platform
-            self._parse_feed_status(dct)
-
-        def _parse_feed_status(self, dct):
-            #logger.debug(json.dumps(dct))
-            #By trial, it seems:
-            #   * 'post_id' : the id of news feeds
-            #   * 'source_id' : the id of status
-            #     equal to 'status_id' returned by 
-            #     'status.get' interface
-            #self.id = dct["post_id"]
-            self.id = dct["source_id"]
-            self.created_at = dct["update_time"]
-            self.text = dct['message']
-            self.reposts_count = 'N/A'
-            self.comments_count = dct['comments']['count']
-            self.username = dct['name']
-            self.usernick = ""
-            self.ID.status_id = dct["source_id"]
-            self.ID.source_user_id = dct["actor_id"]
-
-        def _parse_status(self, dct):
-            self.id = dct["status_id"]
-            self.created_at = dct["time"]
-            if 'root_message' in dct:
-                self.text = dct['root_message']
-            else:
-                self.text = dct['message']
-            self.reposts_count = dct['forward_count']
-            self.comments_count = dct['comment_count']
-            self.username = dct['uid']
-            self.usernick = ""
+    # This error is moved back to "renren.py". 
+    # It's platform specific and we do not expect other 
+    # file to raise this error. 
+    class RenrenAPIError(Exception):
+        def __init__(self, code, message):
+            super(RenrenAPIError, self).__init__(message)
+            self.code = code
 
     def __init__(self, channel = None):
-        super(RenrenStatus, self).__init__()
+        super(RenrenBase, self).__init__()
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
@@ -79,7 +46,7 @@ class RenrenStatus(SNSBase):
             self.read_channel(channel)
 
     def read_channel(self, channel):
-        super(RenrenStatus, self).read_channel(channel) 
+        super(RenrenBase, self).read_channel(channel) 
 
         self.channel_name = channel['channel_name']
         self.app_key = channel['app_key']
@@ -153,7 +120,7 @@ class RenrenStatus(SNSBase):
 
         if type(response) is not list and "error_code" in response:
             logger.warning(response["error_msg"]) 
-            raise RenrenAPIError(response["error_code"], response["error_msg"])
+            raise RenrenBase.RenrenAPIError(response["error_code"], response["error_msg"])
         return response
 
     def __hash_params(self, params = None):
@@ -163,6 +130,124 @@ class RenrenStatus(SNSBase):
         hasher = hashlib.md5(hashstring)
         return hasher.hexdigest()
         
+
+
+class RenrenShare(RenrenBase):
+
+    class Message(snstype.Message):
+        def parse(self, dct):
+            self.ID.platform = self.platform
+            self._parse_feed_share(dct)
+
+        def _parse_feed_share(self, dct):
+            self.id = dct["source_id"]
+            self.created_at = dct["update_time"]
+            self.text = dct['message'] + " --> " + dct['description']
+            self.reposts_count = 'N/A'
+            self.comments_count = dct['comments']['count']
+            self.username = dct['name']
+            self.usernick = ""
+            self.ID.status_id = dct["source_id"]
+            self.ID.source_user_id = dct["actor_id"]
+
+    def __init__(self, channel = None):
+        super(RenrenShare, self).__init__()
+
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
+        
+        self.app_key = ""
+        self.app_secret = ""
+        if channel:
+            self.read_channel(channel)
+
+    def home_timeline(self, count=20):
+        '''Get home timeline
+        get statuses of yours and your friends'
+        @param count: number of statuses
+        '''
+
+        api_params = dict(method = "feed.get", \
+                type = "21,32,33,50,51,52", \
+                page = 1, count = count)
+        jsonlist = self.renren_request(api_params)
+        
+        statuslist = []
+        for j in jsonlist:
+            statuslist.append(self.Message(j))
+
+        logger.info("Read %d statuses from '%s'", len(statuslist), self.channel_name)
+        return statuslist
+
+    def reply(self, statusID, text):
+        """reply status
+        @param status: StatusID object
+        @param text: string, the reply message
+        @return: success or not
+        """
+
+        api_params = dict(method = "share.addComment", content = text, \
+            share_id = statusID.status_id, user_id = statusID.source_user_id)
+
+        try:
+            ret = self.renren_request(api_params)
+            if 'result' in ret and ret['result'] == 1:
+                logger.info("Reply '%s' to status '%s' succeed", text, statusID)
+                return True
+        except:
+            pass
+
+        logger.info("Reply '%s' to status '%s' fail", text, statusID)
+        return False
+
+class RenrenStatus(RenrenBase):
+
+    class Message(snstype.Message):
+        def parse(self, dct):
+            self.ID.platform = self.platform
+            self._parse_feed_status(dct)
+
+        def _parse_feed_status(self, dct):
+            #logger.debug(json.dumps(dct))
+            #By trial, it seems:
+            #   * 'post_id' : the id of news feeds
+            #   * 'source_id' : the id of status
+            #     equal to 'status_id' returned by 
+            #     'status.get' interface
+            #self.id = dct["post_id"]
+            self.id = dct["source_id"]
+            self.created_at = dct["update_time"]
+            self.text = dct['message']
+            self.reposts_count = 'N/A'
+            self.comments_count = dct['comments']['count']
+            self.username = dct['name']
+            self.usernick = ""
+            self.ID.status_id = dct["source_id"]
+            self.ID.source_user_id = dct["actor_id"]
+
+        def _parse_status(self, dct):
+            self.id = dct["status_id"]
+            self.created_at = dct["time"]
+            if 'root_message' in dct:
+                self.text = dct['root_message']
+            else:
+                self.text = dct['message']
+            self.reposts_count = dct['forward_count']
+            self.comments_count = dct['comment_count']
+            self.username = dct['uid']
+            self.usernick = ""
+
+    def __init__(self, channel = None):
+        super(RenrenStatus, self).__init__()
+
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
+        
+        self.app_key = ""
+        self.app_secret = ""
+        if channel:
+            self.read_channel(channel)
+
     def home_timeline(self, count=20):
         '''Get home timeline
         get statuses of yours and your friends'
@@ -210,84 +295,6 @@ class RenrenStatus(SNSBase):
 
         api_params = dict(method = "status.addComment", content = text, \
             status_id = statusID.status_id, owner_id = statusID.source_user_id)
-
-        try:
-            ret = self.renren_request(api_params)
-            if 'result' in ret and ret['result'] == 1:
-                logger.info("Reply '%s' to status '%s' succeed", text, statusID)
-                return True
-        except:
-            pass
-
-        logger.info("Reply '%s' to status '%s' fail", text, statusID)
-        return False
-
-# This error is moved back to "renren.py". 
-# It's platform specific and we do not expect other 
-# file to raise this error. 
-class RenrenAPIError(Exception):
-    def __init__(self, code, message):
-        super(RenrenAPIError, self).__init__(message)
-        self.code = code
-
-
-class RenrenShare(RenrenStatus):
-
-    class Message(snstype.Message):
-        def parse(self, dct):
-            self.ID.platform = self.platform
-            self._parse_feed_share(dct)
-
-        def _parse_feed_share(self, dct):
-            self.id = dct["source_id"]
-            self.created_at = dct["update_time"]
-            self.text = dct['message'] + " --> " + dct['description']
-            self.reposts_count = 'N/A'
-            self.comments_count = dct['comments']['count']
-            self.username = dct['name']
-            self.usernick = ""
-            self.ID.status_id = dct["source_id"]
-            self.ID.source_user_id = dct["actor_id"]
-
-    def __init__(self, channel = None):
-        super(RenrenShare, self).__init__()
-
-        self.platform = self.__class__.__name__
-        self.Message.platform = self.platform
-        
-        self.app_key = ""
-        self.app_secret = ""
-        self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
-        if channel:
-            self.read_channel(channel)
-
-    def home_timeline(self, count=20):
-        '''Get home timeline
-        get statuses of yours and your friends'
-        @param count: number of statuses
-        '''
-
-        api_params = dict(method = "feed.get", \
-                type = "21,32,33,50,51,52", \
-                page = 1, count = count)
-        jsonlist = self.renren_request(api_params)
-        
-        statuslist = []
-        for j in jsonlist:
-            statuslist.append(self.Message(j))
-
-        logger.info("Read %d statuses from '%s'", len(statuslist), self.channel_name)
-        return statuslist
-
-    def reply(self, statusID, text):
-        """reply status
-        @param status: StatusID object
-        @param text: string, the reply message
-        @return: success or not
-        """
-
-        api_params = dict(method = "share.addComment", content = text, \
-            share_id = statusID.status_id, user_id = statusID.source_user_id)
 
         try:
             ret = self.renren_request(api_params)
