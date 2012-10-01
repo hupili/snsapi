@@ -78,8 +78,10 @@ class StatusList(list):
 
     def __str__(self):
         tmp = ""
+        no = 0 
         for s in self:
-            tmp = tmp + str(s) + "\n"
+            tmp = tmp + "<%d>\n%s\n" % (no, str(s))
+            no = no + 1
         return tmp
 
     def __unicode__(self):
