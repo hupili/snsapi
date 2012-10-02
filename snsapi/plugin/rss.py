@@ -25,7 +25,8 @@ logger.debug("%s plugged!", __file__)
 class RSS(SNSBase):
         
     class Message(snstype.Message):
-        def __get_dict_entry(self, attr, dct, field):
+        #def __get_dict_entry(self, attr, dct, field):
+        def __get_dict_entry(self, dct, field):
             # dict entry reading with fault tolerance. 
             #   self.attr = dct['field']
             # RSS format is very diverse. 
@@ -41,9 +42,11 @@ class RSS(SNSBase):
             # to upper layers. (seeing "(null)" is better 
             # than catching an error. 
             try:
-                setattr(self, attr, dct[field])
+                return dct[field]
+                #setattr(self, attr, dct[field])
             except KeyError:
-                setattr(self, attr, "(null)")
+                return "(null)"
+                #setattr(self, attr, "(null)")
             
         def parse(self, dct):
             self.ID.platform = self.platform
@@ -51,17 +54,21 @@ class RSS(SNSBase):
             # For RSS, one entry will be brought up if it is updated. 
             # We use 'update' of RSS as 'created_at' field of SNS stauts. 
             # This is for better message deduplicate
-            self.__get_dict_entry('username', dct, 'author')
-            self.__get_dict_entry('created_at', dct, 'updated')
-            self.__get_dict_entry('title', dct, 'title')
-            self.__get_dict_entry('link', dct, 'link')
+            #self.__get_dict_entry('username', dct, 'author')
+            #self.__get_dict_entry('created_at', dct, 'updated')
+            #self.__get_dict_entry('title', dct, 'title')
+            #self.__get_dict_entry('link', dct, 'link')
+            self.parsed.username = self.__get_dict_entry(dct, 'author')
+            self.parsed.created_at = self.__get_dict_entry(dct, 'updated')
+            self.parsed.title = self.__get_dict_entry(dct, 'title')
+            self.parsed.link = self.__get_dict_entry(dct, 'link')
 
             # Other plugins' statuses have 'text' field
             # The RSS channel is supposed to read contents from
             # different places with different formats. 
             # The entries are usually page update notifications. 
             # We format them in a unified way and use this as 'text'. 
-            self.text = "Article \"%s\" is updated(published)! (%s)" % (self.title, self.link)
+            self.parsed.text = "Article \"%s\" is updated(published)! (%s)" % (self.parsed.title, self.parsed.link)
 
     def __init__(self, channel = None):
         super(RSS, self).__init__(channel)

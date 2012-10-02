@@ -37,10 +37,18 @@ class JsonDict(JsonObject):
     """
     def __init__(self, jsonconf = None):
         super(JsonDict, self).__init__()
-        self.update(jsonconf)
+        if jsonconf:
+            self.update(jsonconf)
 
     def __str__(self):
+        return self._dumps_pretty()
+
+    def _dumps(self):
+        return json.dumps(self)
+
+    def _dumps_pretty(self):
         return json.dumps(self, indent=2)
+
         
 def console_input(string = None):
     '''

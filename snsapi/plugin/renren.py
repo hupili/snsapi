@@ -140,13 +140,13 @@ class RenrenShare(RenrenBase):
             self._parse_feed_share(dct)
 
         def _parse_feed_share(self, dct):
-            self.id = dct["source_id"]
-            self.created_at = dct["update_time"]
-            self.text = dct['message'] + " --> " + dct['description']
-            self.reposts_count = 'N/A'
-            self.comments_count = dct['comments']['count']
-            self.username = dct['name']
-            self.usernick = ""
+            self.parsed.id = dct["source_id"]
+            self.parsed.created_at = dct["update_time"]
+            self.parsed.text = dct['message'] + " --> " + dct['description']
+            self.parsed.reposts_count = 'N/A'
+            self.parsed.comments_count = dct['comments']['count']
+            self.parsed.username = dct['name']
+            self.parsed.usernick = ""
             self.ID.status_id = dct["source_id"]
             self.ID.source_user_id = dct["actor_id"]
 
@@ -215,27 +215,29 @@ class RenrenStatus(RenrenBase):
             #     equal to 'status_id' returned by 
             #     'status.get' interface
             #self.id = dct["post_id"]
-            self.id = dct["source_id"]
-            self.created_at = dct["update_time"]
-            self.text = dct['message']
-            self.reposts_count = 'N/A'
-            self.comments_count = dct['comments']['count']
-            self.username = dct['name']
-            self.usernick = ""
+            self.parsed.id = dct["source_id"]
+            self.parsed.created_at = dct["update_time"]
+            self.parsed.text = dct['message']
+            self.parsed.reposts_count = 'N/A'
+            self.parsed.comments_count = dct['comments']['count']
+            self.parsed.username = dct['name']
+            self.parsed.usernick = ""
             self.ID.status_id = dct["source_id"]
             self.ID.source_user_id = dct["actor_id"]
 
-        def _parse_status(self, dct):
-            self.id = dct["status_id"]
-            self.created_at = dct["time"]
-            if 'root_message' in dct:
-                self.text = dct['root_message']
-            else:
-                self.text = dct['message']
-            self.reposts_count = dct['forward_count']
-            self.comments_count = dct['comment_count']
-            self.username = dct['uid']
-            self.usernick = ""
+        # The following is to parse Status of Renren. 
+        # (get by invoking 'status.get', not 'feed.get')
+        #def _parse_status(self, dct):
+        #    self.id = dct["status_id"]
+        #    self.created_at = dct["time"]
+        #    if 'root_message' in dct:
+        #        self.text = dct['root_message']
+        #    else:
+        #        self.text = dct['message']
+        #    self.reposts_count = dct['forward_count']
+        #    self.comments_count = dct['comment_count']
+        #    self.username = dct['uid']
+        #    self.usernick = ""
 
     def __init__(self, channel = None):
         super(RenrenStatus, self).__init__(channel)

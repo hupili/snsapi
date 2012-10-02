@@ -84,7 +84,7 @@ class SNSTypeParseError(SNSError):
     def __init__(self, value=""):
         self.value = value
     def __str__(self):
-        return "errors when parsing JsonObject for snsType." + self.value
+        return "errors when parsing JsonObject for snsType: " + self.value
 
 #>>
 class SNSEncodingError(SNSError):

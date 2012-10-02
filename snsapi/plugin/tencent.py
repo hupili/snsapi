@@ -17,7 +17,6 @@ class TencentWeiboStatus(SNSBase):
         def parse(self, dct):
             self.ID.platform = self.platform
 
-            self.id = dct['id']
             #TODO: unify the data type
             #      In SinaAPI, 'created_at' is a string
             #      In TecentWeibo, 'created_at' is an int
@@ -27,13 +26,14 @@ class TencentWeiboStatus(SNSBase):
             #         other fields for future use. 
             #      2. Defaultly convert every fields into unicode string. 
             #         Upper layer can tackle with a unified interface
-            self.ID.reid = self.id
-            self.created_at = dct['timestamp']
-            self.text = dct['text']
-            self.reposts_count = dct['count']
-            self.comments_count = dct['mcount']
-            self.username = dct['name']
-            self.usernick = dct['nick']
+            self.ID.reid = dct['id']
+            self.parsed.id = dct['id']
+            self.parsed.created_at = dct['timestamp']
+            self.parsed.text = dct['text']
+            self.parsed.reposts_count = dct['count']
+            self.parsed.comments_count = dct['mcount']
+            self.parsed.username = dct['name']
+            self.parsed.usernick = dct['nick']
 
     def __init__(self, channel = None):
         super(TencentWeiboStatus, self).__init__(channel)

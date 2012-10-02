@@ -32,11 +32,10 @@ class RSS2RW(RSS):
             # RSS2RW channel is intended for snsapi-standardized communication.
             # It does not have to digest RSS entry as is in RSSStatus. 
             # The 'title' field is the place where we put our messages. 
-            self.text = self.title
+            self.parsed.text = self.parsed.title
 
     def __init__(self, channel = None):
         super(RSS2RW, self).__init__(channel)
-
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
@@ -93,12 +92,12 @@ class RSS2RW(RSS):
         d = feedparser.parse(self.jsonconf.url)
         for j in d['items']:
             s = self.Message(j)
-            entry_time = dtparser.parse(s.created_at)
+            entry_time = dtparser.parse(s.parsed.created_at)
             if (cur_time - entry_time).seconds < self.entry_timeout:
                 items.append( 
                     PyRSS2Gen.RSSItem(
-                        author = s.username, 
-                        title = s.title, 
+                        author = s.parsed.username, 
+                        title = s.parsed.title, 
                         description = "snsapi RSS2RW update",
                         pubDate = entry_time
                         )

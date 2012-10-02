@@ -18,15 +18,14 @@ class SinaWeiboStatus(SNSBase):
         def parse(self, dct):
             self.ID.platform = self.platform
 
-            self.id = dct["id"]
-            self.ID.id = self.id
-            self.created_at = dct["created_at"]
-            self.text = dct['text']
-            self.reposts_count = dct['reposts_count']
-            self.comments_count = dct['comments_count']
-            self.username = dct['user']['name']
-            self.usernick = ""
-
+            self.ID.id = dct["id"]
+            self.parsed.id = dct["id"]
+            self.parsed.created_at = dct["created_at"]
+            self.parsed.text = dct['text']
+            self.parsed.reposts_count = dct['reposts_count']
+            self.parsed.comments_count = dct['comments_count']
+            self.parsed.username = dct['user']['name']
+            self.parsed.usernick = ""
 
     def __init__(self, channel = None):
         super(SinaWeiboStatus, self).__init__(channel)
