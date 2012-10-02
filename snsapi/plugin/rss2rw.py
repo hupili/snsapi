@@ -25,8 +25,8 @@ logger.debug("%s plugged!", __file__)
 class RSS2RW(RSS):
 
     class Message(RSS.Message):
-        def parse(self, dct):
-            super(RSS2RW.Message, self).parse(dct)
+        def parse(self):
+            super(RSS2RW.Message, self).parse()
             self.ID.platform = self.platform
 
             # RSS2RW channel is intended for snsapi-standardized communication.

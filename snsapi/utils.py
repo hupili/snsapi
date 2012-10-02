@@ -49,6 +49,9 @@ class JsonDict(JsonObject):
     def _dumps_pretty(self):
         return json.dumps(self, indent=2)
 
+    def get(self, attr):
+        return dict.get(self, attr, "(nu)")
+
         
 def console_input(string = None):
     '''

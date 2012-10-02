@@ -15,9 +15,11 @@ logger.debug("%s plugged!", __file__)
 class SinaWeiboStatus(SNSBase):
 
     class Message(snstype.Message):
-        def parse(self, dct):
+        def parse(self):
             self.ID.platform = self.platform
+            self._parse(self.raw)
 
+        def _parse(self, dct):
             self.ID.id = dct["id"]
             self.parsed.id = dct["id"]
             self.parsed.created_at = dct["created_at"]

@@ -40,23 +40,32 @@ class RSS(SNSBase):
             # The purpose is to expose unified interface
             # to upper layers. (seeing "(null)" is better 
             # than catching an error. 
-            try:
-                return dct[field]
-                #setattr(self, attr, dct[field])
-            except KeyError:
-                return "(null)"
-                #setattr(self, attr, "(null)")
+
+            #try:
+            #    return dct[field]
+            #    #setattr(self, attr, dct[field])
+            #except KeyError:
+            #    return "(null)"
+            #    #setattr(self, attr, "(null)")
+
+            return dict.get(dct, field, "(null)")
             
-        def parse(self, dct):
+        def parse(self):
             self.ID.platform = self.platform
 
             # For RSS, one entry will be brought up if it is updated. 
             # We use 'update' of RSS as 'created_at' field of SNS stauts. 
             # This is for better message deduplicate
-            self.parsed.username = self.__get_dict_entry(dct, 'author')
-            self.parsed.created_at = self.__get_dict_entry(dct, 'updated')
-            self.parsed.title = self.__get_dict_entry(dct, 'title')
-            self.parsed.link = self.__get_dict_entry(dct, 'link')
+
+            #self.parsed.username = self.__get_dict_entry(dct, 'author')
+            #self.parsed.created_at = self.__get_dict_entry(dct, 'updated')
+            #self.parsed.title = self.__get_dict_entry(dct, 'title')
+            #self.parsed.link = self.__get_dict_entry(dct, 'link')
+
+            self.parsed.username = self.raw.get('author')
+            self.parsed.created_at = self.raw.get('updated')
+            self.parsed.title = self.raw.get('title')
+            self.parsed.link = self.raw.get('link')
 
             # Other plugins' statuses have 'text' field
             # The RSS channel is supposed to read contents from
@@ -76,7 +85,6 @@ class RSS(SNSBase):
         
     def auth(self):
         logger.info("RSS platform do not need auth!")
-        return 
         
     def home_timeline(self, count=20):
         '''Get home timeline

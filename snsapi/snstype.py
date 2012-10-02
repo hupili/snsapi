@@ -57,12 +57,17 @@ class Message(utils.JsonDict):
         self['ID'] = MessageID()
         
         try:
-            self.parse(dct)
+            #self.parse(dct)
+            self.parse()
         #except AttributeError:
         except KeyError, e:
             raise snserror.type.parse(e.message)
             
-    def parse(self, dct):
+    def parse(self):
+        '''
+        Parse self.raw and store result in self.parsed
+
+        '''
         pass
 
     def show(self):
@@ -168,7 +173,6 @@ class MessageList(list):
             no = no + 1
         return tmp
         
-    
 class User(object):
     def __init__(self, jobj=None):
         self.id = 0

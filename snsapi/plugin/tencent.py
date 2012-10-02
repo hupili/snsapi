@@ -14,9 +14,11 @@ logger.debug("%s plugged!", __file__)
 class TencentWeiboStatus(SNSBase):
 
     class Message(snstype.Message):
-        def parse(self, dct):
+        def parse(self):
             self.ID.platform = self.platform
+            self._parse(self.raw)
 
+        def _parse(self, dct):
             #TODO: unify the data type
             #      In SinaAPI, 'created_at' is a string
             #      In TecentWeibo, 'created_at' is an int

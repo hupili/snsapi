@@ -127,9 +127,9 @@ class RenrenBase(SNSBase):
 class RenrenShare(RenrenBase):
 
     class Message(snstype.Message):
-        def parse(self, dct):
+        def parse(self):
             self.ID.platform = self.platform
-            self._parse_feed_share(dct)
+            self._parse_feed_share(self.raw)
 
         def _parse_feed_share(self, dct):
             self.parsed.id = dct["source_id"]
@@ -190,9 +190,9 @@ class RenrenShare(RenrenBase):
 class RenrenStatus(RenrenBase):
 
     class Message(snstype.Message):
-        def parse(self, dct):
+        def parse(self):
             self.ID.platform = self.platform
-            self._parse_feed_status(dct)
+            self._parse_feed_status(self.raw)
 
         def _parse_feed_status(self, dct):
             #logger.debug(json.dumps(dct))
