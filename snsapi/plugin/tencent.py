@@ -41,21 +41,8 @@ class TencentWeiboStatus(SNSBase):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
-        #print "bbb"
-
-        #self.app_key = ""
-        #self.app_secret = ""
-        #if channel:
-        #    self.read_channel(channel)
-            
     def read_channel(self, channel):
         super(TencentWeiboStatus, self).read_channel(channel) 
-
-        #print "aaaa"
-
-        #self.channel_name = channel['channel_name']
-        #self.app_key = channel['app_key']
-        #self.app_secret = channel['app_secret']
 
         if not "auth_url" in self.auth_info:
             self.auth_info.auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
@@ -68,7 +55,7 @@ class TencentWeiboStatus(SNSBase):
     def auth_second(self):
         self._oauth2_second()
         
-    def attachAuthinfo(self, params):
+    def _attach_authinfo(self, params):
         params['access_token'] = self.token.access_token
         params['openid'] = self.token.openid
         params['oauth_consumer_key'] = self.jsonconf.app_key
@@ -84,14 +71,13 @@ class TencentWeiboStatus(SNSBase):
         url = "https://open.t.qq.com/api/statuses/home_timeline"
         params = {}
         params['reqnum'] = count
-        self.attachAuthinfo(params)
+        self._attach_authinfo(params)
         
         jsonobj = self._http_get(url, params)
         
         statuslist = []
         try:
             for j in jsonobj['data']['info']:
-                #statuslist.append(TencentWeiboStatus.Message(j))
                 statuslist.append(self.Message(j))
         except TypeError:
             return "Wrong response. " + str(jsonobj)
@@ -105,11 +91,10 @@ class TencentWeiboStatus(SNSBase):
         url = "https://open.t.qq.com/api/t/add"
         params = {}
         params["content"] = text
-        self.attachAuthinfo(params)
+        self._attach_authinfo(params)
         
         ret = self._http_post(url, params)
         if(ret['msg'] == "ok"):
-            #logger.info("Update status '%s' on '%s' succeed", text.decode('utf-8'), self.channel_name)
             logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
             return True
         return ret
@@ -123,7 +108,7 @@ class TencentWeiboStatus(SNSBase):
         params = {}
         params["content"] = text
         params["reid"] = statusID.reid
-        self.attachAuthinfo(params)
+        self._attach_authinfo(params)
         
         ret = self._http_post(url, params)
         if(ret['msg'] == "ok"):

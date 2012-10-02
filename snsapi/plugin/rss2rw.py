@@ -40,12 +40,9 @@ class RSS2RW(RSS):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
-        #default parameter for writing RSS2 feeds
+        # default parameter for writing RSS2 feeds
         self.author = "snsapi"
         self.entry_timeout = 3600 #in seconds, default 1 hour
-
-        #if channel: 
-        #    self.read_channel(channel)
 
     def read_channel(self, channel):
         super(RSS2RW, self).read_channel(channel)
@@ -87,8 +84,8 @@ class RSS2RW(RSS):
 
         items = []
 
-        #Read and filter existing entries.
-        #Old entries are disgarded to keep the file short and clean.
+        # Read and filter existing entries.
+        # Old entries are disgarded to keep the file short and clean.
         d = feedparser.parse(self.jsonconf.url)
         for j in d['items']:
             s = self.Message(j)

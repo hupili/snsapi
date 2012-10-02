@@ -2,6 +2,9 @@
 
 '''
 renren client
+
+Codes are adapted from following sources:
+   * http://wiki.dev.renren.com/mediawiki/images/4/4c/Renren-oauth-web-demo-python-v1.0.rar
 '''
 
 from ..snslog import SNSLog
@@ -10,10 +13,6 @@ from ..snsbase import SNSBase
 from .. import snstype
 from ..utils import console_output
 
-#Used by renren_request
-import time
-#Used by __hash_params
-import hashlib
 
 logger.debug("%s plugged!", __file__)
 
@@ -40,17 +39,8 @@ class RenrenBase(SNSBase):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
         
-        #self.app_key = ""
-        #self.app_secret = ""
-        #if channel:
-        #    self.read_channel(channel)
-
     def read_channel(self, channel):
         super(RenrenBase, self).read_channel(channel) 
-
-        #self.channel_name = channel['channel_name']
-        #self.app_key = channel['app_key']
-        #self.app_secret = channel['app_secret']
 
         if not "callback_url" in self.auth_info: 
             self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
@@ -94,6 +84,8 @@ class RenrenBase(SNSBase):
         It fills in system paramters and compute the signature. 
         """
 
+        import time
+
         #request a session key
         session_key_request_args = {"oauth_token": self.token.access_token}
         response = self._http_get(RENREN_SESSION_KEY_URI, session_key_request_args)
@@ -124,9 +116,9 @@ class RenrenBase(SNSBase):
         return response
 
     def __hash_params(self, params = None):
+        import hashlib
         hashstring = "".join(["%s=%s" % (self._unicode_encode(x), self._unicode_encode(params[x])) for x in sorted(params.keys())])
         hashstring = hashstring + self._unicode_encode(self.jsonconf.app_secret)
-        #logger.debug(hashstring)
         hasher = hashlib.md5(hashstring)
         return hasher.hexdigest()
         
@@ -155,11 +147,6 @@ class RenrenShare(RenrenBase):
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
-        
-        #self.app_key = ""
-        #self.app_secret = ""
-        #if channel:
-        #    self.read_channel(channel)
 
     def home_timeline(self, count=20):
         '''Get home timeline
@@ -245,11 +232,6 @@ class RenrenStatus(RenrenBase):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
         
-        #self.app_key = ""
-        #self.app_secret = ""
-        #if channel:
-        #    self.read_channel(channel)
-
     def home_timeline(self, count=20):
         '''Get home timeline
         get statuses of yours and your friends'

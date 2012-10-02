@@ -33,24 +33,13 @@ class SinaWeiboStatus(SNSBase):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
-        ##just you remind myself they exists
-        #self.app_key = ""
-        #self.app_secret = ""
-        #if channel:
-        #    self.read_channel(channel)
-
     def read_channel(self, channel):
         super(SinaWeiboStatus, self).read_channel(channel) 
-
-        #self.channel_name = channel['channel_name']
-        #self.app_key = channel['app_key']
-        #self.app_secret = channel['app_secret']
 
         if not "auth_url" in self.auth_info:
             self.auth_info.auth_url = "https://api.weibo.com/oauth2/"
         if not "callback_url" in self.auth_info:
             self.auth_info.callback_url = "http://copy.the.code.to.client/"
-        #return 
 
     def auth_first(self):
         self._oauth2_first()
@@ -94,9 +83,9 @@ class SinaWeiboStatus(SNSBase):
             logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
             return True
         #TODO:
-        #Sometimes update fails, but we do not 
-        #catch errors.SNSError. 
-        #This part needs further modification. 
+        #  Sometimes update fails, but we do not 
+        #  catch errors.SNSError. 
+        #  This part needs further modification. 
 #Traceback (most recent call last):
 #File "forwarder.py", line 84, in <module>
 #% (s.username, s.created_at, s.text)) ):

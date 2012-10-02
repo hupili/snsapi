@@ -135,6 +135,14 @@ class SNSPocketSaveConfigError(SNSPocketError):
     def __str__(self):
         return "SNSPocket Save Config Error!"
 
+#>>>
+class SNSPocketLoadConfigError(SNSPocketError):
+    def __init__(self, msg = ""):
+        super(SNSPocketLoadConfigError, self).__init__()
+        self.msg = msg
+    def __str__(self):
+        return "SNSPocket Load Config Error! %s" % self.msg
+
 #>>
 class SNSPocketDuplicateName(SNSError):
     def __init__(self, cname):
@@ -151,6 +159,7 @@ class snserror(object):
     config = ConfigError
     config.nofile = NoConfigFile
     config.save = SNSPocketSaveConfigError
+    config.load = SNSPocketLoadConfigError
 
     type = SNSTypeError
     type.parse = SNSTypeParseError

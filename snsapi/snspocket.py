@@ -150,6 +150,8 @@ class SNSPocket(dict):
                         count_add_channel += 1
         except IOError:
             raise snserror.config.nofile(fn_channel)
+        except ValueError, e:
+            raise snserror.config.load("file: %s; message: %s" % (fn_channel, e.message))
 
         try:
             with open(abspath(fn_pocket), "r") as fp:
@@ -157,6 +159,8 @@ class SNSPocket(dict):
                 self.jsonconf = allinfo
         except IOError:
             raise snserror.config.nofile(fn_pocket)
+        except ValueError, e:
+            raise snserror.config.load("file: %s; message:%s" % (fn_channel, e.message))
 
         logger.info("Read configs done. Add %d channels" % count_add_channel)
 

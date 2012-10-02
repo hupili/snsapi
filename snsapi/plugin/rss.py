@@ -25,7 +25,6 @@ logger.debug("%s plugged!", __file__)
 class RSS(SNSBase):
         
     class Message(snstype.Message):
-        #def __get_dict_entry(self, attr, dct, field):
         def __get_dict_entry(self, dct, field):
             # dict entry reading with fault tolerance. 
             #   self.attr = dct['field']
@@ -54,10 +53,6 @@ class RSS(SNSBase):
             # For RSS, one entry will be brought up if it is updated. 
             # We use 'update' of RSS as 'created_at' field of SNS stauts. 
             # This is for better message deduplicate
-            #self.__get_dict_entry('username', dct, 'author')
-            #self.__get_dict_entry('created_at', dct, 'updated')
-            #self.__get_dict_entry('title', dct, 'title')
-            #self.__get_dict_entry('link', dct, 'link')
             self.parsed.username = self.__get_dict_entry(dct, 'author')
             self.parsed.created_at = self.__get_dict_entry(dct, 'updated')
             self.parsed.title = self.__get_dict_entry(dct, 'title')
@@ -76,14 +71,8 @@ class RSS(SNSBase):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
         
-        #if channel: 
-        #    self.read_channel(channel)
-    
     def read_channel(self, channel):
         super(RSS, self).read_channel(channel)
-
-        #self.channel_name = channel['channel_name']
-        #self.url = channel['url']
         
     def auth(self):
         logger.info("RSS platform do not need auth!")
