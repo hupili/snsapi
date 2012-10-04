@@ -63,7 +63,9 @@ class RSS(SNSBase):
             #self.parsed.link = self.__get_dict_entry(dct, 'link')
 
             self.parsed.username = self.raw.get('author')
-            self.parsed.created_at = self.raw.get('updated')
+            # updated is said to be an unsupported field of feedparser
+            # in the future versions. 
+            self.parsed.created_at = self.raw.get('published')
             self.parsed.title = self.raw.get('title')
             self.parsed.link = self.raw.get('link')
 
@@ -98,5 +100,11 @@ class RSS(SNSBase):
         for j in d['items']:
             if len(statuslist) >= count:
                 break
-            statuslist.append(self.Message(j))
+            s = self.Message(j)
+            #print s.dump_parsed()
+            #print s.dump_full()
+            #TODO:
+            #     RSS parsed result is not json serializable. 
+            #     Try to find other ways of serialization. 
+            statuslist.append(s)
         return statuslist
