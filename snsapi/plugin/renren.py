@@ -65,7 +65,7 @@ class RenrenBase(SNSBase):
         args["code"] = self.token.code
         args["grant_type"] = "authorization_code"
         self.token.update(self._http_get(RENREN_ACCESS_TOKEN_URI, args))
-        self.token.expires_in = self.token.expires_in + time.time()
+        self.token.expires_in = self.token.expires_in + self.time()
 
     def auth(self):
         if self.get_saved_token():
@@ -84,8 +84,6 @@ class RenrenBase(SNSBase):
         It fills in system paramters and compute the signature. 
         """
 
-        import time
-
         #request a session key
         session_key_request_args = {"oauth_token": self.token.access_token}
         response = self._http_get(RENREN_SESSION_KEY_URI, session_key_request_args)
@@ -93,11 +91,11 @@ class RenrenBase(SNSBase):
 
         #system parameters fill-in
         params["api_key"] = self.jsonconf.app_key
-        params["call_id"] = str(int(time.time() * 1000))
+        params["call_id"] = str(int(self.time() * 1000))
         params["format"] = "json"
         params["session_key"] = session_key
         params["v"] = '1.0'
-        #del 'sig' first, if not:
+        # del 'sig' first, if not:
         #   Client may use the same params dict repeatedly. 
         #   Later call will fail because they have previous 'sig'. 
         if "sig" in params:

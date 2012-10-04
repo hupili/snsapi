@@ -46,11 +46,11 @@ class SNSLog(object):
         
         """
 
-        #Debug information writes to log using SNSLog.debug().
-        #How do you debug the logger itself...? 
-        #Here it is... 
-        #We fall back to the print. 
-        #They should be comment out to make the screen clean.
+        # Debug information writes to log using SNSLog.debug().
+        # How do you debug the logger itself...? 
+        # Here it is... 
+        # We fall back to the print. 
+        # They should be comment out to make the screen clean.
         #print "=== init log ==="
         #print "logfile:%s" % logfile
         #print "level:%s" % level
@@ -115,11 +115,6 @@ class SNSLogNoInstantiation(Exception):
         return "You can not instantiate SNSLog. "\
                 "Call its static methods directly!"
        
-
-#TODO:
-#    To enable project wide Debugging by default
-#    This line should be commented out normally
-#SNSLog.init(level = SNSLog.DEBUG)
 
 if __name__ == '__main__':
     #SNSLog.init(level = SNSLog.DEBUG, verbose = False)

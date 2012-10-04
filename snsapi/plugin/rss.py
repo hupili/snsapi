@@ -1,16 +1,8 @@
 #-*- encoding: utf-8 -*-
 
 '''
-RSS Feed Component
+RSS Feed 
 
-Supported Methods
-    * auth() : 
-        a NULL stub. 
-    * home_timeline() : 
-        read and parse RSS feed.
-        pretend it to be a 'special' SNS platform, 
-        where you can only read your wall but can 
-        not write to it.
 '''
 
 
@@ -26,6 +18,16 @@ from ..errors import snserror
 logger.debug("%s plugged!", __file__)
 
 class RSS(SNSBase):
+    '''
+    Supported Methods
+        * auth() : 
+            a NULL stub. 
+        * home_timeline() : 
+            read and parse RSS feed.
+            pretend it to be a 'special' SNS platform, 
+            where you can only read your wall but can 
+            not write to it.
+    '''
         
     class Message(snstype.Message):
 
@@ -84,6 +86,10 @@ class RSS(SNSBase):
         return statuslist
 
 class RSS2RW(RSS):
+    '''
+    Read/Write Channel for rss2
+
+    '''
 
     class Message(RSS.Message):
         def parse(self):

@@ -13,7 +13,6 @@ try:
     import json
 except ImportError:
     import simplejson as json
-import time
 import urllib
 from errors import snserror
 import base64
@@ -34,28 +33,24 @@ from third import oauth
 class SNSBase(object):
     def __init__(self, channel = None):
 
-        #print "ccc"
-
-        #self.app_key = None
-        #self.app_secret = None
-
         self.token = None
-        #self.channel_name = None
 
         self.auth_info = snstype.AuthenticationInfo()
         self.__fetch_code_timeout = 2
         self.__fetch_code_max_try = 30
 
         # methods binding
+        import time
+        self.time = lambda : time.time()
         self.console_input = lambda : utils.console_input()
         self._urlencode = lambda params : urllib.urlencode(params)
         
-        #We can not init the auth client here. 
-        #As the base class, this part is first 
-        #execute. Not until we execute the derived
-        #class, e.g. sina.py, can we get all the
-        #information to init an auth client. 
-        self.authClient = None
+        # We can not init the auth client here. 
+        # As the base class, this part is first 
+        # executed. Not until we execute the derived
+        # class, e.g. sina.py, can we get all the
+        # information to init an auth client. 
+        self.auth_client = None
 
         if channel:
             self.read_channel(channel)
@@ -67,8 +62,6 @@ class SNSBase(object):
         elif self.auth_info.cmd_fetch_code == "(local_webserver)":
             try: 
                 self.httpd.handle_request()
-                #if 'error' in self.httpd.query_params:
-                #    sys.exit('Authentication request was rejected.')
                 if 'code' in self.httpd.query_params:
                     code = self.httpd.query_params['code']
                     logger.info("Get code from local server: %s", code)
@@ -77,7 +70,6 @@ class SNSBase(object):
                     raise snserror.auth.fetchcode
             finally:
                 del self.httpd
-                #self.httpd.server_close()
         else :
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
             logger.debug("fetch_code command is: %s", cmd) 
@@ -97,9 +89,8 @@ class SNSBase(object):
         elif self.auth_info.cmd_request_url == "(console_output)" :
             utils.console_output(url)
         elif self.auth_info.cmd_request_url == "(local_webserver)+(webbrowser)" :
-            # TODO: move it to config file or wherever suitable.
-            host = "localhost"
-            port = 12121;
+            host = self.auth_info.host 
+            port = self.auth_info.port 
             from third.server import ClientRedirectServer
             from third.server import ClientRedirectHandler
             import socket
@@ -109,29 +100,29 @@ class SNSBase(object):
             except socket.error:
                 raise snserror.auth
         else :
-            self.__last_request_time = time.time()
+            self.__last_request_time = self.time()
             cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
             logger.debug("request_url command is: %s", cmd) 
             res = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
             logger.debug("request_url result is: %s", res) 
             return
 
-    #The init process is separated out and we 
-    #adopt an idle evaluation strategy for it. 
-    #This is because the two stages of OAtuh 
-    #should be context-free. We can not assume 
-    #calling the second is right after calling
-    #the first. They can be done in different 
-    #invokation of the script. They can be done
-    #on different servers. 
+    # The init process is separated out and we 
+    # adopt an idle evaluation strategy for it. 
+    # This is because the two stages of OAtuh 
+    # should be context-free. We can not assume 
+    # calling the second is right after calling
+    # the first. They can be done in different 
+    # invokation of the script. They can be done
+    # on different servers. 
     def __init_oauth2_client(self):
-        if self.authClient == None:
+        if self.auth_client == None:
             try:
-                self.authClient = oauth.APIClient(self.jsonconf.app_key, \
+                self.auth_client = oauth.APIClient(self.jsonconf.app_key, \
                         self.jsonconf.app_secret, self.auth_info.callback_url, \
                         auth_url = self.auth_info.auth_url)
             except:
-                logger.critical("authClient init error")
+                logger.critical("auth_client init error")
                 raise snserror.auth
 
     def _oauth2_first(self):
@@ -141,7 +132,7 @@ class SNSBase(object):
         '''
         self.__init_oauth2_client()
 
-        url = self.authClient.get_authorize_url()
+        url = self.auth_client.get_authorize_url()
 
         self.request_url(url)
 
@@ -156,25 +147,14 @@ class SNSBase(object):
         if url == "(null)" :
             raise snserror.auth
         self.token = self.parseCode(url)
-        self.token.update(self.authClient.request_access_token(self.token.code))
+        self.token.update(self.auth_client.request_access_token(self.token.code))
         logger.debug("Authorized! access token is " + str(self.token))
         logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
     
-    #def oauth2(self, auth_url, callback_url):
     def oauth2(self):
-        '''Authorizing using synchronized invocation.
-        Invoking APIs from oauth.py
-        
-        web browser will be open, after that, user need to copy the code back to command window.
-        save access_token if authorized.
-        
-        .. py:function:: -
+        '''
+        Authorizing using synchronized invocation of OAuth2.
 
-        :param auth_url: 
-            The authorizing url for individual SNS provider, must be set.
-
-        :param callback_url: 
-            The SNS provider will send something of a code to this page. 
 
         Users need to collect the code in the browser's address bar to this client.
         callback_url MUST be the same one you set when you apply for an app in openSNS platform.
@@ -199,9 +179,12 @@ class SNSBase(object):
     
     def parseCode(self, url):
         '''
-        parse code from url for code and openID
-        @param url: contain code and openID
-        @return: JsonObject within code and openid
+        .. py:function:: -
+
+        :param url: 
+            contain code and openID
+
+        :return: JsonObject within code and openid
         '''
         return utils.JsonObject(urlparse.parse_qsl(urlparse.urlparse(url).query))
 
@@ -213,8 +196,6 @@ class SNSBase(object):
         token = utils.JsonObject(self.token)
         #TODO: encrypt access token
 
-        #save token to file "token.save"
-        #TODO make the file invisible or at least add it to .gitignore
         fname = self.auth_info.save_token_file
         if fname == "(default)" :
             fname = self.jsonconf.channel_name+".token.save"
@@ -233,8 +214,7 @@ class SNSBase(object):
                 with open(fname, "r") as fp:
                     token = utils.JsonObject(json.load(fp))
                     #check expire time
-                    if self.isExpired(token):
-                        #print "Saved Access token is expired, try to get one through sns.auth() :D"
+                    if self.is_expired(token):
                         logger.debug("Saved Access token is expired, try to get one through sns.auth() :D")
                         return False
                     #TODO: decrypt token
@@ -244,39 +224,35 @@ class SNSBase(object):
                 return False
                     
         except IOError:
-            #print "No access token saved, try to get one through sns.auth() :D"
             logger.debug("No access token saved, try to get one through sns.auth() :D")
             return False
 
         logger.info("Read saved token for '%s' successfully", self.jsonconf.channel_name)
         return True
     
-    def isExpired(self, token=None):
+    def is_expired(self, token=None):
         '''
         check if the access token is expired
         '''
         if token == None:
             token = self.token
             
-        #print "==="
-        #print token.expires_in 
-        #print time.time()
-        #print "==="
-
-        if token.expires_in < time.time():
+        if token.expires_in < self.time():
             return True
         else:
             return False
     
     def read_channel(self, channel):
-        #self.jsonconf = utils.JsonDict(channel)
-        self.jsonconf = channel
+        self.jsonconf = utils.JsonDict(channel)
 
-        #self.channel_name = channel['channel_name']
-        #self.platform = channel['platform']
         if 'auth_info' in channel :
             self.auth_info.update(channel['auth_info'])
             self.auth_info.set_defaults()
+
+        if not 'host' in self.auth_info:
+            self.auth_info['host'] = 'localhost'
+        if not 'port' in self.auth_info:
+            self.auth_info['port'] = 12121
 
     def setup_oauth_key(self, app_key, app_secret):
         '''

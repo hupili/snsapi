@@ -39,14 +39,16 @@ class MessageID(utils.JsonDict):
 
 class Message(utils.JsonDict):
     def __init__(self, dct=None):
-        #self.created_at = ""
-        #self.id = 0
-        #self.text = ""
-        #self.reposts_count = 0
-        #self.comments_count = 0
-        #self.user = None
-        #self.username = ""
-        #self.usernick = ""
+        # TODO:
+        # Previously used fields. Re-design them later: 
+        # self.created_at = ""
+        # self.id = 0
+        # self.text = ""
+        # self.reposts_count = 0
+        # self.comments_count = 0
+        # self.user = None
+        # self.username = ""
+        # self.usernick = ""
 
         if dct:
             self['raw'] = utils.JsonDict(dct)
@@ -57,9 +59,7 @@ class Message(utils.JsonDict):
         self['ID'] = MessageID()
         
         try:
-            #self.parse(dct)
             self.parse()
-        #except AttributeError:
         except KeyError, e:
             raise snserror.type.parse(e.message)
             
@@ -182,10 +182,6 @@ class AuthenticationInfo(utils.JsonObject):
     def __init__(self, auth_info = None):
         if auth_info :
             self.update(auth_info)
-            #self.callback_url = auth_info['callback_url']
-            #self.cmd_fetch_code = auth_info['cmd_fetch_code']
-            #self.cmd_request_url = auth_info['cmd_request_url'] 
-            #self.save_token_file = auth_info['save_token_file'] 
         else :
             self.callback_url = None
             self.cmd_fetch_code = "(default)"

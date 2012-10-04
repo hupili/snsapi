@@ -84,21 +84,8 @@ class SinaWeiboStatus(SNSBase):
             status = self.Message(ret)
             logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
             return True
-        #TODO:
-        #  Sometimes update fails, but we do not 
-        #  catch errors.SNSError. 
-        #  This part needs further modification. 
-#Traceback (most recent call last):
-#File "forwarder.py", line 84, in <module>
-#% (s.username, s.created_at, s.text)) ):
-#File "snsapi/src/app/forwarder/snsapi/plugin/sina.py", line 82, in update
-#status = SinaStatus(ret)
-#File "snsapi/src/app/forwarder/snsapi/snstype.py", line 21, in __init__
-#self.parse(dct)
-#File "snsapi/src/app/forwarder/snsapi/plugin/sina.py", line 89, in parse
-#self.id = dct["id"]
-#KeyError: 'id'
-        except:
+        except Exception, e:
+            logger.warning("Update status fail. Message: %s", e.message)
             return False
         
     def reply(self, statusID, text):
