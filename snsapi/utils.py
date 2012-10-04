@@ -50,6 +50,21 @@ class JsonDict(JsonObject):
         return json.dumps(self, indent=2)
 
     def get(self, attr):
+        '''
+        dict entry reading with fault tolerance. 
+
+        e.g. RSS format is very diverse. 
+        To my current knowledge, some formats have 'author' fields, 
+        but others do not:
+           * rss : no
+           * rss2 : yes
+           * atom : yes
+           * rdf : yes
+        This function will return a string "(null)" by default if the 
+        field does not exist. The purpose is to expose unified interface
+        to upper layers. (seeing "(null)" is better than catching an error. 
+
+        '''
         return dict.get(self, attr, "(null)")
 
         
