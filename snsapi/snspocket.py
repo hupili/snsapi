@@ -191,7 +191,7 @@ class SNSPocket(dict):
         logger.info("save configs done")
 
     def new_channel(self):
-        return JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))   
+        return utils.JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))   
 
     def list_platform(self):
         console_output("")

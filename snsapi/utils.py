@@ -50,7 +50,7 @@ class JsonDict(JsonObject):
         return json.dumps(self, indent=2)
 
     def get(self, attr):
-        return dict.get(self, attr, "(nu)")
+        return dict.get(self, attr, "(null)")
 
         
 def console_input(string = None):

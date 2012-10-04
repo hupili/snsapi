@@ -89,6 +89,7 @@ class RSS2RW(RSS):
         d = feedparser.parse(self.jsonconf.url)
         for j in d['items']:
             s = self.Message(j)
+            #print s
             entry_time = dtparser.parse(s.parsed.created_at)
             if (cur_time - entry_time).seconds < self.entry_timeout:
                 items.append( 
