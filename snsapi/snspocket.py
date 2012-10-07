@@ -177,8 +177,15 @@ class SNSPocket(dict):
 
         logger.info("save configs done")
 
-    def new_channel(self):
-        return utils.JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))   
+    def new_channel(self, pl = None, **argd):
+        if pl:
+            try:
+                return getattr(platform, pl).new_channel(**argd)
+            except AttributeError:
+                logger.warning("can not find platform '%s'", pl)
+                return utils.JsonDict()
+        else:
+            return utils.JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))   
 
     def list_platform(self):
         console_output("")

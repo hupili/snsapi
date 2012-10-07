@@ -57,6 +57,13 @@ class RSS(SNSBase):
         
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
+
+    @staticmethod
+    def new_channel(full = False):
+        c = SNSBase.new_channel(full)
+        c['url'] = 'https://github.com/hupili/snsapi/commits/master.atom'
+
+        return c
         
     def read_channel(self, channel):
         super(RSS, self).read_channel(channel)

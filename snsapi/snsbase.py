@@ -241,6 +241,26 @@ class SNSBase(object):
             return True
         else:
             return False
+
+    @staticmethod
+    def new_channel(full = False):
+        '''
+        Return a JsonDict object containing channel configurations. 
+
+        full:
+            False: only returns essential fields. 
+            True: returns all fields (essential + optional). 
+
+        '''
+
+        c = utils.JsonDict()
+        c['channel_name'] = 'new_channel_name'
+        c['open'] = 'yes'
+
+        if full:
+            c['description'] = "a string for you to memorize"
+
+        return c
     
     def read_channel(self, channel):
         self.jsonconf = utils.JsonDict(channel)

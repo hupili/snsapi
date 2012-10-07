@@ -35,6 +35,22 @@ class SinaWeiboStatus(SNSBase):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
+    @staticmethod
+    def new_channel(full = False):
+        c = SNSBase.new_channel(full)
+
+        c['app_key'] = ''
+        c['app_secret'] = ''
+        c['platform'] = 'SinaWeiboStatus'
+        c['auth_info'] = {
+                "save_token_file": "(default)", 
+                "cmd_request_url": "(default)", 
+                "callback_url": "https://snsapi.ie.cuhk.edu.hk/aux/auth.php", 
+                "cmd_fetch_code": "(default)" 
+                } 
+
+        return c
+
     def read_channel(self, channel):
         super(SinaWeiboStatus, self).read_channel(channel) 
 
