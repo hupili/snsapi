@@ -106,10 +106,13 @@ Section 2. Create Your First Channel
     Configure accordingly, and add this channel:
     >>> nc["channel_name"] = "test_rss"
     >>> nc["url"] = "https://github.com/hupili/snsapi/wiki.atom"
-    >>> nc["platform"] = "rss"
+    >>> nc["platform"] = "RSS"
     >>> add_channel(nc)
 
     You can use "list_channel()" to check it. 
+
+    You can use "list_platform()" to see what are the currently 
+    supported platforms. 
         """)
 
         self.sections.append("""
@@ -169,7 +172,7 @@ Section 5. Configure one "Real" SNS (OSN)
     Try:
     >>> clear_channel()
     >>> nc = new_channel()
-    >>> nc["platform"] = "renren"
+    >>> nc["platform"] = "RenrenStatus"
     >>> nc["app_secret"] = "YOU_APP_SECRET_KEY"
     >>> nc["app_key"] = "YOU_APP_KEY"
     >>> nc["channel_name"] = "test_renren"
