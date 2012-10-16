@@ -92,27 +92,6 @@ $echo -e 'load_config()\nauth()\nprint home_timeline(10)' | python -i snscli.py 
 通过stdin对snscli输入命令，并从stdout得到结果。
 你可以定制自己的过滤规则、转发规则，等等。
 
-其他测试：
-----
-
-本节为完整性保留。
-在根目录下有三个`test-*`文件，封装了基本的功能。
-snscli之前，使用他们进行测试。
-目前已经重构，这三个文件的功能在snscli里面都能更好地完成。
-
-首先配置你的`APP_KEY`和`APP_SECRET`：
-
-   * 把conf/channel.json.example复制并重命名为channel.json，
-   * 在该文件中里面填写你的platform(sina、qq、renren或rss), `app_key` 和 `app_secret`
-
-然后执行程序：
-
-```
-python test-read-all.py
-```
-
-之后会弹出网页，填入账号密码后点授权，接着从跳转的页面的地址栏里复制出url，填入console(cmd)窗口中，
-即可获得个人主页的20条最新消息了。good luck。
 
 编码问题：
 ----
@@ -133,12 +112,18 @@ python test-read-all.py
 APP:
 ----
 
-在app目录中沉睡着两个有趣的应用，forwarder和mysofa，forwarder可以把一个平台的信息自动地发送到其他
+   * hellosns: 
+   [https://github.com/hupili/snsapi/tree/master/app/hellosns](https://github.com/hupili/snsapi/tree/master/app/hellosns)
+   * forwarder: 
+   [https://github.com/hupili/snsapi/tree/master/app/forwarder](https://github.com/hupili/snsapi/tree/master/app/forwarder)
+   * mysofa: 
+   [https://github.com/hupili/snsapi/tree/master/app/mysofa](https://github.com/hupili/snsapi/tree/master/app/mysofa)
+
+hello SNS将向你展示怎样用10行代码完成与SNS交互的基本功能，
+它就是利用SNSAPI开发app的hello world啦。
+forwarder可以把一个平台的信息自动地发送到其他
 平台，你需要做地只是填写配置文件，告诉它接收哪个平台信息，发布到哪些平台上。mysofa我想你已经猜到了，
 就是用来抢沙发的 :D
-
-   * forwarder: [https://github.com/hupili/snsapi/tree/master/app/forwarder](https://github.com/hupili/snsapi/tree/master/app/forwarder)
-   * mysofa: [https://github.com/hupili/snsapi/tree/master/app/mysofa](https://github.com/hupili/snsapi/tree/master/app/mysofa)
 
 Other:
 ----
