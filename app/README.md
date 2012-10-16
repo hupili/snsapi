@@ -21,4 +21,6 @@ List of Apps
 
 Here's a list of apps. 
 Please refer to their own directory for detailed information. 
+   * hellosns
    * forwarder
+   * mysofa
