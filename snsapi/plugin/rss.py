@@ -41,7 +41,7 @@ class RSS(SNSBase):
             self.parsed.username = self.raw.get('author')
             # updated is said to be an unsupported field of feedparser
             # in the future versions. 
-            self.parsed.created_at = self.raw.get('published')
+            self.parsed.time = self.raw.get('published')
             self.parsed.title = self.raw.get('title')
             self.parsed.link = self.raw.get('link')
 

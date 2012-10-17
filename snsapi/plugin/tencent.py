@@ -28,14 +28,22 @@ class TencentWeiboStatus(SNSBase):
             #         other fields for future use. 
             #      2. Defaultly convert every fields into unicode string. 
             #         Upper layer can tackle with a unified interface
+
             self.ID.reid = dct['id']
-            self.parsed.id = dct['id']
-            self.parsed.created_at = dct['timestamp']
+            self.parsed.time = dct['timestamp']
             self.parsed.text = dct['text']
-            self.parsed.reposts_count = dct['count']
-            self.parsed.comments_count = dct['mcount']
-            self.parsed.username = dct['name']
-            self.parsed.usernick = dct['nick']
+            self.parsed.username = dct['nick']
+
+            #TODO:
+            #    retire past fields
+            #self.ID.reid = dct['id']
+            #self.parsed.id = dct['id']
+            #self.parsed.created_at = dct['timestamp']
+            #self.parsed.text = dct['text']
+            #self.parsed.reposts_count = dct['count']
+            #self.parsed.comments_count = dct['mcount']
+            #self.parsed.username = dct['name']
+            #self.parsed.usernick = dct['nick']
 
     def __init__(self, channel = None):
         super(TencentWeiboStatus, self).__init__(channel)

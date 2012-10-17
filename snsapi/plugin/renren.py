@@ -148,15 +148,24 @@ class RenrenShare(RenrenBase):
             self._parse_feed_share(self.raw)
 
         def _parse_feed_share(self, dct):
-            self.parsed.id = dct["source_id"]
-            self.parsed.created_at = dct["update_time"]
-            self.parsed.text = dct['message'] + " --> " + dct['description']
-            self.parsed.reposts_count = 'N/A'
-            self.parsed.comments_count = dct['comments']['count']
-            self.parsed.username = dct['name']
-            self.parsed.usernick = ""
             self.ID.status_id = dct["source_id"]
             self.ID.source_user_id = dct["actor_id"]
+
+            self.parsed.username = dct['name']
+            self.parsed.text = dct['message'] + " --> " + dct['description']
+            self.parsed.time = dct["update_time"]
+
+            #TODO: 
+            #    retire past fileds. 
+            #self.parsed.id = dct["source_id"]
+            #self.parsed.created_at = dct["update_time"]
+            #self.parsed.text = dct['message'] + " --> " + dct['description']
+            #self.parsed.reposts_count = 'N/A'
+            #self.parsed.comments_count = dct['comments']['count']
+            #self.parsed.username = dct['name']
+            #self.parsed.usernick = ""
+            #self.ID.status_id = dct["source_id"]
+            #self.ID.source_user_id = dct["actor_id"]
 
     def __init__(self, channel = None):
         super(RenrenShare, self).__init__(channel)
@@ -218,21 +227,28 @@ class RenrenStatus(RenrenBase):
 
         def _parse_feed_status(self, dct):
             #logger.debug(json.dumps(dct))
-            #By trial, it seems:
-            #   * 'post_id' : the id of news feeds
-            #   * 'source_id' : the id of status
-            #     equal to 'status_id' returned by 
-            #     'status.get' interface
-            #self.id = dct["post_id"]
-            self.parsed.id = dct["source_id"]
-            self.parsed.created_at = dct["update_time"]
-            self.parsed.text = dct['message']
-            self.parsed.reposts_count = 'N/A'
-            self.parsed.comments_count = dct['comments']['count']
-            self.parsed.username = dct['name']
-            self.parsed.usernick = ""
+            # By trial, it seems:
+            #    * 'post_id' : the id of news feeds
+            #    * 'source_id' : the id of status
+            #      equal to 'status_id' returned by 
+            #      'status.get' interface
+            # self.id = dct["post_id"]
+
             self.ID.status_id = dct["source_id"]
             self.ID.source_user_id = dct["actor_id"]
+            self.parsed.username = dct['name']
+            self.parsed.time = dct["update_time"]
+            self.parsed.text = dct['message']
+
+            #self.parsed.id = dct["source_id"]
+            #self.parsed.created_at = dct["update_time"]
+            #self.parsed.text = dct['message']
+            #self.parsed.reposts_count = 'N/A'
+            #self.parsed.comments_count = dct['comments']['count']
+            #self.parsed.username = dct['name']
+            #self.parsed.usernick = ""
+            #self.ID.status_id = dct["source_id"]
+            #self.ID.source_user_id = dct["actor_id"]
 
         # The following is to parse Status of Renren. 
         # (get by invoking 'status.get', not 'feed.get')

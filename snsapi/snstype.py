@@ -38,6 +38,26 @@ class MessageID(utils.JsonDict):
         
 
 class Message(utils.JsonDict):
+    '''
+    The Message base class for SNSAPI
+
+    Data Fields:
+
+       * 'platform': a string describing the platform
+       where this message come from. See 'snsapi/platform.py'
+       for more details. 
+       * 'raw': the raw json or XML object returned from 
+       the platform spefiic API. This member is here to give 
+       upper layer developers the last chance of manipulating
+       any available information. Having an understanding of 
+       the platform-specific returning format is esential. 
+       * 'parsed': this member abstracts some common fields
+       that all messages are supposed to have. e.g. 'username', 
+       'time', 'text', etc. 
+       * 'ID': a MessageID object. This ID should be enough 
+       to indentify a message across all different platforms. 
+
+    '''
     def __init__(self, dct=None):
         # TODO:
         # Previously used fields. Re-design them later: 
@@ -57,6 +77,7 @@ class Message(utils.JsonDict):
         self['parsed'] = utils.JsonDict({})
 
         self['ID'] = MessageID()
+        self['platform'] = None
         
         try:
             self.parse()
@@ -111,7 +132,7 @@ class Message(utils.JsonDict):
 
         '''
         return unicode("[%s] at %s \n  %s") % \
-                (self.parsed.username, self.parsed.created_at, self.parsed.text)
+                (self.parsed.username, self.parsed.time, self.parsed.text)
 
     def dump_parsed(self):
         '''
