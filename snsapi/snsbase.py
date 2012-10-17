@@ -67,6 +67,17 @@ class SNSBase(object):
                     logger.info("Get code from local server: %s", code)
                     return "http://localhost/?%s" % urllib.urlencode(self.httpd.query_params)
                 else:
+                    #TODO:
+                    #    There is a non repeatable bug here. 
+                    #    When we have multiple platforms to authorize, 
+                    #    successive platforms may fail in this branch. 
+                    #    That means there is other HTTP request to the local HTTP server
+                    #    before the call_back URL. 
+                    #
+                    #    Solution:
+                    #        * Configure different port for different channels. 
+                    #          This is solved at upper layer. 
+                    #        * Support random port by default. 
                     raise snserror.auth.fetchcode
             finally:
                 del self.httpd
