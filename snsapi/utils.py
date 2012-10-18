@@ -102,7 +102,9 @@ import datetime
 from dateutil import parser as dtparser, tz
 from third.PyRSS2Gen import _format_date
 
-def str2utc(s):
+def str2utc(s, tc = None):
+    if tc:
+        s += tc
     d = dtparser.parse(s)
     #print d 
     #print d.utctimetuple()

@@ -154,7 +154,7 @@ class RSS2RW(RSS):
         for j in d['items']:
             s = self.Message(j)
             #print s
-            entry_time = dtparser.parse(s.parsed.created_at)
+            entry_time = dtparser.parse(s.parsed.time)
             if (cur_time - entry_time).seconds < self.entry_timeout:
                 items.append( 
                     PyRSS2Gen.RSSItem(

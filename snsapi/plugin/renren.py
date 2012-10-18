@@ -154,7 +154,7 @@ class RenrenShare(RenrenBase):
 
             self.parsed.userid = dct['actor_id']
             self.parsed.username = dct['name']
-            self.parsed.time = utils.str2utc(dct["update_time"])
+            self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
 
             self.parsed.text_orig = dct['description']
             self.parsed.text_last = dct['message'] 
@@ -255,7 +255,7 @@ class RenrenStatus(RenrenBase):
 
             self.parsed.userid = dct['actor_id']
             self.parsed.username = dct['name']
-            self.parsed.time = utils.str2utc(dct["update_time"])
+            self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
             self.parsed.text = dct['message']
 
             #print dct 
