@@ -325,6 +325,10 @@ class SNSBase(object):
         '''Get home timeline
         get statuses of yours and your friends'
         @param count: number of statuses
+
+        Always returns a list of Message objects. If errors happen in the 
+        requesting process, return an empty list. The plugin is recommended
+        to log warning message for debug use. 
         '''
         pass
         

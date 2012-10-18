@@ -54,8 +54,8 @@ class SNSConf(object):
     See the discussion: https://github.com/hupili/snsapi/issues/8
     '''
 
-    #SNSAPI_LOG_INIT_LEVEL = SNSLog.INFO
-    SNSAPI_LOG_INIT_LEVEL = SNSLog.DEBUG
+    SNSAPI_LOG_INIT_LEVEL = SNSLog.INFO
+    #SNSAPI_LOG_INIT_LEVEL = SNSLog.DEBUG
 
     '''
     Possible values: 
@@ -80,7 +80,8 @@ class SNSConf(object):
        * [DEBUG][20120829-142322]SinaAPI plugged! 
     '''
 
-    SNSAPI_LOG_INIT_LOGFILE = "snsapi.log"
+    SNSAPI_LOG_INIT_LOGFILE = None
+    #SNSAPI_LOG_INIT_LOGFILE = "snsapi.log"
 
     '''
        * None: Output to STDOUT. Good for Debug version. 

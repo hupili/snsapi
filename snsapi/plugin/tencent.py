@@ -118,7 +118,7 @@ class TencentWeiboStatus(SNSBase):
         self._attach_authinfo(params)
         
         jsonobj = self._http_get(url, params)
-        logger.debug("returned: %s", jsonobj)
+        #logger.debug("returned: %s", jsonobj)
         
         statuslist = []
         try:
