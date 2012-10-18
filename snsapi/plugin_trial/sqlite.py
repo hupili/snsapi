@@ -80,15 +80,6 @@ class SQLite(SNSBase):
         """)
         self.con.commit()
 
-        #cur.execute("""
-        #create table message_detail (
-        #id REFERENCES message(id), 
-        #mid TEXT, 
-        #parsed TEXT, 
-        #full TEXT 
-        #)
-        #""")
-
     def _connect(self):
         '''
         Connect to SQLite3 database and create cursor. 
@@ -136,22 +127,13 @@ class SQLite(SNSBase):
         return message_list
 
     def _update_text(self, text):
-        cur = self.con.cursor()
-
-        try:
-            cur.execute('''
-            INSERT INTO message(time,userid,username,text)
-            VALUES (?,?,?,?)
-            ''', (\
-                    int(self.time()),\
-                    self.jsonconf['userid'],\
-                    self.jsonconf['username'],\
-                    text\
-                    ))
-            return True
-        except Exception, e:
-            logger.warning("failed: %s", str(e))
-            return False
+        m = self.Message({\
+                'time':int(self.time()),
+                'userid':self.jsonconf['userid'],
+                'username':self.jsonconf['username'],
+                'text':text
+                })
+        return self._update_message(m)
 
     def _update_message(self, message):
         cur = self.con.cursor()
