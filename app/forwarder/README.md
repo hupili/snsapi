@@ -11,6 +11,14 @@ we restrict it to 1 forward / 1 channel / 1 run.
 You can set the 'quota' in 'forwarder.py', 
 or add sleep period. 
 
+Caveats
+----
+
+This App is a demo before our 2nd round of intensive restructure. 
+The implementation is far from optimal now. One can simplify the 
+script to around 20 lines using our latest SNSPocket class. 
+Welcome anyone contribute. -- HU Pili, 20121018
+
 
 Deployment and Initial Test
 ----
