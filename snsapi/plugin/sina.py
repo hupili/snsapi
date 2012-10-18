@@ -20,10 +20,28 @@ class SinaWeiboStatus(SNSBase):
             self._parse(self.raw)
 
         def _parse(self, dct):
+            #print dct 
+
             self.ID.id = dct["id"]
+
             self.parsed.time = dct["created_at"]
-            self.parsed.text = dct['text']
             self.parsed.username = dct['user']['name']
+            self.parsed.userid = dct['user']['id']
+
+            self.parsed.reposts_count = dct['reposts_count']
+            self.parsed.comments_count = dct['comments_count']
+            
+            if 'retweeted_status' in dct:
+                self.parsed.username_orig = dct['retweeted_status']['user']['name']
+                self.parsed.text_orig = dct['retweeted_status']['text']
+                self.parsed.text_trace = dct['text']
+                self.parsed.text = self.parsed.text_trace \
+                        + " || " + "@" + self.parsed.username_orig \
+                        + " : " + self.parsed.text_orig
+            else:
+                self.parsed.text_orig = dct['text'] 
+                self.parsed.text_trace = None
+                self.parsed.text = self.parsed.text_orig
 
             #TODO: clean past fields
             #self.parsed.id = dct["id"]

@@ -151,9 +151,21 @@ class RenrenShare(RenrenBase):
             self.ID.status_id = dct["source_id"]
             self.ID.source_user_id = dct["actor_id"]
 
+            self.parsed.userid = dct['actor_id']
             self.parsed.username = dct['name']
-            self.parsed.text = dct['message'] + " --> " + dct['description']
             self.parsed.time = dct["update_time"]
+
+            self.parsed.text_orig = dct['description']
+            self.parsed.text_last = dct['message'] 
+            self.parsed.text_trace = dct['trace']['text']
+            self.parsed.title = dct['title']
+            self.parsed.description = dct['description']
+            self.parsed.reposts_count = 'N/A'
+            self.parsed.comments_count = dct['comments']['count']
+
+            self.parsed.text = self.parsed.text_trace \
+                    + " || " + self.parsed.title \
+                    + " || " + self.parsed.description
 
             #TODO: 
             #    retire past fileds. 
@@ -236,9 +248,28 @@ class RenrenStatus(RenrenBase):
 
             self.ID.status_id = dct["source_id"]
             self.ID.source_user_id = dct["actor_id"]
+
+            self.parsed.userid = dct['actor_id']
             self.parsed.username = dct['name']
             self.parsed.time = dct["update_time"]
             self.parsed.text = dct['message']
+
+            #print dct 
+
+            try:
+                self.parsed.username_orig = dct['attachment'][0]['owner_name']
+                self.parsed.text_orig = dct['attachment'][0]['content']
+                self.parsed.text += " || " + "@" + self.parsed.username_orig \
+                        + " : " + self.parsed.text_orig
+                #print self.parsed.text
+            except:
+                pass
+            #except Exception, e:
+            #    raise e
+
+            self.parsed.text_trace = dct['message'] 
+            self.parsed.reposts_count = 'N/A'
+            self.parsed.comments_count = dct['comments']['count']
 
             #self.parsed.id = dct["source_id"]
             #self.parsed.created_at = dct["update_time"]

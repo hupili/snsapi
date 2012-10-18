@@ -30,9 +30,24 @@ class TencentWeiboStatus(SNSBase):
             #         Upper layer can tackle with a unified interface
 
             self.ID.reid = dct['id']
+
             self.parsed.time = dct['timestamp']
-            self.parsed.text = dct['text']
+            self.parsed.userid = dct['name']
             self.parsed.username = dct['nick']
+
+            self.parsed.reposts_count = dct['count']
+            self.parsed.comments_count = dct['mcount']
+            self.parsed.text_last = dct['text']
+            self.parsed.text_trace = dct['text']
+            self.parsed.text_orig = dct['source']['origtext']
+            # The 'origtext' field is plaintext. 
+            # URLs in 'text' field is parsed to HTML tag
+            #self.parsed.text_orig = dct['source']['text']
+            self.parsed.username_orig = dct['source']['nick']
+
+            self.parsed.text = self.parsed.text_trace \
+                    + " || " + "@" + self.parsed.username_orig \
+                    + " : " + self.parsed.text_orig
 
             #TODO:
             #    retire past fields

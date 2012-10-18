@@ -57,18 +57,39 @@ class Message(utils.JsonDict):
        * 'ID': a MessageID object. This ID should be enough 
        to indentify a message across all different platforms. 
 
+    For details of 'ID', please see the docstring of MessageID(). 
+
+    Mandatory fields of 'parsed' are:
+
+       * time: a utc integer. (some platform returns parsed string)
+       * userid: a string. (called as "username" at some platform)
+       * username: a string. (called as "usernick" as some platform)
+       * text: a string. (can be 'text' in the returning json object, 
+       or parsed from other fields.)
+
+    Optional fields of 'parsed' are:
+
+       * reposts_count: a string. For some OSN. 
+       * comments_count: a string. For some OSN. 
+       * link: a string. For RSS; Parsed from microblog message;
+       Parsed from email message; etc. 
+       * title: a string. For RSS; Blog channel of some OSN. 
+       * description: a string. For RSS digest text; 
+       Sharing channel of some OSN; etc. 
+       * text_orig: a string. The original text, also known as 
+       "root message" in some context. e.g. the earliest status 
+       in one thread. 
+       * text_last: a string. The latest text, also known as 
+       "message" in some context. e.g. the reply or forwarding 
+       comments made by the last user. 
+       * text_trace: a string. Using any (can be platform-specific)
+       method to construt the trace of this message. e.g. 
+       the forwarding / retweeting / reposting sequence.
+       There is no unified format yet. 
+       * username_origin: a string. The username who posts 'text_orig'. 
+
     '''
     def __init__(self, dct=None):
-        # TODO:
-        # Previously used fields. Re-design them later: 
-        # self.created_at = ""
-        # self.id = 0
-        # self.text = ""
-        # self.reposts_count = 0
-        # self.comments_count = 0
-        # self.user = None
-        # self.username = ""
-        # self.usernick = ""
 
         if dct:
             self['raw'] = utils.JsonDict(dct)

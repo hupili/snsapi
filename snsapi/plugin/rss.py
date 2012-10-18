@@ -34,14 +34,21 @@ class RSS(SNSBase):
         def parse(self):
             self.ID.platform = self.platform
 
-            # For RSS, one entry will be brought up if it is updated. 
-            # We use 'update' of RSS as 'created_at' field of SNS stauts. 
-            # This is for better message deduplicate
-
             self.parsed.username = self.raw.get('author')
-            # updated is said to be an unsupported field of feedparser
-            # in the future versions. 
+            #TODO:
+            #    According to the notion of ID, it should identify 
+            #    a single user in a cross platform fashion. From the 
+            #    message, we know platform is RSS. However, author 
+            #    name is not enough. Suppose all feeds do their due
+            #    dilligence to make 'author' identifiable, we can 
+            #    use 'url' (of RSS feed) + 'author' to identify a 
+            #    single user of RSS platform. This requires some 
+            #    framework change in SNSAPI, allowing putting this 
+            #    prefix information to Message class (not Message 
+            #    instance). 
+            self.parsed.userid = self.raw.get('author')
             self.parsed.time = self.raw.get('published')
+
             self.parsed.title = self.raw.get('title')
             self.parsed.link = self.raw.get('link')
 
