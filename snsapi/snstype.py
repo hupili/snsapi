@@ -19,6 +19,11 @@ class MessageID(utils.JsonDict):
        * one can invoke reply() function of plugin on this object. 
        * Or one can invoke reply() function of container on this object. 
 
+    There is only one mandatory field:
+
+       * platform: SNSPocket uses this field to determine 
+       which 
+
     In order to reply one status, here's the information 
     required by each platforms:
 
@@ -27,18 +32,23 @@ class MessageID(utils.JsonDict):
        * QQ: status_id
 
     """
-    def __init__(self, platform = None, status_id = None, source_user_id = None):
+    #def __init__(self, platform = None, status_id = None, source_user_id = None):
+    def __init__(self, platform = None, channel = None):
         super(MessageID, self).__init__()
 
         self.platform = platform
-        self.status_id = status_id
-        self.source_user_id = source_user_id
+        self.channel = channel
+        #self.status_id = status_id
+        #self.source_user_id = source_user_id
 
+    #def __str__(self):
+    #    """docstring for __str__"""
+    #    return "(p:%s|sid:%s|uid:%s)" % \
+    #            (self.platform, self.status_id, self.source_user_id)
+    
     def __str__(self):
-        """docstring for __str__"""
-        return "(p:%s|sid:%s|uid:%s)" % \
-                (self.platform, self.status_id, self.source_user_id)
-        
+        return self._dumps()
+
 
 class Message(utils.JsonDict):
     '''
@@ -92,22 +102,23 @@ class Message(utils.JsonDict):
        * username_origin: a string. The username who posts 'text_orig'. 
 
     '''
-    def __init__(self, dct=None):
+    def __init__(self, dct = None, platform = None, channel = None):
 
+        self['ID'] = MessageID(platform, channel)
+        #if platform:
+        #    self['ID']['platform'] = platform
+        #if channel:
+        #    self['ID']['channel'] = channel
+
+        self['raw'] = utils.JsonDict({})
+        self['parsed'] = utils.JsonDict({})
         if dct:
             self['raw'] = utils.JsonDict(dct)
-        else:
-            self['raw'] = utils.JsonDict({})
-        self['parsed'] = utils.JsonDict({})
-
-        self['ID'] = MessageID()
-        self['platform'] = None
+            try:
+                self.parse()
+            except KeyError, e:
+                raise snserror.type.parse(e.message)
         
-        try:
-            self.parse()
-        except KeyError, e:
-            raise snserror.type.parse(e.message)
-            
     def parse(self):
         '''
         Parse self.raw and store result in self.parsed
@@ -272,4 +283,4 @@ class AuthenticationInfo(utils.JsonObject):
 
 if __name__ == "__main__":
     s = Message({"text":"fe啊"})
-    s.show()
+    #s.show()

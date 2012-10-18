@@ -107,7 +107,10 @@ class SinaWeiboStatus(SNSBase):
         
         statuslist = []
         for j in jsonobj['statuses']:
-            statuslist.append(self.Message(j))
+            statuslist.append(self.Message(j,\
+                    platform = self.jsonconf['platform'],\
+                    channel = self.jsonconf['channel_name']\
+                    ))
         return statuslist
 
     def update(self, text):

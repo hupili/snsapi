@@ -123,7 +123,10 @@ class TencentWeiboStatus(SNSBase):
         statuslist = []
         try:
             for j in jsonobj['data']['info']:
-                statuslist.append(self.Message(j))
+                statuslist.append(self.Message(j,\
+                    platform = self.jsonconf['platform'],\
+                    channel = self.jsonconf['channel_name']\
+                    ))
         except TypeError, e:
             #logger.warning("error jsonobj returned: %s", jsonobj)
             logger.warning("TypeError: %s", e.message)

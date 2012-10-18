@@ -117,12 +117,15 @@ class SQLite(SNSBase):
 
         message_list = []
         for m in r:
-            message_list.append(self.Message({\
+            message_list.append(self.Message({
                     'time':m[0],
                     'userid':m[1],
                     'username':m[2],
                     'text':m[3]
-                    }))
+                    },\
+                    platform = self.jsonconf['platform'],\
+                    channel = self.jsonconf['channel_name']\
+                    ))
 
         return message_list
 
@@ -132,7 +135,10 @@ class SQLite(SNSBase):
                 'userid':self.jsonconf['userid'],
                 'username':self.jsonconf['username'],
                 'text':text
-                })
+                }, \
+                platform = self.jsonconf['platform'],\
+                channel = self.jsonconf['channel_name']\
+                )
         return self._update_message(m)
 
     def _update_message(self, message):

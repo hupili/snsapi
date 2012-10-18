@@ -206,7 +206,10 @@ class RenrenShare(RenrenBase):
         statuslist = []
         try:
             for j in jsonlist:
-                statuslist.append(self.Message(j))
+                statuslist.append(self.Message(j,\
+                        platform = self.jsonconf['platform'],\
+                        channel = self.jsonconf['channel_name']\
+                        ))
         except Exception, e:
             logger.warning("catch expection:%s", e.message)
 
@@ -323,7 +326,10 @@ class RenrenStatus(RenrenBase):
         statuslist = []
         try:
             for j in jsonlist:
-                statuslist.append(self.Message(j))
+                statuslist.append(self.Message(j,\
+                        platform = self.jsonconf['platform'],\
+                        channel = self.jsonconf['channel_name']\
+                        ))
         except Exception, e:
             logger.warning("catch expection:%s", e.message)
 

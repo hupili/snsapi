@@ -91,7 +91,10 @@ class RSS(SNSBase):
         for j in d['items']:
             if len(statuslist) >= count:
                 break
-            s = self.Message(j)
+            s = self.Message(j,\
+                    platform = self.jsonconf['platform'],\
+                    channel = self.jsonconf['channel_name']\
+                    )
             #print s.dump_parsed()
             #print s.dump_full()
             #TODO:

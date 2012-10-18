@@ -261,6 +261,11 @@ class SNSPocket(dict):
             The channel name. Use None to automatically select
             one compatible channel. 
         """
+
+        #TODO:
+        #    First try to match "channel_name". 
+        #    If there is no match, try to match "platform".
+
         re = {}
         if channel:
             re = self[channel].reply(statusID, text)
