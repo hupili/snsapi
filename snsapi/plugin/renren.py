@@ -12,6 +12,7 @@ logger = SNSLog
 from ..snsbase import SNSBase
 from .. import snstype
 from ..utils import console_output
+from .. import utils
 
 
 logger.debug("%s plugged!", __file__)
@@ -153,7 +154,7 @@ class RenrenShare(RenrenBase):
 
             self.parsed.userid = dct['actor_id']
             self.parsed.username = dct['name']
-            self.parsed.time = dct["update_time"]
+            self.parsed.time = utils.str2utc(dct["update_time"])
 
             self.parsed.text_orig = dct['description']
             self.parsed.text_last = dct['message'] 
@@ -254,7 +255,7 @@ class RenrenStatus(RenrenBase):
 
             self.parsed.userid = dct['actor_id']
             self.parsed.username = dct['name']
-            self.parsed.time = dct["update_time"]
+            self.parsed.time = utils.str2utc(dct["update_time"])
             self.parsed.text = dct['message']
 
             #print dct 

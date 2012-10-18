@@ -14,6 +14,7 @@ from ..third import feedparser
 import datetime
 from ..third import PyRSS2Gen
 from ..errors import snserror
+from .. import utils
 
 logger.debug("%s plugged!", __file__)
 
@@ -47,7 +48,7 @@ class RSS(SNSBase):
             #    prefix information to Message class (not Message 
             #    instance). 
             self.parsed.userid = self.raw.get('author')
-            self.parsed.time = self.raw.get('published')
+            self.parsed.time = utils.str2utc(self.raw.get('published'))
 
             self.parsed.title = self.raw.get('title')
             self.parsed.link = self.raw.get('link')

@@ -40,6 +40,9 @@ class SNSBase(object):
         import time
         self.time = lambda : time.time()
         self.console_input = lambda : utils.console_input()
+        self.console_output = lambda : utils.console_output()
+        #self.utc2str = lambda u: utils.utc2str(u)
+        #self.str2utc = lambda s: utils.str2utc(s)
         self._urlencode = lambda params : urllib.urlencode(params)
         
         # We can not init the auth client here. 

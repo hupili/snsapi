@@ -9,6 +9,7 @@ logger = SNSLog
 from ..snsbase import SNSBase
 from .. import snstype
 from ..errors import snserror
+from .. import utils
 
 logger.debug("%s plugged!", __file__)
 
@@ -24,7 +25,7 @@ class SinaWeiboStatus(SNSBase):
 
             self.ID.id = dct["id"]
 
-            self.parsed.time = dct["created_at"]
+            self.parsed.time = utils.str2utc(dct["created_at"])
             self.parsed.username = dct['user']['name']
             self.parsed.userid = dct['user']['id']
 

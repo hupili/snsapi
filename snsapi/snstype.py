@@ -156,7 +156,7 @@ class Message(utils.JsonDict):
 
         '''
         return unicode("[%s] at %s \n  %s") % \
-                (self.parsed.username, self.parsed.time, self.parsed.text)
+                (self.parsed.username, utils.utc2str(self.parsed.time), self.parsed.text)
 
     def dump_parsed(self):
         '''
