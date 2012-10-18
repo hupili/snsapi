@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-#TODO:
-#    This json import piece appears too frequently
-#    We'd better make this file the real entrance. 
-#    All other files refer to json from utils.py.
 try:
     import json
 except ImportError:

@@ -9,10 +9,7 @@ It provides common authenticate and communicate methods.
 
 # === system imports ===
 import webbrowser
-try:
-    import json
-except ImportError:
-    import simplejson as json
+from utils import json
 import urllib
 from errors import snserror
 import base64

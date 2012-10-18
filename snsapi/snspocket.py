@@ -6,10 +6,7 @@ snspocket: the container class for snsapi's
 '''
 
 # === system imports ===
-try:
-    import json
-except ImportError:
-    import simplejson as json
+from utils import json
 from os.path import abspath
 
 # === snsapi modules ===
