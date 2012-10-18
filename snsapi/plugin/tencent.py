@@ -35,19 +35,22 @@ class TencentWeiboStatus(SNSBase):
             self.parsed.userid = dct['name']
             self.parsed.username = dct['nick']
 
-            self.parsed.reposts_count = dct['count']
-            self.parsed.comments_count = dct['mcount']
-            self.parsed.text_last = dct['text']
-            self.parsed.text_trace = dct['text']
-            self.parsed.text_orig = dct['source']['origtext']
             # The 'origtext' field is plaintext. 
             # URLs in 'text' field is parsed to HTML tag
-            #self.parsed.text_orig = dct['source']['text']
-            self.parsed.username_orig = dct['source']['nick']
-
-            self.parsed.text = self.parsed.text_trace \
-                    + " || " + "@" + self.parsed.username_orig \
-                    + " : " + self.parsed.text_orig
+            self.parsed.reposts_count = dct['count']
+            self.parsed.comments_count = dct['mcount']
+            self.parsed.text_last = dct['origtext']
+            self.parsed.text_trace = dct['origtext']
+            if 'source' in dct and dct['source']:
+                self.parsed.text_orig = dct['source']['origtext']
+                self.parsed.username_orig = dct['source']['nick']
+                self.parsed.text = self.parsed.text_trace \
+                        + " || " + "@" + self.parsed.username_orig \
+                        + " : " + self.parsed.text_orig
+            else:
+                self.parsed.text_orig = dct['origtext']
+                self.parsed.username_orig = dct['nick']
+                self.parsed.text = dct['origtext'] 
 
             #TODO:
             #    retire past fields
@@ -115,13 +118,16 @@ class TencentWeiboStatus(SNSBase):
         self._attach_authinfo(params)
         
         jsonobj = self._http_get(url, params)
+        logger.debug("returned: %s", jsonobj)
         
         statuslist = []
         try:
             for j in jsonobj['data']['info']:
                 statuslist.append(self.Message(j))
-        except TypeError:
-            return "Wrong response. " + str(jsonobj)
+        except TypeError, e:
+            #logger.warning("error jsonobj returned: %s", jsonobj)
+            logger.warning("TypeError: %s", e.message)
+            return []
         return statuslist
     
     def update(self, text):

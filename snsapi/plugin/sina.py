@@ -98,13 +98,14 @@ class SinaWeiboStatus(SNSBase):
         params['count'] = count
         params['access_token'] = self.token.access_token
         
-        jsondict = self._http_get(url, params)
+        jsonobj = self._http_get(url, params)
         
-        if("error" in  jsondict):
-            return [Error(jsondict),]
+        if("error" in  jsonobj):
+            logger.warning("error json object returned: %s", jsonobj)
+            return []
         
         statuslist = []
-        for j in jsondict['statuses']:
+        for j in jsonobj['statuses']:
             statuslist.append(self.Message(j))
         return statuslist
 

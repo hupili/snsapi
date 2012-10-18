@@ -203,8 +203,11 @@ class RenrenShare(RenrenBase):
         jsonlist = self.renren_request(api_params)
         
         statuslist = []
-        for j in jsonlist:
-            statuslist.append(self.Message(j))
+        try:
+            for j in jsonlist:
+                statuslist.append(self.Message(j))
+        except Exception, e:
+            logger.warning("catch expection:%s", e.message)
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
@@ -317,8 +320,11 @@ class RenrenStatus(RenrenBase):
         jsonlist = self.renren_request(api_params)
         
         statuslist = []
-        for j in jsonlist:
-            statuslist.append(self.Message(j))
+        try:
+            for j in jsonlist:
+                statuslist.append(self.Message(j))
+        except Exception, e:
+            logger.warning("catch expection:%s", e.message)
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
