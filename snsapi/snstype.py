@@ -3,6 +3,9 @@
 '''
 SNS type: status, user, comment
 '''
+
+import hashlib
+
 import utils
 from errors import snserror
 from snsconf import SNSConf
@@ -190,6 +193,34 @@ class Message(utils.JsonDict):
         refer to the offical API webpage for more info. 
         '''
         return self._dumps()
+
+    def digest(self):
+        '''
+        Digest the message content. This value is useful in 
+        for example forwarding services to auto-reply services, 
+        for those applications requires message deduplication.
+
+        It corresponds to dump(). 
+
+        Note: different messages may be regarded as the same 
+        according to this digest function. 
+
+        '''
+        return hashlib.sha1(self.dump().encode('utf-8')).hexdigest()
+
+    def digest_parsed(self):
+        '''
+        It corresponds to dump_parsed()
+
+        '''
+        return hashlib.sha1(self.dump_parsed().encode('utf-8')).hexdigest()
+
+    def digest_full(self):
+        '''
+        It corresponds to dump_full()
+
+        '''
+        return hashlib.sha1(self.dump_full().encode('utf-8')).hexdigest()
 
 
 class MessageList(list):
