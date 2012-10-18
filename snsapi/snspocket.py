@@ -253,29 +253,43 @@ class SNSPocket(dict):
         logger.info("Update status '%s'. Result:%s", text, re)
         return re
 
-    def reply(self, statusID, text, channel = None):
+    def reply(self, message, text, channel = None):
         """
         Route to reply method of snsapi. 
         
         :param channel:
             The channel name. Use None to automatically select
             one compatible channel. 
+
+        :param status:
+            Message or MessageID object.
+
+        :text:
+            Reply text. 
         """
 
         #TODO:
         #    First try to match "channel_name". 
         #    If there is no match, try to match "platform".
 
+        if isinstance(message, snstype.Message):
+            mID = message.ID
+        elif isinstance(message, snstype.MessageID):
+            mID = message
+        else:
+            logger.warning("unknown type: %s", type(message))
+            return {}
+
         re = {}
         if channel:
-            re = self[channel].reply(statusID, text)
+            re = self[channel].reply(message, text)
         else:
             for c in self.itervalues():
                 if c.jsonconf['open'] == "yes":
-                    if c.jsonconf['platform'] == statusID.platform:
-                        re = c.reply(statusID, text)
+                    if c.jsonconf['platform'] == mID.platform:
+                        re = c.reply(mID, text)
                         break
 
         logger.info("Reply to status '%s' with text '%s'. Result: %s",\
-                statusID, text, re)
+                mID, text, re)
         return re

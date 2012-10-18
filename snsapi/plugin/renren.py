@@ -139,6 +139,22 @@ class RenrenBase(SNSBase):
         hasher = hashlib.md5(hashstring)
         return hasher.hexdigest()
         
+    def reply(self, status, text):
+        """
+        reply message
+
+        @param status: MessageID or Message object
+        @param text: string, the reply message
+        @return: success or not
+        """
+
+        if isinstance(status, snstype.MessageID):
+            return self._reply_id(status, text)
+        elif isinstance(status, snstype.Message):
+            return self._reply_id(status.ID, text)
+        else:
+            logger.warning("unknown type: %s", type(status))
+            return False
 
 
 class RenrenShare(RenrenBase):
@@ -216,7 +232,7 @@ class RenrenShare(RenrenBase):
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
 
-    def reply(self, statusID, text):
+    def _reply_id(self, statusID, text):
         """reply status
         @param status: StatusID object
         @param text: string, the reply message
@@ -355,16 +371,9 @@ class RenrenStatus(RenrenBase):
         logger.info("Update status '%s' on '%s' fail", text, self.jsonconf.channel_name)
         return False
 
-    def reply(self, statusID, text):
-        """reply status
-        @param status: StatusID object
-        @param text: string, the reply message
-        @return: success or not
-        """
-
+    def _reply_id(self, statusID, text):
         #TODO: check platform and place a warning
         #      if it is not "renren"
-
         api_params = dict(method = "status.addComment", content = text, \
             status_id = statusID.status_id, owner_id = statusID.source_user_id)
 
@@ -378,3 +387,4 @@ class RenrenStatus(RenrenBase):
 
         logger.info("Reply '%s' to status '%s' fail", text, statusID)
         return False
+
