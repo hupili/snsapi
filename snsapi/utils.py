@@ -83,3 +83,39 @@ def console_output(string):
     '''
     print string.encode(SNSConf.SNSAPI_CONSOLE_STDOUT_ENCODING)
 
+#TODO:
+#    Find simpler implementation for str2utc() and utc2str()
+#    The current implementation JUST WORKS. It is far from 
+#    satisfactory. I surveyed the Internet but found no "correct"
+#    solution. Many of those implementations on the Internet 
+#    only work with local time. 
+#
+#    What I want is simple:
+#       * Convert between unix timestamp (integer) and 
+#       an RFC822 string. 
+#       * The string SHOULD CONTAIN time zone either in 
+#       text or number format. It is parse-able. Using local 
+#       time zone is favoured but not mandatory. 
+import calendar
+import time
+import datetime
+from dateutil import parser as dtparser, tz
+from third.PyRSS2Gen import _format_date
+
+def str2utc(s):
+    d = dtparser.parse(s)
+    #print d 
+    #print d.utctimetuple()
+    return calendar.timegm(d.utctimetuple())
+
+def utc2str(u):
+    #return str(datetime.datetime.fromtimestamp(u))
+    #return _format_date(datetime.datetime.utcfromtimestamp(u))
+    return _format_date(datetime.datetime.fromtimestamp(u, tz.tzlocal()))
+    
+if __name__ == '__main__':
+    u = time.time()
+    print u
+    s = utc2str(u)
+    print s
+    print str2utc(s)
