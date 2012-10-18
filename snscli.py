@@ -1,15 +1,27 @@
 # -*- coding: utf-8 -*-
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
-from os.path import abspath
-
+import snsapi
+from snsapi import snstype
 from snsapi.utils import console_output, console_input
 from snsapi.snspocket import SNSPocket
 
 sp = SNSPocket()
+
+def update_from_console(t, *al, **ad):
+    '''
+    A wrapper function to deal with user input from console. 
+
+    String input from console is in console encoding. We must 
+    first cast it to unicode, which is the standard across 
+    SNSAPI. 
+
+    '''
+    if isinstance(t, str):
+        return sp.update(console_input(t), *al, **ad)
+    elif isinstance(t, snstype.Message):
+        return sp.update(t, *al, **ad)
+    else:
+        logger.warning("unknown type: %s", type(t))
 
 lc = load_config = lambda *al, **ad : sp.load_config(*al, **ad)
 sc = save_config = lambda *al, **ad  : sp.save_config(*al, **ad)
@@ -20,7 +32,7 @@ addc = add_channel = lambda *al, **ad : sp.add_channel(*al, **ad)
 clc = clear_channel = lambda *al, **ad : sp.clear_channel(*al, **ad)
 auth = lambda  *al, **ad : sp.auth(*al, **ad)
 ht = home_timeline = lambda *al, **ad : sp.home_timeline(*al, **ad)
-up = update = lambda  t, *al, **ad : sp.update(console_input(t), *al, **ad)
+up = update = lambda  t, *al, **ad : update_from_console(t, *al, **ad)
 re = reply = lambda  sid, t, *al, **ad : sp.reply(sid, console_input(t), *al, **ad)
 
 #==== documentation ====

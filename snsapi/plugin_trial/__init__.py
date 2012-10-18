@@ -3,3 +3,5 @@
 # example:
 # from xx import xx
 # Then this platform will appear in snsapi.platform
+
+from sqlite import SQLite

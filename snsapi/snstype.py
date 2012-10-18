@@ -72,8 +72,8 @@ class Message(utils.JsonDict):
 
     Optional fields of 'parsed' are:
 
-       * reposts_count: a string. For some OSN. 
-       * comments_count: a string. For some OSN. 
+       * reposts_count: an integer. For some OSN. 
+       * comments_count: an integer. For some OSN. 
        * link: a string. For RSS; Parsed from microblog message;
        Parsed from email message; etc. 
        * title: a string. For RSS; Blog channel of some OSN. 
