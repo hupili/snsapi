@@ -113,8 +113,11 @@ class SNSOperation(SNSError):
     
 #>>>
 class SNSWriteFail(SNSOperation):
+    def __init__(self, value):
+        super(SNSWriteFail, self).__init__()
+        self.value = value 
     def __str__(self):
-        return "This channel is non-writable"
+        return "This channel is non-writable: %s" % self.value
 
 #>>>
 class SNSReadFail(SNSOperation):

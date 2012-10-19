@@ -4,8 +4,7 @@
 SINA micro-blog client
 '''
 
-from ..snslog import SNSLog 
-logger = SNSLog
+from ..snslog import SNSLog as logger 
 from ..snsbase import SNSBase
 from .. import snstype
 from ..errors import snserror

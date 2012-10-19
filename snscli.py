@@ -4,6 +4,7 @@ import snsapi
 from snsapi import snstype
 from snsapi.utils import console_output, console_input
 from snsapi.snspocket import SNSPocket
+from snsapi.snslog import SNSLog as logger
 
 sp = SNSPocket()
 

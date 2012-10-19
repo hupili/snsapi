@@ -6,8 +6,7 @@ RSS Feed
 '''
 
 
-from ..snslog import SNSLog 
-logger = SNSLog
+from ..snslog import SNSLog as logger 
 from ..snsbase import SNSBase
 from .. import snstype
 from ..third import feedparser
@@ -147,7 +146,8 @@ class RSS2RW(RSS):
 
         from dateutil import parser as dtparser, tz
 
-        cur_time = datetime.datetime.now(tz.tzlocal())
+        #cur_time = datetime.datetime.now(tz.tzlocal())
+        cur_time = self.time()
 
         items = []
 
@@ -157,14 +157,16 @@ class RSS2RW(RSS):
         for j in d['items']:
             s = self.Message(j)
             #print s
-            entry_time = dtparser.parse(s.parsed.time)
-            if (cur_time - entry_time).seconds < self.entry_timeout:
+            #entry_time = dtparser.parse(s.parsed.time)
+            #entry_time = datetime.datetime.utcfromtimestamp(s.parsed.time)
+            entry_time = s.parsed.time
+            if cur_time - entry_time < self.entry_timeout:
                 items.append( 
                     PyRSS2Gen.RSSItem(
                         author = s.parsed.username, 
                         title = s.parsed.title, 
                         description = "snsapi RSS2RW update",
-                        pubDate = entry_time
+                        pubDate = utils.utc2str(entry_time)
                         )
                     )
 
@@ -173,7 +175,7 @@ class RSS2RW(RSS):
                 author = self.author, 
                 title = text, 
                 description = "snsapi RSS2RW update",
-                pubDate = cur_time
+                pubDate = utils.utc2str(cur_time)
                 )
             )
 
@@ -187,7 +189,7 @@ class RSS2RW(RSS):
 
         try:
             rss.write_xml(open(self.jsonconf.url, "w"))
-        except:
-            raise snserror.op.write
+        except Exception, e:
+            raise snserror.op.write(e.message)
 
         return True

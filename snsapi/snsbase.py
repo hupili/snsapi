@@ -20,9 +20,7 @@ import subprocess
 # === snsapi modules ===
 import snstype
 import utils
-#from utils import JsonObject
-from snslog import SNSLog
-logger = SNSLog
+from snslog import SNSLog as logger
 
 # === 3rd party modules ===
 from third import oauth
@@ -321,14 +319,29 @@ class SNSBase(object):
         else:
             return s
     
-    def home_timeline(self, count=20):
-        '''Get home timeline
-        get statuses of yours and your friends'
-        @param count: number of statuses
+    # Just a memo of possible methods
 
-        Always returns a list of Message objects. If errors happen in the 
-        requesting process, return an empty list. The plugin is recommended
-        to log warning message for debug use. 
-        '''
-        pass
+    # def home_timeline(self, count=20):
+    #     '''Get home timeline
+    #     get statuses of yours and your friends'
+    #     @param count: number of statuses
+    #     Always returns a list of Message objects. If errors happen in the 
+    #     requesting process, return an empty list. The plugin is recommended
+    #     to log warning message for debug use. 
+    #     '''
+    #     pass
+         
+    # def update(self, text):
+    #     """docstring for update"""
+    #     pass
+
+    # def reply(self, mID, text):
+    #     """docstring for reply"""
+    #     pass
+
+    def forward(self, message, text):
+        """
+        A general forwarding implementation
         
+        """
+        pass

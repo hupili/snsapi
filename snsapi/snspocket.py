@@ -14,8 +14,7 @@ import snstype
 import utils
 from errors import snserror
 from utils import console_output
-from snslog import SNSLog
-logger = SNSLog
+from snslog import SNSLog as logger
 import platform
 
 # === 3rd party modules ===

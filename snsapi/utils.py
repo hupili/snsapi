@@ -6,6 +6,7 @@ except ImportError:
     import simplejson as json
 
 from snsconf import SNSConf
+from snslog import SNSLog as logger
 
 '''
 utilities for snsapi
@@ -105,10 +106,20 @@ from third.PyRSS2Gen import _format_date
 def str2utc(s, tc = None):
     if tc:
         s += tc
-    d = dtparser.parse(s)
-    #print d 
-    #print d.utctimetuple()
-    return calendar.timegm(d.utctimetuple())
+
+    try:
+        d = dtparser.parse(s)
+        #print d 
+        #print d.utctimetuple()
+        return calendar.timegm(d.utctimetuple())
+    except ValueError, e:
+        if e.message == "unknown string format":
+            # We want to always return something valid for 
+            # the convenience of other modules. 
+            logger.warning("unkown time string: %s", s)
+            return 0
+        else:
+            raise e
 
 def utc2str(u):
     #return str(datetime.datetime.fromtimestamp(u))

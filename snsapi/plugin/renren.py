@@ -7,8 +7,7 @@ Codes are adapted from following sources:
    * http://wiki.dev.renren.com/mediawiki/images/4/4c/Renren-oauth-web-demo-python-v1.0.rar
 '''
 
-from ..snslog import SNSLog
-logger = SNSLog
+from ..snslog import SNSLog as logger
 from ..snsbase import SNSBase
 from .. import snstype
 from ..utils import console_output
