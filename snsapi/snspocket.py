@@ -292,3 +292,22 @@ class SNSPocket(dict):
         logger.info("Reply to status '%s' with text '%s'. Result: %s",\
                 mID, text, re)
         return re
+
+    def forward(self, message, text, channel = None):
+        """
+        forward a message
+
+        """
+        re = {}
+        if channel:
+            re = self[channel].forward(message, text)
+        else:
+            for c in self.itervalues():
+                if c.jsonconf['open'] == "yes":
+                    #if c.jsonconf['platform'] == message.platform:
+                    #re = c.forward(message, text)
+                    re[c.jsonconf['channel_name']] = c.forward(message, text)
+
+        logger.info("Forward status '%s' with text '%s'. Result: %s",\
+                message.digest(), text, re)
+        return re

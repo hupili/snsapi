@@ -62,6 +62,14 @@ class RenrenBase(SNSBase):
 
         if not "callback_url" in self.auth_info: 
             self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
+
+        # Renren API document says the limit is 140 character....
+        # After test, it seems 245 unicode character. 
+        # To leave some safe margin, we use 240 here. 
+        self.jsonconf['text_length_limit'] = 240
+        
+        #if not 'platform_prefix' in self.jsonconf:
+        #    self.jsonconf['platform_prefix'] = u'人人'
         
     def auth_first(self):
         args = dict(client_id=self.jsonconf.app_key, redirect_uri = self.auth_info.callback_url)
@@ -341,10 +349,7 @@ class RenrenStatus(RenrenBase):
         @return: success or not
         '''
 
-        # Renren API document says the limit is 140 character....
-        # After test, it seems 245 unicode character. 
-        # To leave some safe margin, we use 240 here. 
-        text = self._cat(240, [(text,1)])
+        text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
         api_params = dict(method = "status.set", status = text)
         

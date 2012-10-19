@@ -92,6 +92,13 @@ class TencentWeiboStatus(SNSBase):
         if not "callback_url" in self.auth_info:
             self.auth_info.callback_url = "http://copy.the.code.to.client/"
 
+        # Tencent limit is a little more than 140.
+        # We just use 140, which is a global industrial standard.
+        self.jsonconf['text_length_limit'] = 140
+        
+        #if not 'platform_prefix' in self.jsonconf:
+        #    self.jsonconf['platform_prefix'] = u'腾讯'
+
     def auth_first(self):
         self._oauth2_first()
 
@@ -138,9 +145,7 @@ class TencentWeiboStatus(SNSBase):
         @return: success or not
         '''
 
-        # Tencent limit is a little more than 140.
-        # We just use 140, which is a global industrial standard.
-        text = self._cat(140, [(text,1)])
+        text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
         url = "https://open.t.qq.com/api/t/add"
         params = {}

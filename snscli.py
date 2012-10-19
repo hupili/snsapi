@@ -34,7 +34,8 @@ clc = clear_channel = lambda *al, **ad : sp.clear_channel(*al, **ad)
 auth = lambda  *al, **ad : sp.auth(*al, **ad)
 ht = home_timeline = lambda *al, **ad : sp.home_timeline(*al, **ad)
 up = update = lambda  t, *al, **ad : update_from_console(t, *al, **ad)
-re = reply = lambda  sid, t, *al, **ad : sp.reply(sid, console_input(t), *al, **ad)
+re = reply = lambda  m, t, *al, **ad : sp.reply(m, console_input(t), *al, **ad)
+fwd = forward = lambda  m, t, *al, **ad : sp.forward(m, console_input(t), *al, **ad)
 
 #==== documentation ====
 

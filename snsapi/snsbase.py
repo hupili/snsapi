@@ -283,6 +283,9 @@ class SNSBase(object):
         if not 'port' in self.auth_info:
             self.auth_info['port'] = 12121
 
+        #if not 'text_length_limit' in self.jsonconf:
+        #    self.jsonconf['text_length_limit'] = 140
+
     def setup_oauth_key(self, app_key, app_secret):
         '''
         If you do not want to use read_channel, and want to set app_key on your own, here it is.
@@ -334,25 +337,29 @@ class SNSBase(object):
             text is assigned, the earlier it will be cut. 
         '''
         
-        delim = " || "
+        delim = "||"
         
-        order_list = zip(range(0, len(text_list)), text_list)
-        order_list.sort(key = lambda tup: tup[1][1])
-        extra_length = sum([len(t[1][0]) for t in order_list]) \
-                - length + len(delim) * (len(order_list) - 1)
+        if length:
+            order_list = zip(range(0, len(text_list)), text_list)
+            order_list.sort(key = lambda tup: tup[1][1])
+            extra_length = sum([len(t[1][0]) for t in order_list]) \
+                    - length + len(delim) * (len(order_list) - 1)
 
-        output_list = []
-        for (o, (t, p)) in order_list:
-            if extra_length <= 0:
-                output_list.append((o, t, p))
-            elif extra_length >= len(t):
-                extra_length -= len(t)
-            else:
-                output_list.append((o, t[0:(len(t) - extra_length)], p))
-                extra_length = 0 
+            output_list = []
+            for (o, (t, p)) in order_list:
+                if extra_length <= 0:
+                    output_list.append((o, t, p))
+                elif extra_length >= len(t):
+                    extra_length -= len(t)
+                else:
+                    output_list.append((o, t[0:(len(t) - extra_length)], p))
+                    extra_length = 0 
 
-        output_list.sort(key = lambda tup: tup[0])
-        return delim.join([t for (o, t, p) in output_list])
+            output_list.sort(key = lambda tup: tup[0])
+            return delim.join([t for (o, t, p) in output_list])
+        else:
+            # length is None, meaning unlimited
+            return delim.join([t for (t, p) in text_list])
 
 
     # Just a memo of possible methods
@@ -377,7 +384,57 @@ class SNSBase(object):
 
     def forward(self, message, text):
         """
-        A general forwarding implementation
+        A general forwarding implementation using update method. 
         
+        :param message:
+            The Message object. The message you want to forward. 
+
+        :param text:
+            A unicode string. The comments you add to the message. 
+
+        :return:
+            Successful or not: True / False 
+
         """
-        pass
+        
+        if not isinstance(message, snstype.Message):
+            logger.warning("unknown type to forward: %s", type(message))
+            return False
+
+        if self.update == None:
+            # This warning message is for those who build application on 
+            # individual plugin classes. If the developers based their app
+            # on SNSPocket, they will see the warning message given by the 
+            # dummy update method. 
+            logger.warning("this platform does not have update(). can not forward")
+            return False
+
+        tll = None
+        if 'text_length_limit' in self.jsonconf:
+            tll = self.jsonconf['text_length_limit']
+        #orig_text = "[%s:%s][%s]%s" % (message.platform, message.parsed.username, \
+        #        utils.utc2str(message.parsed.time), message.parsed.text)
+        #if 'platform_prefix' in self.jsonconf:
+        #    platform_prefix = self.jsonconf['platform_prefix']
+        #else:
+
+        #TODO:
+        #    This mapping had better beconfigurable from user side
+        mapping = {
+                'RSS': u'RSS', 
+                'RSS2RW': u'RSS2RW', 
+                'RenrenShare': u'人人', 
+                'RenrenStatus': u'人人', 
+                'SQLite': u'SQLite', 
+                'SinaWeiboStatus': u'新浪', 
+                'TencentWeiboStatus': u'腾讯' 
+        }
+
+
+        platform_prefix = message.platform
+        if platform_prefix in mapping:
+            platform_prefix = mapping[platform_prefix]
+        orig_text = "[%s:%s]%s" % (platform_prefix, message.parsed.username, message.parsed.text)
+        final = self._cat(tll, [(text, 2), (orig_text, 1)])
+       
+        return self.update(final)

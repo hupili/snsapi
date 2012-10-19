@@ -74,7 +74,7 @@ class RSS(SNSBase):
         
     def read_channel(self, channel):
         super(RSS, self).read_channel(channel)
-        
+
     def auth(self):
         logger.info("%s platform do not need auth!", self.platform)
         

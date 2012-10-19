@@ -20,7 +20,7 @@ class SinaWeiboStatus(SNSBase):
             self._parse(self.raw)
 
         def _parse(self, dct):
-            #print dct 
+            print dct 
 
             self.ID.id = dct["id"]
 
@@ -82,6 +82,13 @@ class SinaWeiboStatus(SNSBase):
         if not "callback_url" in self.auth_info:
             self.auth_info.callback_url = "http://copy.the.code.to.client/"
 
+        # According to our test, it is 142 unicode character
+        # We also use 140 by convention
+        self.jsonconf['text_length_limit'] = 140
+        
+        #if not 'platform_prefix' in self.jsonconf:
+        #    self.jsonconf['platform_prefix'] = u'新浪'
+
     def auth_first(self):
         self._oauth2_first()
 
@@ -118,9 +125,7 @@ class SinaWeiboStatus(SNSBase):
         @return: success or not
         '''
 
-        # According to our test, it is 142 unicode character
-        # We also use 140 by convention
-        text = self._cat(140, [(text,1)])
+        text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
         url = "https://api.weibo.com/2/statuses/update.json"
         params = {}
