@@ -73,10 +73,14 @@ class TwitterStatus(SNSBase):
 
     def update(self, text):
         text = self._cat(140, [(text, 1)])
-        status = self.api.PostUpdate(text)
-        #TODO:
-        #     Find better indicator for status update success
-        if status:
-            return True
-        else:
+        try:
+            status = self.api.PostUpdate(text)
+            #TODO:
+            #     Find better indicator for status update success
+            if status:
+                return True
+            else:
+                return False
+        except Exception, e:
+            logger.warning('update Twitter failed: %s', str(e))
             return False
