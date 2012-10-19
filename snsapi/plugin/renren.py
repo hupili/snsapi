@@ -163,29 +163,57 @@ class RenrenShare(RenrenBase):
             self.parsed.username = dct['name']
             self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
 
+            if dct['feed_type'] == 33:
+                self._parse_feed_33(dct)
+            elif dct['feed_type'] == 32:
+                self._parse_feed_32(dct)
+            else:
+                self.parsed.text_orig = dct['description']
+                self.parsed.text_last = dct['message'] 
+                self.parsed.text_trace = dct['trace']['text']
+                self.parsed.title = dct['title']
+                self.parsed.description = dct['description']
+                self.parsed.reposts_count = 'N/A'
+                self.parsed.comments_count = dct['comments']['count']
+                # Assemble a general format message
+                self.parsed.text = self.parsed.text_trace \
+                        + " || " + self.parsed.title \
+                        + " || " + self.parsed.description
+
+        def _parse_feed_33(self, dct):
+            '''
+            Feed type 33. Albums 
+            '''
+
+            self.parsed.text_orig = dct['prefix']
+            self.parsed.text_last = dct['message'] 
+            self.parsed.text_trace = dct['trace']['text']
+            self.parsed.title = dct['title']
+            self.parsed.link = dct['href']
+            self.parsed.description = dct['title']
+            self.parsed.reposts_count = 'N/A'
+            self.parsed.comments_count = dct['comments']['count']
+
+            self.parsed.text = "%s || %s || %s" % (\
+                    self.parsed.text_orig, self.parsed.title, self.parsed.link)
+
+        def _parse_feed_32(self, dct):
+            '''
+            Feed type 33. Photo
+            '''
+
             self.parsed.text_orig = dct['description']
             self.parsed.text_last = dct['message'] 
             self.parsed.text_trace = dct['trace']['text']
             self.parsed.title = dct['title']
+            self.parsed.link = dct['attachment'][0]['href']
             self.parsed.description = dct['description']
             self.parsed.reposts_count = 'N/A'
             self.parsed.comments_count = dct['comments']['count']
 
-            self.parsed.text = self.parsed.text_trace \
-                    + " || " + self.parsed.title \
-                    + " || " + self.parsed.description
+            self.parsed.text = "%s || %s || %s || %s" % (\
+                    self.parsed.text_trace, self.parsed.link, self.parsed.title, self.parsed.text_orig)
 
-            #TODO: 
-            #    retire past fileds. 
-            #self.parsed.id = dct["source_id"]
-            #self.parsed.created_at = dct["update_time"]
-            #self.parsed.text = dct['message'] + " --> " + dct['description']
-            #self.parsed.reposts_count = 'N/A'
-            #self.parsed.comments_count = dct['comments']['count']
-            #self.parsed.username = dct['name']
-            #self.parsed.usernick = ""
-            #self.ID.status_id = dct["source_id"]
-            #self.ID.source_user_id = dct["actor_id"]
 
     def __init__(self, channel = None):
         super(RenrenShare, self).__init__(channel)
@@ -218,7 +246,8 @@ class RenrenShare(RenrenBase):
                         channel = self.jsonconf['channel_name']\
                         ))
         except Exception, e:
-            logger.warning("catch expection:%s", e.message)
+            #logger.warning("catch expection:%s", e.message)
+            logger.warning("catch expection:%s", str(e))
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
