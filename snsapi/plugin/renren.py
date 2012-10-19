@@ -341,6 +341,11 @@ class RenrenStatus(RenrenBase):
         @return: success or not
         '''
 
+        # Renren API document says the limit is 140 character....
+        # After test, it seems 245 unicode character. 
+        # To leave some safe margin, we use 240 here. 
+        text = self._cat(240, [(text,1)])
+
         api_params = dict(method = "status.set", status = text)
         
         try:

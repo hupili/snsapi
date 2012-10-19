@@ -117,6 +117,11 @@ class SinaWeiboStatus(SNSBase):
         @param text: the update message
         @return: success or not
         '''
+
+        # According to our test, it is 142 unicode character
+        # We also use 140 by convention
+        text = self._cat(140, [(text,1)])
+
         url = "https://api.weibo.com/2/statuses/update.json"
         params = {}
         params['status'] = text

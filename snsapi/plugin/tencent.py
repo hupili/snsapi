@@ -137,6 +137,11 @@ class TencentWeiboStatus(SNSBase):
         @param text: the update message
         @return: success or not
         '''
+
+        # Tencent limit is a little more than 140.
+        # We just use 140, which is a global industrial standard.
+        text = self._cat(140, [(text,1)])
+
         url = "https://open.t.qq.com/api/t/add"
         params = {}
         params["content"] = text

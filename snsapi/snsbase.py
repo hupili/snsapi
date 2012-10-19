@@ -319,6 +319,42 @@ class SNSBase(object):
         else:
             return s
     
+    def _cat(self, length, text_list):
+        '''
+        Concatenate strings. 
+
+        :param length:
+            The output should not exceed length unicode characters. 
+
+        :param text_list:
+            A list of text pieces. Each element is a tuple (text, priority). 
+            The _cat function will concatenate the texts using the oder in 
+            text_list. If the output exceeds length, (part of) some texts 
+            will be cut according to the priority. The lower priority one 
+            text is assigned, the earlier it will be cut. 
+        '''
+        
+        delim = " || "
+        
+        order_list = zip(range(0, len(text_list)), text_list)
+        order_list.sort(key = lambda tup: tup[1][1])
+        extra_length = sum([len(t[1][0]) for t in order_list]) \
+                - length + len(delim) * (len(order_list) - 1)
+
+        output_list = []
+        for (o, (t, p)) in order_list:
+            if extra_length <= 0:
+                output_list.append((o, t, p))
+            elif extra_length >= len(t):
+                extra_length -= len(t)
+            else:
+                output_list.append((o, t[0:(len(t) - extra_length)], p))
+                extra_length = 0 
+
+        output_list.sort(key = lambda tup: tup[0])
+        return delim.join([t for (o, t, p) in output_list])
+
+
     # Just a memo of possible methods
 
     # def home_timeline(self, count=20):
