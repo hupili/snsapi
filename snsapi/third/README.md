@@ -19,3 +19,7 @@ We leave a pointer for each library:
    [http://twhiteman.netfirms.com/des.html](http://twhiteman.netfirms.com/des.html)
    * 'oauth.py'. 
    [link-missing](link-missing)
+   * 'oauth2'. (dependency of python-twitter)
+   [https://github.com/simplegeo/python-oauth2](https://github.com/simplegeo/python-oauth2)
+   * 'python-twitter'.
+   [https://github.com/bear/python-twitter](https://github.com/bear/python-twitter)
