@@ -1,0 +1,3 @@
+[submodule "snsapi/third/python-twitter"]
+	path = snsapi/third/python-twitter
+	url = git://github.com/bear/python-twitter.git
