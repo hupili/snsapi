@@ -5,3 +5,4 @@
 # Then this platform will appear in snsapi.platform
 
 from sqlite import SQLite
+from twitter import TwitterStatus

@@ -421,13 +421,14 @@ class SNSBase(object):
         #TODO:
         #    This mapping had better beconfigurable from user side
         mapping = {
-                'RSS': u'RSS', 
-                'RSS2RW': u'RSS2RW', 
-                'RenrenShare': u'人人', 
-                'RenrenStatus': u'人人', 
-                'SQLite': u'SQLite', 
-                'SinaWeiboStatus': u'新浪', 
-                'TencentWeiboStatus': u'腾讯' 
+                'RSS': u'RSS',
+                'RSS2RW': u'RSS2RW',
+                'RenrenShare': u'人人',
+                'RenrenStatus': u'人人',
+                'SQLite': u'SQLite',
+                'SinaWeiboStatus': u'新浪',
+                'TencentWeiboStatus': u'腾讯',
+                'TwitterStatus': u'推特'
         }
 
 
