@@ -20,7 +20,7 @@ class SinaWeiboStatus(SNSBase):
             self._parse(self.raw)
 
         def _parse(self, dct):
-            print dct 
+            #print dct 
 
             self.ID.id = dct["id"]
 
@@ -32,7 +32,11 @@ class SinaWeiboStatus(SNSBase):
             self.parsed.comments_count = dct['comments_count']
             
             if 'retweeted_status' in dct:
-                self.parsed.username_orig = dct['retweeted_status']['user']['name']
+                self.parsed.username_orig = "unknown"
+                try:
+                    self.parsed.username_orig = dct['retweeted_status']['user']['name']
+                except KeyError:
+                    logger.warning('KeyError when parsing SinaWeiboStatus. May be deleted message')
                 self.parsed.text_orig = dct['retweeted_status']['text']
                 self.parsed.text_trace = dct['text']
                 self.parsed.text = self.parsed.text_trace \
