@@ -168,24 +168,25 @@ class RenrenShare(RenrenBase):
             elif dct['feed_type'] == 32:
                 self._parse_feed_32(dct)
             else:
-                self.parsed.text_orig = dct['description']
+                #self.parsed.text_orig = dct['description']
                 self.parsed.text_last = dct['message'] 
                 self.parsed.text_trace = dct['trace']['text']
                 self.parsed.title = dct['title']
                 self.parsed.description = dct['description']
                 self.parsed.reposts_count = 'N/A'
                 self.parsed.comments_count = dct['comments']['count']
+                self.parsed.text_orig = self.parsed.title + "||" + self.parsed.description
                 # Assemble a general format message
                 self.parsed.text = self.parsed.text_trace \
-                        + " || " + self.parsed.title \
-                        + " || " + self.parsed.description
+                        + "||" + self.parsed.title \
+                        + "||" + self.parsed.description
 
         def _parse_feed_33(self, dct):
             '''
             Feed type 33. Albums 
             '''
 
-            self.parsed.text_orig = dct['prefix']
+            #self.parsed.text_orig = dct['prefix']
             self.parsed.text_last = dct['message'] 
             self.parsed.text_trace = dct['trace']['text']
             self.parsed.title = dct['title']
@@ -193,16 +194,19 @@ class RenrenShare(RenrenBase):
             self.parsed.description = dct['title']
             self.parsed.reposts_count = 'N/A'
             self.parsed.comments_count = dct['comments']['count']
+            self.parsed.text_orig = self.parsed.title + "||" + self.parsed.link
 
-            self.parsed.text = "%s || %s || %s" % (\
-                    self.parsed.text_orig, self.parsed.title, self.parsed.link)
+            #self.parsed.text = "%s||%s||%s" % (\
+            #        self.parsed.text_orig, self.parsed.title, self.parsed.link)
+            self.parsed.text = "%s||%s" % (\
+                    self.parsed.title, self.parsed.link)
 
         def _parse_feed_32(self, dct):
             '''
             Feed type 33. Photo
             '''
 
-            self.parsed.text_orig = dct['description']
+            #self.parsed.text_orig = dct['description']
             self.parsed.text_last = dct['message'] 
             self.parsed.text_trace = dct['trace']['text']
             self.parsed.title = dct['title']
@@ -210,9 +214,10 @@ class RenrenShare(RenrenBase):
             self.parsed.description = dct['description']
             self.parsed.reposts_count = 'N/A'
             self.parsed.comments_count = dct['comments']['count']
+            self.parsed.text_orig = self.parsed.link + "||" + self.parsed.title + "||" + self.parsed.description
 
-            self.parsed.text = "%s || %s || %s || %s" % (\
-                    self.parsed.text_trace, self.parsed.link, self.parsed.title, self.parsed.text_orig)
+            self.parsed.text = "%s||%s||%s||%s" % (\
+                    self.parsed.text_trace, self.parsed.link, self.parsed.title, self.parsed.description)
 
 
     def __init__(self, channel = None):

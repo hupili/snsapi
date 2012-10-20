@@ -419,7 +419,7 @@ class SNSBase(object):
         #else:
 
         #TODO:
-        #    This mapping had better beconfigurable from user side
+        #    This mapping had better be configurable from user side
         mapping = {
                 'RSS': u'RSS',
                 'RSS2RW': u'RSS2RW',
@@ -431,11 +431,13 @@ class SNSBase(object):
                 'TwitterStatus': u'推特'
         }
 
-
         platform_prefix = message.platform
         if platform_prefix in mapping:
             platform_prefix = mapping[platform_prefix]
-        orig_text = "[%s:%s]%s" % (platform_prefix, message.parsed.username, message.parsed.text)
-        final = self._cat(tll, [(text, 2), (orig_text, 1)])
+        last_user = "[%s:%s]" % (platform_prefix, message.parsed.username)
+        if 'text_orig' in message.parsed and 'text_trace' in message.parsed:
+            final = self._cat(tll, [(text + last_user, 5), (message.parsed.text_trace, 1), (message.parsed.text_orig, 3)])
+        else:
+            final = self._cat(tll, [(text + last_user, 2), (message.parsed.text, 1)])
        
         return self.update(final)
