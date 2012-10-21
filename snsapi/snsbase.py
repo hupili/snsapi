@@ -436,8 +436,21 @@ class SNSBase(object):
             platform_prefix = mapping[platform_prefix]
         last_user = "[%s:%s]" % (platform_prefix, message.parsed.username)
         if 'text_orig' in message.parsed and 'text_trace' in message.parsed:
-            final = self._cat(tll, [(text + last_user, 5), (message.parsed.text_trace, 1), (message.parsed.text_orig, 3)])
+            #TODO:
+            #
+            # We wrap unicode() here, in case the 'text_trace' field
+            # or 'text_orig' field is parsed to None. 
+            #
+            # This problem can also be solved at _cat() function. In 
+            # this way, it we can compat the message further. i.e. 
+            # When one field is None, we omit the text "None" and 
+            # delimiter.
+            final = self._cat(tll, [(text, 5), (last_user, 4), \
+                    (unicode(message.parsed.text_trace), 1), \
+                    (unicode(message.parsed.text_orig), 3)])
         else:
-            final = self._cat(tll, [(text + last_user, 2), (message.parsed.text, 1)])
+            final = self._cat(tll, [(text, 3), (last_user, 2),\
+                    (unicode(message.parsed.text), 1)])
        
+        #print final
         return self.update(final)
