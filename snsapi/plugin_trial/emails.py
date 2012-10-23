@@ -11,48 +11,135 @@ We will import that package..
 
 '''
 
+from ..snslog import SNSLog
+logger = SNSLog
+from ..snsbase import SNSBase
+from .. import snstype
+from ..utils import console_output
+from .. import utils
+
 import email
 import imaplib
 import smtplib
 
-#def extract_body(payload):
-#    if isinstance(payload,str):
-#        return payload
-#    else:
-#        return '\n'.join([extract_body(part.get_payload()) for part in payload])
-#
-#conn = imaplib.IMAP4_SSL("imap.gmail.com", 993)
-#
-#conn.login(,)
-##fail, imap.error, find substring AUTHENTICATIONFAILED
-#
-#conn.select()
-#typ, data = conn.search(None, 'ALL')
-#try:
-#    for num in data[0].split():
-#        typ, msg_data = conn.fetch(num, '(RFC822)')
-#        for response_part in msg_data:
-#            if isinstance(response_part, tuple):
-#                msg = email.message_from_string(response_part[1])
-#                #subject=msg['subject']                   
-#                ##print msg
-#                #print(subject)
-#                print msg['From']
-#                print msg['To']
-#                print msg['Subject']
-#                print msg['Date']
-#                print msg['Content-Type']
-#                #payload=msg.get_payload()
-#                #body=extract_body(payload)
-#                #print(body)
-#        #typ, response = conn.store(num, '+FLAGS', r'(\Seen)')
-#finally:
-#    try:
-#        conn.close()
-#    except:
-#        pass
-#    conn.logout()
+logger.debug("%s plugged!", __file__)
 
+class Email(SNSBase):
+    class Message(snstype.Message):
+        def parse(self):
+            self.ID.platform = self.platform
+            self._parse(self.raw)
+
+        def _parse(self, dct):
+            self.parsed.title = dct.get('Subject')
+            self.parsed.text = dct.get('Subject')
+            self.parsed.time = utils.str2utc(dct.get('Date'))
+            self.parsed.username = dct.get('From')
+            self.parsed.userid = dct.get('From')
+
+    def __init__(self, channel = None):
+        super(Email, self).__init__(channel)
+
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
+
+        self.imap = None
+        self.smtp = None
+
+    @staticmethod
+    def new_channel(full = False):
+        c = SNSBase.new_channel(full)
+
+        c['platform'] = 'Email'
+        c['imap_host'] = 'imap.gmail.com'
+        c['imap_port'] = 993 #default IMAP + TLS port
+        c['smtp_host'] = 'smtp.gmail.com'
+        c['smtp_port'] = 587 #default SMTP + TLS port 
+        c['username'] = 'username'
+        c['password'] = 'password'
+        c['address'] = 'username@gmail.com'
+        return c
+        
+    def read_channel(self, channel):
+        super(Email, self).read_channel(channel) 
+
+    def _extract_body(self, payload):
+        if isinstance(payload,str):
+            return payload
+        else:
+            return '\n'.join([self._extract_body(part.get_payload()) for part in payload])
+    
+    def _receive(self):
+        conn = self.imap
+        conn.select()
+        typ, data = conn.search(None, 'ALL')
+        l = []
+        try:
+            for num in data[0].split():
+                typ, msg_data = conn.fetch(num, '(RFC822)')
+                for response_part in msg_data:
+                    if isinstance(response_part, tuple):
+                        msg = email.message_from_string(response_part[1])
+                        #print msg['From']
+                        #print msg['To']
+                        #print msg['Subject']
+                        #print msg['Date']
+                        #print msg['Content-Type']
+                        #payload=msg.get_payload()
+                        #body=extract_body(payload)
+                        #print(body)
+
+                        # Convert header fields into dict
+                        d = dict(msg) 
+                        # Add other essential fields
+                        d['body'] = self._extract_body(msg.get_payload())
+                        d['_pyobj'] = utils.Serialize.dumps(msg)
+                        l.append(utils.JsonDict(d))
+                #typ, response = conn.store(num, '+FLAGS', r'(\Seen)')
+        finally:
+            pass
+            #try:
+            #    conn.close()
+            #except:
+            #    pass
+            ##conn.logout()
+        return l
+
+    def auth(self):
+        imap_ok = False
+        smtp_ok = False
+
+        logger.debug("Try loggin IMAP server...")
+        try:
+            if self.imap:
+                del self.imap
+            self.imap = imaplib.IMAP4_SSL(self.jsonconf['imap_host'], self.jsonconf['imap_port'])
+            self.imap.login(self.jsonconf['username'], self.jsonconf['password'])
+            imap_ok = True
+        except imaplib.IMAP4_SSL.error, e:
+            if e.message.find("AUTHENTICATIONFAILED"):
+                logger.warning("IMAP Authentication failed! Channel '%s'", self.jsonconf['channel_name'])
+            else:
+                raise e
+        
+        logger.debug("Try loggin SMTP server...")
+        try:
+            if self.smtp:
+                del self.smtp
+            self.smtp = smtplib.SMTP("%s:%s" % (self.jsonconf['smtp_host'], self.jsonconf['smtp_port']))  
+            self.smtp.starttls()  
+            self.smtp.login(self.jsonconf['username'], self.jsonconf['password'])
+            smtp_ok = True
+        except smtplib.SMTPAuthenticationError:
+            logger.warning("SMTP Authentication failed! Channel '%s'", self.jsonconf['channel_name'])
+
+        if imap_ok and smtp_ok:
+            logger.info("Email channel '%s' auth success", self.jsonconf['channel_name'])
+            return True
+        else:
+            logger.warning("Email channel '%s' auth failed!!", self.jsonconf['channel_name'])
+            return False
+            
 
 #fromaddr = 'hupili.snsapi@gmail.com'  
 ##toaddrs  = 'hupili.snsapi@gmail.com, hpl1989@gmail.com'  
@@ -73,12 +160,26 @@ import smtplib
 ##msg.set_payload(u'测试中文')
 #
 ## The actual mail send  
-#server = smtplib.SMTP('smtp.gmail.com:587')  
-#server.starttls()  
-##server.login(username,password)  
-#server.login(,)
 #server.sendmail(fromaddr, toaddrs, msg.as_string())  
 #server.quit()  
+
+    def home_timeline(self, count = 20):
+        r = self._receive()
+
+        message_list = []
+        for m in r:
+            message_list.append(self.Message(
+                    m,\
+                    platform = self.jsonconf['platform'],\
+                    channel = self.jsonconf['channel_name']\
+                    ))
+
+        return message_list
+
+
+    def update(self, text):
+        pass
+
 
 
 # === email message fields for future reference

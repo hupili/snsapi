@@ -125,6 +125,25 @@ def utc2str(u):
     #return str(datetime.datetime.fromtimestamp(u))
     #return _format_date(datetime.datetime.utcfromtimestamp(u))
     return _format_date(datetime.datetime.fromtimestamp(u, tz.tzlocal()))
+
+import pickle
+
+class Serialize(object):
+    """
+    The common serialization SAP
+
+    """
+    def __init__(self, *al, **ad):
+        raise Exception("Use static methods of Serialize directly!")
+
+    @staticmethod
+    def loads(string):
+        return pickle.loads(string)
+
+    @staticmethod
+    def dumps(obj):
+        return pickle.dumps(obj)
+        
     
 if __name__ == '__main__':
     u = time.time()

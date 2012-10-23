@@ -6,3 +6,4 @@
 
 from sqlite import SQLite
 from twitter import TwitterStatus
+from emails import Email
