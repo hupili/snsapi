@@ -268,6 +268,8 @@ class SNSBase(object):
 
         if full:
             c['description'] = "a string for you to memorize"
+            # Defaultly enabled methods in SNSPocket batch operation
+            c['methods'] = "" 
 
         return c
     

@@ -216,6 +216,24 @@ class SNSPocket(dict):
             for c in self.itervalues():
                 c.auth()
 
+    def __check_method(self, channel, method):
+        '''
+        Check availability of batch operation methods: 
+
+           * First the channel 'open' is switched on. 
+           * There is no 'methods' fields meaning all 
+           methods can be invoked by default. 
+           * If there is methods, check whether the current 
+           method is defaultly enabled. 
+
+        '''
+        if channel.jsonconf['open'] == "yes":
+            if not 'methods' in channel.jsonconf:
+                return True
+            elif channel.jsonconf['methods'].find(method) != -1:
+                return True 
+        return False
+
     def home_timeline(self, count = 20, channel = None):
         """
         Route to home_timeline method of snsapi. 
@@ -228,7 +246,7 @@ class SNSPocket(dict):
             status_list.extend(self[channel].home_timeline(count))
         else:
             for c in self.itervalues():
-                if c.jsonconf['open'] == "yes":
+                if self.__check_method(c, 'home_timeline'):
                     status_list.extend(c.home_timeline(count))
 
         logger.info("Read %d statuses", len(status_list))
@@ -246,7 +264,7 @@ class SNSPocket(dict):
             re[channel] = self[channel].update(text)
         else:
             for c in self.itervalues():
-                if c.jsonconf['open'] == "yes":
+                if self.__check_method(c, 'update'):
                     re[c.jsonconf['channel_name']] = c.update(text)
 
         logger.info("Update status '%s'. Result:%s", text, re)
@@ -267,10 +285,6 @@ class SNSPocket(dict):
             Reply text. 
         """
 
-        #TODO:
-        #    First try to match "channel_name". 
-        #    If there is no match, try to match "platform".
-
         if isinstance(message, snstype.Message):
             mID = message.ID
         elif isinstance(message, snstype.MessageID):
@@ -284,7 +298,10 @@ class SNSPocket(dict):
             re = self[channel].reply(message, text)
         else:
             for c in self.itervalues():
-                if c.jsonconf['open'] == "yes":
+                if self.__check_method(c, 'reply'):
+                    #TODO:
+                    #    First try to match "channel_name". 
+                    #    If there is no match, try to match "platform".
                     if c.jsonconf['platform'] == mID.platform:
                         re = c.reply(mID, text)
                         break
@@ -303,9 +320,7 @@ class SNSPocket(dict):
             re = self[channel].forward(message, text)
         else:
             for c in self.itervalues():
-                if c.jsonconf['open'] == "yes":
-                    #if c.jsonconf['platform'] == message.platform:
-                    #re = c.forward(message, text)
+                if self.__check_method(c, 'forward'):
                     re[c.jsonconf['channel_name']] = c.forward(message, text)
 
         logger.info("Forward status '%s' with text '%s'. Result: %s",\
