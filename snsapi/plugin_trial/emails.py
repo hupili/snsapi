@@ -64,6 +64,8 @@ class Email(SNSBase):
         super(Email, self).read_channel(channel) 
 
     def _extract_body(self, payload):
+        #TODO:
+        #    Extract and decode if necessary. 
         if isinstance(payload,str):
             return payload
         else:
@@ -80,10 +82,6 @@ class Email(SNSBase):
                 for response_part in msg_data:
                     if isinstance(response_part, tuple):
                         msg = email.message_from_string(response_part[1])
-                        #print msg['From']
-                        #print msg['To']
-                        #print msg['Subject']
-                        #print msg['Date']
                         #print msg['Content-Type']
                         #payload=msg.get_payload()
                         #body=extract_body(payload)
@@ -141,27 +139,20 @@ class Email(SNSBase):
             return False
             
 
-#fromaddr = 'hupili.snsapi@gmail.com'  
-##toaddrs  = 'hupili.snsapi@gmail.com, hpl1989@gmail.com'  
-#toaddrs  = 'hpl1989@gmail.com'  
-##msg = "" 
-##msg += "Subject: test\n"
-##msg += "Date: Oct 23 2012\n"
-##msg += 'a test message from snsapi'  
-#
-#from email.mime.text import MIMEText
-##msg = email.mime.text.MIMEText("body...")
-##msg = MIMEText("body...")
-#msg = MIMEText(u'测试中文', _charset = 'utf-8')
-##msg = MIMEText()
-#msg['From'] = fromaddr
-#msg['To'] = toaddrs
-#msg['Subject'] = 'test'
-##msg.set_payload(u'测试中文')
-#
-## The actual mail send  
-#server.sendmail(fromaddr, toaddrs, msg.as_string())  
-#server.quit()  
+    def _send(self, toaddr, title, msg):
+        '''
+        :param toaddr:
+            The recipient, only one in a string. 
+
+        :param msg:
+            One email object, which supports as_string() method
+        '''
+        fromaddr = self.jsonconf['address']
+        msg['From'] = fromaddr
+        msg['To'] = toaddr
+        msg['Subject'] = title
+
+        return self.smtp.sendmail(fromaddr, toaddr, msg.as_string())  
 
     def home_timeline(self, count = 20):
         r = self._receive()
@@ -178,9 +169,9 @@ class Email(SNSBase):
 
 
     def update(self, text):
-        pass
-
-
+        from email.mime.text import MIMEText
+        msg = MIMEText(text, _charset = 'utf-8')
+        return self._send('hpl1989@gmail.com', 'test from snsapi', msg)
 
 # === email message fields for future reference
 # TODO:
