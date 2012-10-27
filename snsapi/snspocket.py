@@ -132,7 +132,8 @@ class SNSPocket(dict):
                     if self.add_channel(utils.JsonDict(site)):
                         count_add_channel += 1
         except IOError:
-            raise snserror.config.nofile(fn_channel)
+            #raise snserror.config.nofile(fn_channel)
+            logger.warning("'%s' does not exist. Use default", fn_channel)
         except ValueError, e:
             raise snserror.config.load("file: %s; message: %s" % (fn_channel, e.message))
 
@@ -141,7 +142,8 @@ class SNSPocket(dict):
                 allinfo = json.load(fp)
                 self.jsonconf = allinfo
         except IOError:
-            raise snserror.config.nofile(fn_pocket)
+            #raise snserror.config.nofile(fn_pocket)
+            logger.warning("'%s' does not exist. Use default", fn_pocket)
         except ValueError, e:
             raise snserror.config.load("file: %s; message:%s" % (fn_channel, e.message))
 
