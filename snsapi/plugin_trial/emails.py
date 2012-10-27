@@ -17,7 +17,9 @@ from ..snsbase import SNSBase
 from .. import snstype
 from ..utils import console_output
 from .. import utils
+from ..utils import json
 
+import time
 import email
 import imaplib
 import smtplib
@@ -31,6 +33,25 @@ class Email(SNSBase):
             self._parse(self.raw)
 
         def _parse(self, dct):
+            #TODO:
+            #    Put in message id. 
+            #    The id should be composed of mailbox and id in the box.
+            #
+            #    The IMAP id can not be used as a global identifier. 
+            #    Once messages are deleted or moved, it will change. 
+            #    The IMAP id is more like the subscript of an array. 
+            #    
+            #    SNSAPI should work out its own message format to store an 
+            #    identifier. An identifier should be (address, sequence). 
+            #    There are three ways to generate the sequence number: 
+            #       * 1. Random pick
+            #       * 2. Pass message through a hash
+            #       * 3. Maintain a counter in the mailbox 
+            #       * 4. UID as mentioned in some discussions. Not sure whether
+            #       this is account-dependent or not. 
+            #
+            #     I prefer 2. at present. Our Message objects are designed 
+            #     to be able to digest themselves. 
             self.parsed.title = dct.get('Subject')
             self.parsed.text = dct.get('Subject')
             self.parsed.time = utils.str2utc(dct.get('Date'))
@@ -70,10 +91,81 @@ class Email(SNSBase):
             return payload
         else:
             return '\n'.join([self._extract_body(part.get_payload()) for part in payload])
+
+    def _wait_for_email_subject(self, sub):
+        conn = self.imap
+        conn.select('INBOX')
+        num = None
+        while (num is None):
+            logger.debug("num is None")
+            typ, data = conn.search(None, '(Subject "%s")' % sub)
+            num = data[0].split()[0]
+            time.sleep(0.5)
+        return num
     
+    def _get_buddy_list(self):
+        (typ, data) = self.imap.create('buddy')
+
+        conn = self.imap
+        conn.select('buddy')
+
+        self.buddy_list = []
+        num = None
+        self._buddy_message_id = None
+        try:
+            typ, data = conn.search(None, 'ALL')
+            # We support multiple emails in "buddy" folder. 
+            # Each of the files contain a json list. We'll 
+            # merge all the list and use it as the buddy_list. 
+            for num in data[0].split():
+                typ, msg_data = conn.fetch(num, '(RFC822)')
+                for response_part in msg_data:
+                    if isinstance(response_part, tuple):
+                        msg = email.message_from_string(response_part[1])
+                        text = self._extract_body(msg.get_payload())
+                        logger.debug("Extract part text '%s' failed!", text)
+                        try:
+                            self.buddy_list.extend(json.loads(text))
+                        except Exception, e:
+                            logger.warning("Extend list with '%s' failed!", e)
+            logger.debug("reading buddylist successful: %s", self.buddy_list)
+        except Exception, e:
+            logger.warning("catch exception when trying to read buddylist %s", e)
+            pass
+
+        if self.buddy_list is None:
+            logger.debug("buddy list is None")
+            self.buddy_list = []
+
+    def _update_buddy_list(self):
+        conn = self.imap
+
+        # The unique identifier for a buddy_list
+        title = 'buddy_list:' + str(self.time())
+        from email.mime.text import MIMEText
+        msg = MIMEText(json.dumps(self.buddy_list))
+        self._send(self.jsonconf['address'], title, msg)
+
+        # Wait for the new buddy_list email to arrive
+        mlist = self._wait_for_email_subject(title)
+        logger.debug("returned message id: %s", mlist)
+
+        # Clear obsolete emails in "buddy" box
+        conn.select('buddy')
+        typ, data = conn.search(None, 'ALL')
+        for num in data[0].split():
+            conn.store(num, '+FLAGS', r'(\deleted)')
+            logger.debug("deleting message '%s' from 'buddy'", num)
+
+        # Move the new buddy_list email from INBOX to "buddy" box
+        conn.select('INBOX')
+        conn.copy(mlist, 'buddy')
+        conn.store(mlist, '+FLAGS', r'(\deleted)')
+
+
     def _receive(self):
         conn = self.imap
-        conn.select()
+        conn.select('INBOX')
         typ, data = conn.search(None, 'ALL')
         l = []
         try:
@@ -133,6 +225,8 @@ class Email(SNSBase):
 
         if imap_ok and smtp_ok:
             logger.info("Email channel '%s' auth success", self.jsonconf['channel_name'])
+            self._get_buddy_list()
+            #self._update_buddy_list()
             return True
         else:
             logger.warning("Email channel '%s' auth failed!!", self.jsonconf['channel_name'])
@@ -152,7 +246,13 @@ class Email(SNSBase):
         msg['To'] = toaddr
         msg['Subject'] = title
 
-        return self.smtp.sendmail(fromaddr, toaddr, msg.as_string())  
+        try:
+            self.smtp.sendmail(fromaddr, toaddr, msg.as_string())  
+            return True
+        except Exception, e:
+            logger.warning("%s", str(e)) 
+            return False
+
 
     def home_timeline(self, count = 20):
         r = self._receive()
