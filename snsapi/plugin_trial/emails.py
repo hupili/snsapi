@@ -28,6 +28,9 @@ import email
 import imaplib
 import smtplib
 
+import base64
+import re
+
 logger.debug("%s plugged!", __file__)
 
 class Email(SNSBase):
@@ -56,8 +59,9 @@ class Email(SNSBase):
             #
             #     I prefer 2. at present. Our Message objects are designed 
             #     to be able to digest themselves. 
+
             self.parsed.title = dct.get('Subject')
-            self.parsed.text = dct.get('Subject')
+            self.parsed.text = dct.get('body')
             self.parsed.time = utils.str2utc(dct.get('Date'))
             self.parsed.username = dct.get('From')
             self.parsed.userid = dct.get('From')
@@ -88,13 +92,45 @@ class Email(SNSBase):
     def read_channel(self, channel):
         super(Email, self).read_channel(channel) 
 
-    def _extract_body(self, payload):
-        #TODO:
-        #    Extract and decode if necessary. 
+    def __decode_email_body(self, payload, msg):
+        ret = payload
+        if 'Content-Transfer-Encoding' in msg:
+            transfer_enc = msg['Content-Transfer-Encoding'].strip()
+            if transfer_enc == "base64":
+                ret = base64.decodestring(ret)
+            elif transfer_enc == "7bit":
+                #TODO:
+                #    It looks like 7bit is just ASCII standard. 
+                #    Do nothing. 
+                #    Check whether this logic is correct? 
+                pass
+            else:
+                logger.warning("unknown transfer encoding: %s", transfer_enc)
+                return "(Decoding Failed)"
+        if 'Content-Type' in msg:
+            ct = msg['Content-Type']
+            r = re.compile(r'^(.+); charset="(.+)"$', re.IGNORECASE)
+            m = r.match(ct)
+            # Use search if the pattern does not start from 0. 
+            # Use group() to get matched part and groups() to get 
+            # mateched substrings. 
+            if m:
+                cs = m.groups()[1]
+            else:
+                # By default, we assume ASCII charset
+                cs = "ascii"
+            try:
+                ret = ret.decode(cs)
+            except Exception, e:
+                #logger.warning("Decoding payload '%s' using '%s' failed!", payload, cs)
+                return "(Decoding Failed)"
+        return ret
+
+    def _extract_body(self, payload, msg):
         if isinstance(payload,str):
-            return payload
+            return self.__decode_email_body(payload, msg)
         else:
-            return '\n'.join([self._extract_body(part.get_payload()) for part in payload])
+            return '\n'.join([self._extract_body(part.get_payload(), msg) for part in payload])
 
     def _wait_for_email_subject(self, sub):
         conn = self.imap
@@ -126,7 +162,7 @@ class Email(SNSBase):
                 for response_part in msg_data:
                     if isinstance(response_part, tuple):
                         msg = email.message_from_string(response_part[1])
-                        text = self._extract_body(msg.get_payload())
+                        text = self._extract_body(msg.get_payload(), msg)
                         logger.debug("Extract part text: %s", text.rstrip())
                         try:
                             self.buddy_list.extend(json.loads(text))
@@ -223,7 +259,7 @@ class Email(SNSBase):
                         # Convert header fields into dict
                         d = dict(msg) 
                         # Add other essential fields
-                        d['body'] = self._extract_body(msg.get_payload())
+                        d['body'] = self._extract_body(msg.get_payload(), msg)
                         d['_pyobj'] = utils.Serialize.dumps(msg)
                         message_list.append(utils.JsonDict(d))
                 #typ, response = conn.store(num, '+FLAGS', r'(\Seen)')
