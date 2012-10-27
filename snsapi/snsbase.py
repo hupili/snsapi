@@ -430,7 +430,8 @@ class SNSBase(object):
                 'SQLite': u'SQLite',
                 'SinaWeiboStatus': u'新浪',
                 'TencentWeiboStatus': u'腾讯',
-                'TwitterStatus': u'推特'
+                'TwitterStatus': u'推特',
+                'Email': u'伊妹'
         }
 
         platform_prefix = message.platform

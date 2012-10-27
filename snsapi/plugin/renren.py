@@ -269,11 +269,14 @@ class RenrenShare(RenrenBase):
 
         try:
             ret = self.renren_request(api_params)
+            logger.debug("Reply to status '%s' return: %s", statusID, ret)
             if 'result' in ret and ret['result'] == 1:
                 logger.info("Reply '%s' to status '%s' succeed", text, statusID)
                 return True
-        except:
-            pass
+            else:
+                return False
+        except Exception, e:
+            logger.warning("Reply failed: %s", e)
 
         logger.info("Reply '%s' to status '%s' fail", text, statusID)
         return False

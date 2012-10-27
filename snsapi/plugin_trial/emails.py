@@ -63,8 +63,16 @@ class Email(SNSBase):
             self.parsed.title = dct.get('Subject')
             self.parsed.text = dct.get('body')
             self.parsed.time = utils.str2utc(dct.get('Date'))
-            self.parsed.username = dct.get('From')
-            self.parsed.userid = dct.get('From')
+
+            sender = dct.get('From')
+            r = re.compile(r'^(.+)<(.+@.+\..+)>$', re.IGNORECASE)
+            m = r.match(sender)
+            if m:
+                self.parsed.username = m.groups()[0]
+                self.parsed.userid = m.groups()[1]
+            else:
+                self.parsed.username = sender
+                self.parsed.userid = sender
 
     def __init__(self, channel = None):
         super(Email, self).__init__(channel)
@@ -144,12 +152,13 @@ class Email(SNSBase):
         return num
     
     def _get_buddy_list(self):
-        (typ, data) = self.imap.create('buddy')
+        # 1. Get buddy_list from "buddy" folder
 
+        (typ, data) = self.imap.create('buddy')
         conn = self.imap
         conn.select('buddy')
 
-        self.buddy_list = []
+        self.buddy_list = {}
         num = None
         self._buddy_message_id = None
         try:
@@ -165,7 +174,7 @@ class Email(SNSBase):
                         text = self._extract_body(msg.get_payload(), msg)
                         logger.debug("Extract part text: %s", text.rstrip())
                         try:
-                            self.buddy_list.extend(json.loads(text))
+                            self.buddy_list.update(json.loads(text))
                         except Exception, e:
                             logger.warning("Extend list with '%s' failed!", e)
             logger.debug("reading buddylist successful: %s", self.buddy_list)
@@ -175,7 +184,13 @@ class Email(SNSBase):
 
         if self.buddy_list is None:
             logger.debug("buddy list is None")
-            self.buddy_list = []
+            self.buddy_list = {}
+
+        # 2. Get buddy_list from local conf files
+
+        if "manual_buddy_list" in self.jsonconf:
+            for b in self.jsonconf['manual_buddy_list']:
+                self.buddy_list[b['userid']] = b
 
     def _update_buddy_list(self):
         conn = self.imap
@@ -219,7 +234,8 @@ class Email(SNSBase):
         'self.buddy_list' directly following the format. 
 
         '''
-        self.buddy_list.append({"userid": address, "username": nickname})
+        #self.buddy_list.append({"userid": address, "username": nickname})
+        self.buddy_list[address] = {"userid": address, "username": nickname}
         self._update_buddy_list()
 
     def _receive(self, count = 20):
@@ -251,10 +267,16 @@ class Email(SNSBase):
                 for response_part in msg_data:
                     if isinstance(response_part, tuple):
                         msg = email.message_from_string(response_part[1])
-                        #print msg['Content-Type']
-                        #payload=msg.get_payload()
-                        #body=extract_body(payload)
-                        #print(body)
+
+                        #TODO:
+                        #    Parse header fields. Header fields can also be 
+                        #    encoded, e.g. UTF-8. 
+                        #
+                        #    email.header.decode_header() may help. 
+                        #
+                        #    There are some ill-formated senders, e.g. Baidu Passport. 
+                        #    See the link for workaround:
+                        #    http://stackoverflow.com/questions/7331351/python-email-header-decoding-utf-8
 
                         # Convert header fields into dict
                         d = dict(msg) 
@@ -262,14 +284,8 @@ class Email(SNSBase):
                         d['body'] = self._extract_body(msg.get_payload(), msg)
                         d['_pyobj'] = utils.Serialize.dumps(msg)
                         message_list.append(utils.JsonDict(d))
-                #typ, response = conn.store(num, '+FLAGS', r'(\Seen)')
-        finally:
-            pass
-            #try:
-            #    conn.close()
-            #except:
-            #    pass
-            ##conn.logout()
+        except Exception, e:
+            logger.warning("Error when making message_list: %s", e)
         return message_list
 
     def auth(self):
@@ -356,7 +372,7 @@ class Email(SNSBase):
         msg = MIMEText(text, _charset = 'utf-8')
         title = '[snsapi][status][from:%s][timestamp:%s]' % (self.jsonconf['address'], str(self.time()))
         ok_all = True
-        for u in self.buddy_list:
+        for u in self.buddy_list.values():
             toaddr = u['userid'] #userid of email platform is email address
             re = self._send(toaddr, title, msg)
             logger.debug("Send email to '%s': %s", toaddr, re)
