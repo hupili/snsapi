@@ -186,13 +186,31 @@ class Email(SNSBase):
         self.buddy_list.append({"userid": address, "username": nickname})
         self._update_buddy_list()
 
-    def _receive(self):
+    def _receive(self, count = 20):
+        #TODO:
+        #    1. 
+        #    Consider UNSEEN message first. If we get less than count 
+        #    number of messages, then search for 'ALL'. 
+        #
+        #    2. 
+        #    Make a separate box for snsapi. According to configs, 
+        #    search for all messages or snsapi formated messages. 
+        #    For snsapi formated messages, move them to this mailbox. 
+
+        # Check out all the email IDs
         conn = self.imap
         conn.select('INBOX')
         typ, data = conn.search(None, 'ALL')
-        l = []
+        logger.debug("read message IDs: %s", data)
+        # We assume ID is in chronological order and filter 
+        # the count number of latest messages.  
+        latest_messages = sorted(data[0].split(), key = lambda x: int(x), reverse = True)[0:count]
+        logger.debug("selected message IDs: %s", latest_messages)
+
+        message_list = []
         try:
-            for num in data[0].split():
+            #for num in data[0].split():
+            for num in latest_messages:
                 typ, msg_data = conn.fetch(num, '(RFC822)')
                 for response_part in msg_data:
                     if isinstance(response_part, tuple):
@@ -207,7 +225,7 @@ class Email(SNSBase):
                         # Add other essential fields
                         d['body'] = self._extract_body(msg.get_payload())
                         d['_pyobj'] = utils.Serialize.dumps(msg)
-                        l.append(utils.JsonDict(d))
+                        message_list.append(utils.JsonDict(d))
                 #typ, response = conn.store(num, '+FLAGS', r'(\Seen)')
         finally:
             pass
@@ -216,9 +234,16 @@ class Email(SNSBase):
             #except:
             #    pass
             ##conn.logout()
-        return l
+        return message_list
 
     def auth(self):
+        #TODO:
+        #    login here once is not enough. 
+        #    If the client stays idle for a long time, 
+        #    it will disconnect from the server. So in 
+        #    later transactions, we should check and 
+        #    login again if necessary. 
+
         imap_ok = False
         smtp_ok = False
 
@@ -278,7 +303,7 @@ class Email(SNSBase):
 
 
     def home_timeline(self, count = 20):
-        r = self._receive()
+        r = self._receive(count)
 
         message_list = []
         for m in r:
