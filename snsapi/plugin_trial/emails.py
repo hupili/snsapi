@@ -9,6 +9,10 @@ The file is named as "emails.py" instead of "email.py"
 because there is a package in Python called "email". 
 We will import that package..
 
+Premature warning:
+   * This is platform is only tested on GMail so far. 
+   * Welcome to report test results of other platform. 
+
 '''
 
 from ..snslog import SNSLog
@@ -123,7 +127,7 @@ class Email(SNSBase):
                     if isinstance(response_part, tuple):
                         msg = email.message_from_string(response_part[1])
                         text = self._extract_body(msg.get_payload())
-                        logger.debug("Extract part text '%s' failed!", text)
+                        logger.debug("Extract part text: %s", text.rstrip())
                         try:
                             self.buddy_list.extend(json.loads(text))
                         except Exception, e:
@@ -162,6 +166,25 @@ class Email(SNSBase):
         conn.copy(mlist, 'buddy')
         conn.store(mlist, '+FLAGS', r'(\deleted)')
 
+    def add_buddy(self, address, nickname = None):
+        '''
+        Warning: Use this function only when necessary. (20121026)
+
+        We have not abstracted User class yet. The first step for SNSAPI
+        is to abstract the information flow. That is the Message class 
+        you see. We assume buddy_list is maintained in other offline manner. 
+        e.g. Users login Sina Weibo and change their buddy list. In the 
+        next milestone, we may consider abstract User class. In the current 
+        framework, we need some esential function to manage buddy_list on
+        email platform. This is why the currrent function is here. The 
+        interface may be (drastically) changed in the future. 
+
+        The better way for upper layer developers is to operate 
+        'self.buddy_list' directly following the format. 
+
+        '''
+        self.buddy_list.append({"userid": address, "username": nickname})
+        self._update_buddy_list()
 
     def _receive(self):
         conn = self.imap
@@ -199,7 +222,7 @@ class Email(SNSBase):
         imap_ok = False
         smtp_ok = False
 
-        logger.debug("Try loggin IMAP server...")
+        logger.debug("Try login IMAP server...")
         try:
             if self.imap:
                 del self.imap
@@ -212,7 +235,7 @@ class Email(SNSBase):
             else:
                 raise e
         
-        logger.debug("Try loggin SMTP server...")
+        logger.debug("Try login SMTP server...")
         try:
             if self.smtp:
                 del self.smtp
@@ -267,11 +290,17 @@ class Email(SNSBase):
 
         return message_list
 
-
     def update(self, text):
         from email.mime.text import MIMEText
         msg = MIMEText(text, _charset = 'utf-8')
-        return self._send('hpl1989@gmail.com', 'test from snsapi', msg)
+        title = '[snsapi][status][from:%s][timestamp:%s]' % (self.jsonconf['address'], str(self.time()))
+        ok_all = True
+        for u in self.buddy_list:
+            toaddr = u['userid'] #userid of email platform is email address
+            re = self._send(toaddr, title, msg)
+            logger.debug("Send email to '%s': %s", toaddr, re)
+            ok_all = ok_all and re
+        return ok_all
 
 # === email message fields for future reference
 # TODO:
