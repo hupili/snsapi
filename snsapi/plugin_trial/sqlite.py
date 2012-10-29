@@ -89,7 +89,7 @@ class SQLite(SNSBase):
 
         '''
         url = self.jsonconf.url
-        self.con = sqlite3.connect(url)
+        self.con = sqlite3.connect(url, check_same_thread = False)
         self.con.isolation_level = None
         self._create_schema()
 
