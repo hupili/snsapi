@@ -17,7 +17,18 @@ class JsonObject(dict):
     general json object that can bind any fields but also act as a dict.
     '''
     def __getattr__(self, attr):
-        return self[attr]
+        '''
+        HU Pili 20121029:
+            We modify the raised error type so that this object 
+            is pickle-serializable. 
+            
+        See reference:
+            http://bytes.com/topic/python/answers/626288-pickling-class-__getattr__
+        '''
+        try:
+            return self[attr]
+        except KeyError:
+            raise AttributeError
 
     def __setattr__(self, attr, value):
         self[attr] = value
