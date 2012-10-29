@@ -17,6 +17,37 @@ from .. import utils
 
 logger.debug("%s plugged!", __file__)
 
+class RSSMessage(snstype.Message):
+    platform = "RSS"
+
+    def parse(self):
+        self.ID.platform = self.platform
+
+        self.parsed.username = self.raw.get('author')
+        #TODO:
+        #    According to the notion of ID, it should identify 
+        #    a single user in a cross platform fashion. From the 
+        #    message, we know platform is RSS. However, author 
+        #    name is not enough. Suppose all feeds do their due
+        #    dilligence to make 'author' identifiable, we can 
+        #    use 'url' (of RSS feed) + 'author' to identify a 
+        #    single user of RSS platform. This requires some 
+        #    framework change in SNSAPI, allowing putting this 
+        #    prefix information to Message class (not Message 
+        #    instance). 
+        self.parsed.userid = self.raw.get('author')
+        self.parsed.time = utils.str2utc(self.raw.get('published'))
+
+        self.parsed.title = self.raw.get('title')
+        self.parsed.link = self.raw.get('link')
+
+        # Other plugins' statuses have 'text' field
+        # The RSS channel is supposed to read contents from
+        # different places with different formats. 
+        # The entries are usually page update notifications. 
+        # We format them in a unified way and use this as 'text'. 
+        self.parsed.text = "Article \"%s\" is updated(published)! (%s)" % (self.parsed.title, self.parsed.link)
+
 class RSS(SNSBase):
     '''
     Supported Methods
@@ -28,42 +59,12 @@ class RSS(SNSBase):
             where you can only read your wall but can 
             not write to it.
     '''
-        
-    class Message(snstype.Message):
 
-        def parse(self):
-            self.ID.platform = self.platform
-
-            self.parsed.username = self.raw.get('author')
-            #TODO:
-            #    According to the notion of ID, it should identify 
-            #    a single user in a cross platform fashion. From the 
-            #    message, we know platform is RSS. However, author 
-            #    name is not enough. Suppose all feeds do their due
-            #    dilligence to make 'author' identifiable, we can 
-            #    use 'url' (of RSS feed) + 'author' to identify a 
-            #    single user of RSS platform. This requires some 
-            #    framework change in SNSAPI, allowing putting this 
-            #    prefix information to Message class (not Message 
-            #    instance). 
-            self.parsed.userid = self.raw.get('author')
-            self.parsed.time = utils.str2utc(self.raw.get('published'))
-
-            self.parsed.title = self.raw.get('title')
-            self.parsed.link = self.raw.get('link')
-
-            # Other plugins' statuses have 'text' field
-            # The RSS channel is supposed to read contents from
-            # different places with different formats. 
-            # The entries are usually page update notifications. 
-            # We format them in a unified way and use this as 'text'. 
-            self.parsed.text = "Article \"%s\" is updated(published)! (%s)" % (self.parsed.title, self.parsed.link)
+    Message = RSSMessage
 
     def __init__(self, channel = None):
         super(RSS, self).__init__(channel)
-        
         self.platform = self.__class__.__name__
-        self.Message.platform = self.platform
 
     @staticmethod
     def new_channel(full = False):
@@ -102,27 +103,29 @@ class RSS(SNSBase):
             statuslist.append(s)
         return statuslist
 
+class RSS2RWMessage(RSSMessage):
+    platform = "RSS2RW"
+    def parse(self):
+        super(RSS2RWMessage, self).parse()
+        self.ID.platform = self.platform
+
+        # RSS2RW channel is intended for snsapi-standardized communication.
+        # It does not have to digest RSS entry as is in RSSStatus. 
+        # The 'title' field is the place where we put our messages. 
+        self.parsed.text = self.parsed.title
+
 class RSS2RW(RSS):
     '''
     Read/Write Channel for rss2
 
     '''
 
-    class Message(RSS.Message):
-        def parse(self):
-            super(RSS2RW.Message, self).parse()
-            self.ID.platform = self.platform
-
-            # RSS2RW channel is intended for snsapi-standardized communication.
-            # It does not have to digest RSS entry as is in RSSStatus. 
-            # The 'title' field is the place where we put our messages. 
-            self.parsed.text = self.parsed.title
+    Message = RSS2RWMessage
 
     def __init__(self, channel = None):
         super(RSS2RW, self).__init__(channel)
 
         self.platform = self.__class__.__name__
-        self.Message.platform = self.platform
 
         # default parameter for writing RSS2 feeds
         self.author = "snsapi"

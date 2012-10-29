@@ -10,58 +10,61 @@ from .. import snstype
 
 logger.debug("%s plugged!", __file__)
 
+class TencentWeiboStatusMessage(snstype.Message):
+    platform = "TencentWeiboStatus"
+    def parse(self):
+        self.ID.platform = self.platform
+        self._parse(self.raw)
+
+    def _parse(self, dct):
+        #TODO: unify the data type
+        #      In SinaAPI, 'created_at' is a string
+        #      In TecentWeibo, 'created_at' is an int
+        #Proposal:
+        #      1. Store a copy of dct object in the Status object. 
+        #         Derived class of TecentWeibo or SinaAPI can extract 
+        #         other fields for future use. 
+        #      2. Defaultly convert every fields into unicode string. 
+        #         Upper layer can tackle with a unified interface
+
+        self.ID.reid = dct['id']
+
+        self.parsed.time = dct['timestamp']
+        self.parsed.userid = dct['name']
+        self.parsed.username = dct['nick']
+
+        # The 'origtext' field is plaintext. 
+        # URLs in 'text' field is parsed to HTML tag
+        self.parsed.reposts_count = dct['count']
+        self.parsed.comments_count = dct['mcount']
+        self.parsed.text_last = dct['origtext']
+        if 'source' in dct and dct['source']:
+            self.parsed.text_trace = dct['origtext']
+            self.parsed.text_orig = dct['source']['origtext']
+            self.parsed.username_orig = dct['source']['nick']
+            self.parsed.text = self.parsed.text_trace \
+                    + " || " + "@" + self.parsed.username_orig \
+                    + " : " + self.parsed.text_orig
+        else:
+            self.parsed.text_trace = None
+            self.parsed.text_orig = dct['origtext']
+            self.parsed.username_orig = dct['nick']
+            self.parsed.text = dct['origtext'] 
+
+        #TODO:
+        #    retire past fields
+        #self.ID.reid = dct['id']
+        #self.parsed.id = dct['id']
+        #self.parsed.created_at = dct['timestamp']
+        #self.parsed.text = dct['text']
+        #self.parsed.reposts_count = dct['count']
+        #self.parsed.comments_count = dct['mcount']
+        #self.parsed.username = dct['name']
+        #self.parsed.usernick = dct['nick']
+
 class TencentWeiboStatus(SNSBase):
 
-    class Message(snstype.Message):
-        def parse(self):
-            self.ID.platform = self.platform
-            self._parse(self.raw)
-
-        def _parse(self, dct):
-            #TODO: unify the data type
-            #      In SinaAPI, 'created_at' is a string
-            #      In TecentWeibo, 'created_at' is an int
-            #Proposal:
-            #      1. Store a copy of dct object in the Status object. 
-            #         Derived class of TecentWeibo or SinaAPI can extract 
-            #         other fields for future use. 
-            #      2. Defaultly convert every fields into unicode string. 
-            #         Upper layer can tackle with a unified interface
-
-            self.ID.reid = dct['id']
-
-            self.parsed.time = dct['timestamp']
-            self.parsed.userid = dct['name']
-            self.parsed.username = dct['nick']
-
-            # The 'origtext' field is plaintext. 
-            # URLs in 'text' field is parsed to HTML tag
-            self.parsed.reposts_count = dct['count']
-            self.parsed.comments_count = dct['mcount']
-            self.parsed.text_last = dct['origtext']
-            if 'source' in dct and dct['source']:
-                self.parsed.text_trace = dct['origtext']
-                self.parsed.text_orig = dct['source']['origtext']
-                self.parsed.username_orig = dct['source']['nick']
-                self.parsed.text = self.parsed.text_trace \
-                        + " || " + "@" + self.parsed.username_orig \
-                        + " : " + self.parsed.text_orig
-            else:
-                self.parsed.text_trace = None
-                self.parsed.text_orig = dct['origtext']
-                self.parsed.username_orig = dct['nick']
-                self.parsed.text = dct['origtext'] 
-
-            #TODO:
-            #    retire past fields
-            #self.ID.reid = dct['id']
-            #self.parsed.id = dct['id']
-            #self.parsed.created_at = dct['timestamp']
-            #self.parsed.text = dct['text']
-            #self.parsed.reposts_count = dct['count']
-            #self.parsed.comments_count = dct['mcount']
-            #self.parsed.username = dct['name']
-            #self.parsed.usernick = dct['nick']
+    Message = TencentWeiboStatusMessage
 
     def __init__(self, channel = None):
         super(TencentWeiboStatus, self).__init__(channel)

@@ -18,25 +18,28 @@ from ..third import twitter
 
 logger.debug("%s plugged!", __file__)
 
+class TwitterStatusMessage(snstype.Message):
+    platform = "TwitterStatus"
+    def parse(self):
+        self.ID.platform = self.platform
+        self._parse(self.raw)
+
+    def _parse(self, dct):
+        self.ID.id = dct['id']
+
+        self.parsed.time = utils.str2utc(dct['created_at'])
+        self.parsed.username = dct['user']['name']
+        self.parsed.userid = dct['user']['id']
+        self.parsed.text = dct['text']
+
+
 class TwitterStatus(SNSBase):
-    class Message(snstype.Message):
-        def parse(self):
-            self.ID.platform = self.platform
-            self._parse(self.raw)
 
-        def _parse(self, dct):
-            self.ID.id = dct['id']
-
-            self.parsed.time = utils.str2utc(dct['created_at'])
-            self.parsed.username = dct['user']['name']
-            self.parsed.userid = dct['user']['id']
-            self.parsed.text = dct['text']
+    Message = TwitterStatusMessage
 
     def __init__(self, channel = None):
         super(TwitterStatus, self).__init__(channel)
-
         self.platform = self.__class__.__name__
-        self.Message.platform = self.platform
 
         self.api = twitter.Api(consumer_key=self.jsonconf['app_key'],\
                 consumer_secret=self.jsonconf['app_secret'],\

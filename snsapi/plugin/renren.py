@@ -35,9 +35,7 @@ class RenrenBase(SNSBase):
 
     def __init__(self, channel = None):
         super(RenrenBase, self).__init__(channel)
-
         self.platform = self.__class__.__name__
-        self.Message.platform = self.platform
 
     @staticmethod
     def new_channel(full = False):
@@ -147,84 +145,85 @@ class RenrenBase(SNSBase):
         return hasher.hexdigest()
         
 
+class RenrenShareMessage(snstype.Message):
+    platform = "RenrenShare"
 
-class RenrenShare(RenrenBase):
+    def parse(self):
+        self.ID.platform = self.platform
+        self._parse_feed_share(self.raw)
 
-    class Message(snstype.Message):
-        def parse(self):
-            self.ID.platform = self.platform
-            self._parse_feed_share(self.raw)
+    def _parse_feed_share(self, dct):
+        self.ID.status_id = dct["source_id"]
+        self.ID.source_user_id = dct["actor_id"]
 
-        def _parse_feed_share(self, dct):
-            self.ID.status_id = dct["source_id"]
-            self.ID.source_user_id = dct["actor_id"]
+        self.parsed.userid = dct['actor_id']
+        self.parsed.username = dct['name']
+        self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
 
-            self.parsed.userid = dct['actor_id']
-            self.parsed.username = dct['name']
-            self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
-
-            if dct['feed_type'] == 33:
-                self._parse_feed_33(dct)
-            elif dct['feed_type'] == 32:
-                self._parse_feed_32(dct)
-            else:
-                #self.parsed.text_orig = dct['description']
-                self.parsed.text_last = dct['message'] 
-                self.parsed.text_trace = dct['trace']['text']
-                self.parsed.title = dct['title']
-                self.parsed.description = dct['description']
-                self.parsed.reposts_count = 'N/A'
-                self.parsed.comments_count = dct['comments']['count']
-                self.parsed.text_orig = self.parsed.title + "||" + self.parsed.description
-                # Assemble a general format message
-                self.parsed.text = self.parsed.text_trace \
-                        + "||" + self.parsed.title \
-                        + "||" + self.parsed.description
-
-        def _parse_feed_33(self, dct):
-            '''
-            Feed type 33. Albums 
-            '''
-
-            #self.parsed.text_orig = dct['prefix']
-            self.parsed.text_last = dct['message'] 
-            self.parsed.text_trace = dct['trace']['text']
-            self.parsed.title = dct['title']
-            self.parsed.link = dct['href']
-            self.parsed.description = dct['title']
-            self.parsed.reposts_count = 'N/A'
-            self.parsed.comments_count = dct['comments']['count']
-            self.parsed.text_orig = self.parsed.title + "||" + self.parsed.link
-
-            #self.parsed.text = "%s||%s||%s" % (\
-            #        self.parsed.text_orig, self.parsed.title, self.parsed.link)
-            self.parsed.text = "%s||%s" % (\
-                    self.parsed.title, self.parsed.link)
-
-        def _parse_feed_32(self, dct):
-            '''
-            Feed type 33. Photo
-            '''
-
+        if dct['feed_type'] == 33:
+            self._parse_feed_33(dct)
+        elif dct['feed_type'] == 32:
+            self._parse_feed_32(dct)
+        else:
             #self.parsed.text_orig = dct['description']
             self.parsed.text_last = dct['message'] 
             self.parsed.text_trace = dct['trace']['text']
             self.parsed.title = dct['title']
-            self.parsed.link = dct['attachment'][0]['href']
             self.parsed.description = dct['description']
             self.parsed.reposts_count = 'N/A'
             self.parsed.comments_count = dct['comments']['count']
-            self.parsed.text_orig = self.parsed.link + "||" + self.parsed.title + "||" + self.parsed.description
+            self.parsed.text_orig = self.parsed.title + "||" + self.parsed.description
+            # Assemble a general format message
+            self.parsed.text = self.parsed.text_trace \
+                    + "||" + self.parsed.title \
+                    + "||" + self.parsed.description
 
-            self.parsed.text = "%s||%s||%s||%s" % (\
-                    self.parsed.text_trace, self.parsed.link, self.parsed.title, self.parsed.description)
+    def _parse_feed_33(self, dct):
+        '''
+        Feed type 33. Albums 
+        '''
 
+        #self.parsed.text_orig = dct['prefix']
+        self.parsed.text_last = dct['message'] 
+        self.parsed.text_trace = dct['trace']['text']
+        self.parsed.title = dct['title']
+        self.parsed.link = dct['href']
+        self.parsed.description = dct['title']
+        self.parsed.reposts_count = 'N/A'
+        self.parsed.comments_count = dct['comments']['count']
+        self.parsed.text_orig = self.parsed.title + "||" + self.parsed.link
+
+        #self.parsed.text = "%s||%s||%s" % (\
+        #        self.parsed.text_orig, self.parsed.title, self.parsed.link)
+        self.parsed.text = "%s||%s" % (\
+                self.parsed.title, self.parsed.link)
+
+    def _parse_feed_32(self, dct):
+        '''
+        Feed type 33. Photo
+        '''
+
+        #self.parsed.text_orig = dct['description']
+        self.parsed.text_last = dct['message'] 
+        self.parsed.text_trace = dct['trace']['text']
+        self.parsed.title = dct['title']
+        self.parsed.link = dct['attachment'][0]['href']
+        self.parsed.description = dct['description']
+        self.parsed.reposts_count = 'N/A'
+        self.parsed.comments_count = dct['comments']['count']
+        self.parsed.text_orig = self.parsed.link + "||" + self.parsed.title + "||" + self.parsed.description
+
+        self.parsed.text = "%s||%s||%s||%s" % (\
+                self.parsed.text_trace, self.parsed.link, self.parsed.title, self.parsed.description)
+
+
+class RenrenShare(RenrenBase):
+
+    Message = RenrenShareMessage
 
     def __init__(self, channel = None):
         super(RenrenShare, self).__init__(channel)
-
         self.platform = self.__class__.__name__
-        self.Message.platform = self.platform
 
     @staticmethod
     def new_channel(full = False):
@@ -281,76 +280,75 @@ class RenrenShare(RenrenBase):
         logger.info("Reply '%s' to status '%s' fail", text, statusID)
         return False
 
+class RenrenStatusMessage(snstype.Message):
+    platform = "RenrenStatus"
+    def parse(self):
+        self.ID.platform = self.platform
+        self._parse_feed_status(self.raw)
+
+    def _parse_feed_status(self, dct):
+        #logger.debug(json.dumps(dct))
+        # By trial, it seems:
+        #    * 'post_id' : the id of news feeds
+        #    * 'source_id' : the id of status
+        #      equal to 'status_id' returned by 
+        #      'status.get' interface
+        # self.id = dct["post_id"]
+
+        self.ID.status_id = dct["source_id"]
+        self.ID.source_user_id = dct["actor_id"]
+
+        self.parsed.userid = dct['actor_id']
+        self.parsed.username = dct['name']
+        self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
+        self.parsed.text = dct['message']
+
+        #print dct 
+
+        try:
+            self.parsed.username_orig = dct['attachment'][0]['owner_name']
+            self.parsed.text_orig = dct['attachment'][0]['content']
+            self.parsed.text += " || " + "@" + self.parsed.username_orig \
+                    + " : " + self.parsed.text_orig
+            #print self.parsed.text
+        except:
+            pass
+        #except Exception, e:
+        #    raise e
+
+        self.parsed.text_trace = dct['message'] 
+        self.parsed.reposts_count = 'N/A'
+        self.parsed.comments_count = dct['comments']['count']
+
+        #self.parsed.id = dct["source_id"]
+        #self.parsed.created_at = dct["update_time"]
+        #self.parsed.text = dct['message']
+        #self.parsed.reposts_count = 'N/A'
+        #self.parsed.comments_count = dct['comments']['count']
+        #self.parsed.username = dct['name']
+        #self.parsed.usernick = ""
+        #self.ID.status_id = dct["source_id"]
+        #self.ID.source_user_id = dct["actor_id"]
+
+    # The following is to parse Status of Renren. 
+    # (get by invoking 'status.get', not 'feed.get')
+    #def _parse_status(self, dct):
+    #    self.id = dct["status_id"]
+    #    self.created_at = dct["time"]
+    #    if 'root_message' in dct:
+    #        self.text = dct['root_message']
+    #    else:
+    #        self.text = dct['message']
+    #    self.reposts_count = dct['forward_count']
+    #    self.comments_count = dct['comment_count']
+    #    self.username = dct['uid']
+    #    self.usernick = ""
+
 class RenrenStatus(RenrenBase):
-
-    class Message(snstype.Message):
-        def parse(self):
-            self.ID.platform = self.platform
-            self._parse_feed_status(self.raw)
-
-        def _parse_feed_status(self, dct):
-            #logger.debug(json.dumps(dct))
-            # By trial, it seems:
-            #    * 'post_id' : the id of news feeds
-            #    * 'source_id' : the id of status
-            #      equal to 'status_id' returned by 
-            #      'status.get' interface
-            # self.id = dct["post_id"]
-
-            self.ID.status_id = dct["source_id"]
-            self.ID.source_user_id = dct["actor_id"]
-
-            self.parsed.userid = dct['actor_id']
-            self.parsed.username = dct['name']
-            self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
-            self.parsed.text = dct['message']
-
-            #print dct 
-
-            try:
-                self.parsed.username_orig = dct['attachment'][0]['owner_name']
-                self.parsed.text_orig = dct['attachment'][0]['content']
-                self.parsed.text += " || " + "@" + self.parsed.username_orig \
-                        + " : " + self.parsed.text_orig
-                #print self.parsed.text
-            except:
-                pass
-            #except Exception, e:
-            #    raise e
-
-            self.parsed.text_trace = dct['message'] 
-            self.parsed.reposts_count = 'N/A'
-            self.parsed.comments_count = dct['comments']['count']
-
-            #self.parsed.id = dct["source_id"]
-            #self.parsed.created_at = dct["update_time"]
-            #self.parsed.text = dct['message']
-            #self.parsed.reposts_count = 'N/A'
-            #self.parsed.comments_count = dct['comments']['count']
-            #self.parsed.username = dct['name']
-            #self.parsed.usernick = ""
-            #self.ID.status_id = dct["source_id"]
-            #self.ID.source_user_id = dct["actor_id"]
-
-        # The following is to parse Status of Renren. 
-        # (get by invoking 'status.get', not 'feed.get')
-        #def _parse_status(self, dct):
-        #    self.id = dct["status_id"]
-        #    self.created_at = dct["time"]
-        #    if 'root_message' in dct:
-        #        self.text = dct['root_message']
-        #    else:
-        #        self.text = dct['message']
-        #    self.reposts_count = dct['forward_count']
-        #    self.comments_count = dct['comment_count']
-        #    self.username = dct['uid']
-        #    self.usernick = ""
-
+    Message = RenrenStatusMessage
     def __init__(self, channel = None):
         super(RenrenStatus, self).__init__(channel)
-
         self.platform = self.__class__.__name__
-        self.Message.platform = self.platform
         
     @staticmethod
     def new_channel(full = False):

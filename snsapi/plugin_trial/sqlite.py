@@ -17,20 +17,22 @@ import sqlite3
 
 logger.debug("%s plugged!", __file__)
 
-class SQLite(SNSBase):
-    class Message(snstype.Message):
-        def parse(self):
-            self.ID.platform = self.platform
-            self._parse(self.raw)
+class SQLiteMessage(snstype.Message):
+    platform = "SQLite"
+    def parse(self):
+        self.ID.platform = self.platform
+        self._parse(self.raw)
 
-        def _parse(self, dct):
-            self.parsed = dct
+    def _parse(self, dct):
+        self.parsed = dct
+
+class SQLite(SNSBase):
+
+    Message = SQLiteMessage
 
     def __init__(self, channel = None):
         super(SQLite, self).__init__(channel)
-
         self.platform = self.__class__.__name__
-        self.Message.platform = self.platform
 
         self.con = None
 

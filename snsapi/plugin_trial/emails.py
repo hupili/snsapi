@@ -33,52 +33,54 @@ import re
 
 logger.debug("%s plugged!", __file__)
 
+class EmailMessage(snstype.Message):
+    platform = "Email"
+    def parse(self):
+        self.ID.platform = self.platform
+        self._parse(self.raw)
+
+    def _parse(self, dct):
+        #TODO:
+        #    Put in message id. 
+        #    The id should be composed of mailbox and id in the box.
+        #
+        #    The IMAP id can not be used as a global identifier. 
+        #    Once messages are deleted or moved, it will change. 
+        #    The IMAP id is more like the subscript of an array. 
+        #    
+        #    SNSAPI should work out its own message format to store an 
+        #    identifier. An identifier should be (address, sequence). 
+        #    There are three ways to generate the sequence number: 
+        #       * 1. Random pick
+        #       * 2. Pass message through a hash
+        #       * 3. Maintain a counter in the mailbox 
+        #       * 4. UID as mentioned in some discussions. Not sure whether
+        #       this is account-dependent or not. 
+        #
+        #     I prefer 2. at present. Our Message objects are designed 
+        #     to be able to digest themselves. 
+
+        self.parsed.title = dct.get('Subject')
+        self.parsed.text = dct.get('body')
+        self.parsed.time = utils.str2utc(dct.get('Date'))
+
+        sender = dct.get('From')
+        r = re.compile(r'^(.+)<(.+@.+\..+)>$', re.IGNORECASE)
+        m = r.match(sender)
+        if m:
+            self.parsed.username = m.groups()[0]
+            self.parsed.userid = m.groups()[1]
+        else:
+            self.parsed.username = sender
+            self.parsed.userid = sender
+
 class Email(SNSBase):
-    class Message(snstype.Message):
-        def parse(self):
-            self.ID.platform = self.platform
-            self._parse(self.raw)
 
-        def _parse(self, dct):
-            #TODO:
-            #    Put in message id. 
-            #    The id should be composed of mailbox and id in the box.
-            #
-            #    The IMAP id can not be used as a global identifier. 
-            #    Once messages are deleted or moved, it will change. 
-            #    The IMAP id is more like the subscript of an array. 
-            #    
-            #    SNSAPI should work out its own message format to store an 
-            #    identifier. An identifier should be (address, sequence). 
-            #    There are three ways to generate the sequence number: 
-            #       * 1. Random pick
-            #       * 2. Pass message through a hash
-            #       * 3. Maintain a counter in the mailbox 
-            #       * 4. UID as mentioned in some discussions. Not sure whether
-            #       this is account-dependent or not. 
-            #
-            #     I prefer 2. at present. Our Message objects are designed 
-            #     to be able to digest themselves. 
-
-            self.parsed.title = dct.get('Subject')
-            self.parsed.text = dct.get('body')
-            self.parsed.time = utils.str2utc(dct.get('Date'))
-
-            sender = dct.get('From')
-            r = re.compile(r'^(.+)<(.+@.+\..+)>$', re.IGNORECASE)
-            m = r.match(sender)
-            if m:
-                self.parsed.username = m.groups()[0]
-                self.parsed.userid = m.groups()[1]
-            else:
-                self.parsed.username = sender
-                self.parsed.userid = sender
+    Message = EmailMessage
 
     def __init__(self, channel = None):
         super(Email, self).__init__(channel)
-
         self.platform = self.__class__.__name__
-        self.Message.platform = self.platform
 
         self.imap = None
         self.smtp = None

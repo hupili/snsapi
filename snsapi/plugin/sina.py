@@ -12,49 +12,52 @@ from .. import utils
 
 logger.debug("%s plugged!", __file__)
 
+class SinaWeiboStatusMessage(snstype.Message):
+    platform = "SinaWeiboStatus"
+    def parse(self):
+        self.ID.platform = self.platform
+        self._parse(self.raw)
+
+    def _parse(self, dct):
+        #print dct 
+
+        self.ID.id = dct["id"]
+
+        self.parsed.time = utils.str2utc(dct["created_at"])
+        self.parsed.username = dct['user']['name']
+        self.parsed.userid = dct['user']['id']
+
+        self.parsed.reposts_count = dct['reposts_count']
+        self.parsed.comments_count = dct['comments_count']
+        
+        if 'retweeted_status' in dct:
+            self.parsed.username_orig = "unknown"
+            try:
+                self.parsed.username_orig = dct['retweeted_status']['user']['name']
+            except KeyError:
+                logger.warning('KeyError when parsing SinaWeiboStatus. May be deleted message')
+            self.parsed.text_orig = dct['retweeted_status']['text']
+            self.parsed.text_trace = dct['text']
+            self.parsed.text = self.parsed.text_trace \
+                    + " || " + "@" + self.parsed.username_orig \
+                    + " : " + self.parsed.text_orig
+        else:
+            self.parsed.text_orig = dct['text'] 
+            self.parsed.text_trace = None
+            self.parsed.text = self.parsed.text_orig
+
+        #TODO: clean past fields
+        #self.parsed.id = dct["id"]
+        #self.parsed.created_at = dct["created_at"]
+        #self.parsed.text = dct['text']
+        #self.parsed.reposts_count = dct['reposts_count']
+        #self.parsed.comments_count = dct['comments_count']
+        #self.parsed.username = dct['user']['name']
+        #self.parsed.usernick = ""
+
 class SinaWeiboStatus(SNSBase):
-
-    class Message(snstype.Message):
-        def parse(self):
-            self.ID.platform = self.platform
-            self._parse(self.raw)
-
-        def _parse(self, dct):
-            #print dct 
-
-            self.ID.id = dct["id"]
-
-            self.parsed.time = utils.str2utc(dct["created_at"])
-            self.parsed.username = dct['user']['name']
-            self.parsed.userid = dct['user']['id']
-
-            self.parsed.reposts_count = dct['reposts_count']
-            self.parsed.comments_count = dct['comments_count']
-            
-            if 'retweeted_status' in dct:
-                self.parsed.username_orig = "unknown"
-                try:
-                    self.parsed.username_orig = dct['retweeted_status']['user']['name']
-                except KeyError:
-                    logger.warning('KeyError when parsing SinaWeiboStatus. May be deleted message')
-                self.parsed.text_orig = dct['retweeted_status']['text']
-                self.parsed.text_trace = dct['text']
-                self.parsed.text = self.parsed.text_trace \
-                        + " || " + "@" + self.parsed.username_orig \
-                        + " : " + self.parsed.text_orig
-            else:
-                self.parsed.text_orig = dct['text'] 
-                self.parsed.text_trace = None
-                self.parsed.text = self.parsed.text_orig
-
-            #TODO: clean past fields
-            #self.parsed.id = dct["id"]
-            #self.parsed.created_at = dct["created_at"]
-            #self.parsed.text = dct['text']
-            #self.parsed.reposts_count = dct['reposts_count']
-            #self.parsed.comments_count = dct['comments_count']
-            #self.parsed.username = dct['user']['name']
-            #self.parsed.usernick = ""
+    
+    Message = SinaWeiboStatusMessage
 
     def __init__(self, channel = None):
         super(SinaWeiboStatus, self).__init__(channel)
