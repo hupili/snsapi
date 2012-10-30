@@ -87,7 +87,7 @@ class RSS(SNSBase):
 
         d = feedparser.parse(self.jsonconf.url)
         
-        statuslist = []
+        statuslist = snstype.MessageList()
         for j in d['items']:
             if len(statuslist) >= count:
                 break

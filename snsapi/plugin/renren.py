@@ -23,16 +23,15 @@ RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_SESSION_KEY_URI = "http://graph.renren.com/renren_api/session_key"
 RENREN_API_SERVER = "http://api.renren.com/restserver.do"
 
+# This error is moved back to "renren.py". 
+# It's platform specific and we do not expect other 
+# file to raise this error. 
+class RenrenAPIError(Exception):
+    def __init__(self, code, message):
+        super(RenrenAPIError, self).__init__(message)
+        self.code = code
+
 class RenrenBase(SNSBase):
-
-    # This error is moved back to "renren.py". 
-    # It's platform specific and we do not expect other 
-    # file to raise this error. 
-    class RenrenAPIError(Exception):
-        def __init__(self, code, message):
-            super(RenrenAPIError, self).__init__(message)
-            self.code = code
-
     def __init__(self, channel = None):
         super(RenrenBase, self).__init__(channel)
         self.platform = self.__class__.__name__
@@ -134,7 +133,7 @@ class RenrenBase(SNSBase):
 
         if type(response) is not list and "error_code" in response:
             logger.warning(response["error_msg"]) 
-            raise RenrenBase.RenrenAPIError(response["error_code"], response["error_msg"])
+            raise RenrenAPIError(response["error_code"], response["error_msg"])
         return response
 
     def __hash_params(self, params = None):
@@ -242,7 +241,7 @@ class RenrenShare(RenrenBase):
                 page = 1, count = count)
         jsonlist = self.renren_request(api_params)
         
-        statuslist = []
+        statuslist = snstype.MessageList()
         try:
             for j in jsonlist:
                 statuslist.append(self.Message(j,\
@@ -365,7 +364,7 @@ class RenrenStatus(RenrenBase):
         api_params = dict(method = "feed.get", type = 10, page = 1, count = count)
         jsonlist = self.renren_request(api_params)
         
-        statuslist = []
+        statuslist = snstype.MessageList()
         try:
             for j in jsonlist:
                 statuslist.append(self.Message(j,\

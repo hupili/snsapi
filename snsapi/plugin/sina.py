@@ -20,12 +20,30 @@ class SinaWeiboStatusMessage(snstype.Message):
 
     def _parse(self, dct):
         #print dct 
+        #logger.debug("%s", dct)
+
+        if 'deleted' in dct and dct['deleted']:
+            logger.debug("This is a deleted message %s of SinaWeiboStatusMessage", dct["id"])
+            self.parsed.time = "unknown"
+            self.parsed.username = "unknown"
+            self.parsed.userid = "unknown"
+            self.parsed.text = "unknown"
+            self.deleted = True
+            return 
+            #return snstype.DeletedMessage(dct)
 
         self.ID.id = dct["id"]
 
         self.parsed.time = utils.str2utc(dct["created_at"])
         self.parsed.username = dct['user']['name']
         self.parsed.userid = dct['user']['id']
+        #if 'user' in dct:
+        #    self.parsed.username = dct['user']['name']
+        #    self.parsed.userid = dct['user']['id']
+        #    logger.warning("Parsed one message with unknown 'user' for SinaWeiboStatusMessage")
+        #else:
+        #    self.parsed.username = "unknown"
+        #    self.parsed.userid = "unknown"
 
         self.parsed.reposts_count = dct['reposts_count']
         self.parsed.comments_count = dct['comments_count']
@@ -35,7 +53,7 @@ class SinaWeiboStatusMessage(snstype.Message):
             try:
                 self.parsed.username_orig = dct['retweeted_status']['user']['name']
             except KeyError:
-                logger.warning('KeyError when parsing SinaWeiboStatus. May be deleted message')
+                logger.warning('KeyError when parsing SinaWeiboStatus. May be deleted original message')
             self.parsed.text_orig = dct['retweeted_status']['text']
             self.parsed.text_trace = dct['text']
             self.parsed.text = self.parsed.text_trace \
@@ -118,7 +136,7 @@ class SinaWeiboStatus(SNSBase):
             logger.warning("error json object returned: %s", jsonobj)
             return []
         
-        statuslist = []
+        statuslist = snstype.MessageList()
         for j in jsonobj['statuses']:
             statuslist.append(self.Message(j,\
                     platform = self.jsonconf['platform'],\

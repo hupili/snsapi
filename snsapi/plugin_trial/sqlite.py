@@ -89,7 +89,7 @@ class SQLite(SNSBase):
 
         '''
         url = self.jsonconf.url
-        self.con = sqlite3.connect(url)
+        self.con = sqlite3.connect(url, check_same_thread = False)
         self.con.isolation_level = None
         self._create_schema()
 
@@ -117,7 +117,7 @@ class SQLite(SNSBase):
         ORDER BY time DESC LIMIT ?
         ''', (count,))
 
-        message_list = []
+        message_list = snstype.MessageList()
         for m in r:
             message_list.append(self.Message({
                     'time':m[0],

@@ -155,6 +155,15 @@ class Serialize(object):
     def dumps(obj):
         return pickle.dumps(obj)
         
+import HTMLParser
+def html_entity_unescape(s):
+    '''
+    Escape HTML entities, such as "&pound;"
+    This interface always returns unicode no matter the input 's'
+    is str or unicode. 
+
+    '''
+    return HTMLParser.HTMLParser().unescape(s)
     
 if __name__ == '__main__':
     u = time.time()
