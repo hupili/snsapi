@@ -242,7 +242,10 @@ class SNSBase(object):
     def expire_after(self, token = None):
         if token == None:
             token = self.token
-        return token.expires_in - self.time()
+        if token:
+            return token.expires_in - self.time()
+        else: 
+            return -1
 
     def is_expired(self, token = None):
         '''
@@ -252,7 +255,7 @@ class SNSBase(object):
         #    For those token that are near 0, we'd better inform
         #    the upper layer somehow. Or, it may just expire when 
         #    the upper layer calls. 
-        if expire_after(token) <= 0:
+        if self.expire_after(token) <= 0:
             return True
         else:
             return False
