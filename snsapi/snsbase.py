@@ -222,7 +222,7 @@ class SNSBase(object):
             if fname != "(null)" :
                 with open(fname, "r") as fp:
                     token = utils.JsonObject(json.load(fp))
-                    #check expire time
+                    # check expire time
                     if self.is_expired(token):
                         logger.debug("Saved Access token is expired, try to get one through sns.auth() :D")
                         return False
@@ -238,15 +238,21 @@ class SNSBase(object):
 
         logger.info("Read saved token for '%s' successfully", self.jsonconf.channel_name)
         return True
-    
-    def is_expired(self, token=None):
+
+    def expire_after(self, token = None):
+        if token == None:
+            token = self.token
+        return token.expires_in - self.time()
+
+    def is_expired(self, token = None):
         '''
         check if the access token is expired
         '''
-        if token == None:
-            token = self.token
-            
-        if token.expires_in < self.time():
+        #TODO:
+        #    For those token that are near 0, we'd better inform
+        #    the upper layer somehow. Or, it may just expire when 
+        #    the upper layer calls. 
+        if expire_after(token) <= 0:
             return True
         else:
             return False
