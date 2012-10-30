@@ -9,6 +9,7 @@ import hashlib
 import utils
 from errors import snserror
 from snsconf import SNSConf
+from snslog import SNSLog as logger
 
 class MessageID(utils.JsonDict):
     """
@@ -102,8 +103,12 @@ class Message(utils.JsonDict):
        * username_origin: a string. The username who posts 'text_orig'. 
 
     '''
-    def __init__(self, dct = None, platform = None, channel = None):
 
+    platform = "SNSAPI"
+
+    def __init__(self, dct = None, platform = None, channel = None):
+        
+        self['deleted'] = False
         self['ID'] = MessageID(platform, channel)
         #if platform:
         #    self['ID']['platform'] = platform
@@ -233,6 +238,11 @@ class Message(utils.JsonDict):
         '''
         return hashlib.sha1(self.dump_full().encode('utf-8')).hexdigest()
 
+#class DeletedMessage(Message):
+#    """docstring for DeletedMessage"""
+#    def __init__(self, dct):
+#        super(DeletedMessage, self).__init__(dct, "deleted", "deleted")
+        
 
 class MessageList(list):
     """
@@ -240,6 +250,27 @@ class MessageList(list):
     """
     def __init__(self):
         super(MessageList, self).__init__()
+
+    def append(self, e):
+        if isinstance(e, Message):
+            if hasattr(e, 'deleted') and e.deleted:
+                logger.debug("Trying to append Deleted Message type element. Ignored")
+            else:
+                super(MessageList, self).append(e)
+        else:
+            logger.debug("Trying to append non- Message type element. Ignored")
+
+    def extend(self, l):
+        if isinstance(l, MessageList):
+            super(MessageList, self).extend(l)
+        else:
+            # We still extend the list if the user asks to. 
+            # However, a warning will be placed. Doing this 
+            # may violate some properties of MessageList, e.g. 
+            # there is no Deleted Message in the list. 
+            super(MessageList, self).extend(l)
+            logger.warning("Extend MessageList with non MessageList list.")
+
 
     def __str__(self):
         tmp = ""

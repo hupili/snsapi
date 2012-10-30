@@ -130,7 +130,7 @@ class TencentWeiboStatus(SNSBase):
         jsonobj = self._http_get(url, params)
         #logger.debug("returned: %s", jsonobj)
         
-        statuslist = []
+        statuslist = snstype.MessageList()
         try:
             for j in jsonobj['data']['info']:
                 statuslist.append(self.Message(j,\

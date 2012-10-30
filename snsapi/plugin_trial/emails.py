@@ -359,7 +359,7 @@ class Email(SNSBase):
     def home_timeline(self, count = 20):
         r = self._receive(count)
 
-        message_list = []
+        message_list = snstype.MessageList()
         for m in r:
             message_list.append(self.Message(
                     m,\

@@ -117,7 +117,7 @@ class SQLite(SNSBase):
         ORDER BY time DESC LIMIT ?
         ''', (count,))
 
-        message_list = []
+        message_list = snstype.MessageList()
         for m in r:
             message_list.append(self.Message({
                     'time':m[0],
