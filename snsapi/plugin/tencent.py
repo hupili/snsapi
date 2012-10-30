@@ -7,6 +7,7 @@ QQ micro-blog client
 from ..snslog import SNSLog as logger 
 from ..snsbase import SNSBase
 from .. import snstype
+from .. import utils
 
 logger.debug("%s plugged!", __file__)
 
@@ -37,19 +38,19 @@ class TencentWeiboStatusMessage(snstype.Message):
         # URLs in 'text' field is parsed to HTML tag
         self.parsed.reposts_count = dct['count']
         self.parsed.comments_count = dct['mcount']
-        self.parsed.text_last = dct['origtext']
+        self.parsed.text_last = utils.html_entity_unescape(dct['origtext'])
         if 'source' in dct and dct['source']:
-            self.parsed.text_trace = dct['origtext']
-            self.parsed.text_orig = dct['source']['origtext']
-            self.parsed.username_orig = dct['source']['nick']
+            self.parsed.text_trace = utils.html_entity_unescape(dct['origtext'])
+            self.parsed.text_orig = utils.html_entity_unescape(dct['source']['origtext'])
+            self.parsed.username_orig = utils.html_entity_unescape(dct['source']['nick'])
             self.parsed.text = self.parsed.text_trace \
                     + " || " + "@" + self.parsed.username_orig \
                     + " : " + self.parsed.text_orig
         else:
             self.parsed.text_trace = None
-            self.parsed.text_orig = dct['origtext']
+            self.parsed.text_orig = utils.html_entity_unescape(dct['origtext'])
             self.parsed.username_orig = dct['nick']
-            self.parsed.text = dct['origtext'] 
+            self.parsed.text = utils.html_entity_unescape(dct['origtext'])
 
         #TODO:
         #    retire past fields
