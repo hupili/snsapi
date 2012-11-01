@@ -117,6 +117,9 @@ class Email(SNSBase):
             else:
                 logger.warning("unknown transfer encoding: %s", transfer_enc)
                 return "(Decoding Failed)"
+        # The past content-type fetching codes. 
+        # It's better to rely on email.Message functions. 
+        #
         #if 'Content-Type' in msg:
         #    ct = msg['Content-Type']
         #    r = re.compile(r'^(.+); charset="(.+)"$', re.IGNORECASE)
@@ -154,7 +157,6 @@ class Email(SNSBase):
         Extract text/plain section from a multipart message. 
 
         '''
-        #print msg
         tp = None
         if not msg.is_multipart():
             if msg.get_content_type() == 'text/plain':
@@ -167,7 +169,6 @@ class Email(SNSBase):
                     tp = p
                     break
         if tp:
-            logger.debug("e")
             return self.__decode_email_body(tp.get_payload(), tp)
         else:
             return u"No text/plain found"
@@ -295,11 +296,12 @@ class Email(SNSBase):
         conn = self.imap
         conn.select('INBOX')
         typ, data = conn.search(None, 'ALL')
-        logger.debug("read message IDs: %s", data)
+        #logger.debug("read message IDs: %s", data)
+
         # We assume ID is in chronological order and filter 
         # the count number of latest messages.  
         latest_messages = sorted(data[0].split(), key = lambda x: int(x), reverse = True)[0:count]
-        logger.debug("selected message IDs: %s", latest_messages)
+        #logger.debug("selected message IDs: %s", latest_messages)
 
         message_list = []
         try:
@@ -322,9 +324,6 @@ class Email(SNSBase):
 
                         # Convert header fields into dict
                         d = dict(msg) 
-                        # Add other essential fields
-                        #t = self._get_text_plain(msg)
-                        #d['body'] = self._extract_body(t.get_payload(), t)
                         d['body'] = self._format_from_text_plain(self._get_text_plain(msg))
                         d['_pyobj'] = utils.Serialize.dumps(msg)
                         message_list.append(utils.JsonDict(d))
@@ -370,7 +369,6 @@ class Email(SNSBase):
         if imap_ok and smtp_ok:
             logger.info("Email channel '%s' auth success", self.jsonconf['channel_name'])
             self._get_buddy_list()
-            #self._update_buddy_list()
             return True
         else:
             logger.warning("Email channel '%s' auth failed!!", self.jsonconf['channel_name'])
