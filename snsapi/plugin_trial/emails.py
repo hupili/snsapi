@@ -68,8 +68,8 @@ class EmailMessage(snstype.Message):
         r = re.compile(r'^(.+)<(.+@.+\..+)>$', re.IGNORECASE)
         m = r.match(sender)
         if m:
-            self.parsed.username = m.groups()[0]
-            self.parsed.userid = m.groups()[1]
+            self.parsed.username = m.groups()[0].strip()
+            self.parsed.userid = m.groups()[1].strip()
         else:
             self.parsed.username = sender
             self.parsed.userid = sender
@@ -117,23 +117,30 @@ class Email(SNSBase):
             else:
                 logger.warning("unknown transfer encoding: %s", transfer_enc)
                 return "(Decoding Failed)"
-        if 'Content-Type' in msg:
-            ct = msg['Content-Type']
-            r = re.compile(r'^(.+); charset="(.+)"$', re.IGNORECASE)
-            m = r.match(ct)
-            # Use search if the pattern does not start from 0. 
-            # Use group() to get matched part and groups() to get 
-            # mateched substrings. 
-            if m:
-                cs = m.groups()[1]
-            else:
-                # By default, we assume ASCII charset
-                cs = "ascii"
-            try:
-                ret = ret.decode(cs)
-            except Exception, e:
-                #logger.warning("Decoding payload '%s' using '%s' failed!", payload, cs)
-                return "(Decoding Failed)"
+        #if 'Content-Type' in msg:
+        #    ct = msg['Content-Type']
+        #    r = re.compile(r'^(.+); charset="(.+)"$', re.IGNORECASE)
+        #    m = r.match(ct)
+        #    # Use search if the pattern does not start from 0. 
+        #    # Use group() to get matched part and groups() to get 
+        #    # mateched substrings. 
+        #    if m:
+        #        cs = m.groups()[1]
+        #    else:
+        #        # By default, we assume ASCII charset
+        #        cs = "ascii"
+        #    try:
+        #        ret = ret.decode(cs)
+        #    except Exception, e:
+        #        #logger.warning("Decoding payload '%s' using '%s' failed!", payload, cs)
+        #        return "(Decoding Failed)"
+
+        try:
+            cs = msg.get_content_charset()
+            ret = ret.decode(cs)
+        except Exception, e:
+            return "(Decoding Failed)"
+
         return ret
 
     def _extract_body(self, payload, msg):
@@ -141,6 +148,39 @@ class Email(SNSBase):
             return self.__decode_email_body(payload, msg)
         else:
             return '\n'.join([self._extract_body(part.get_payload(), msg) for part in payload])
+
+    def _get_text_plain(self, msg):
+        '''
+        Extract text/plain section from a multipart message. 
+
+        '''
+        #print msg
+        tp = None
+        if not msg.is_multipart():
+            if msg.get_content_type() == 'text/plain':
+                tp = msg 
+            else:
+                return u"No text/plain found"
+        else:
+            for p in msg.walk():
+                if p.get_content_type() == 'text/plain':
+                    tp = p
+                    break
+        if tp:
+            logger.debug("e")
+            return self.__decode_email_body(tp.get_payload(), tp)
+        else:
+            return u"No text/plain found"
+
+    def _format_from_text_plain(self, text):
+        '''
+        Some text/plain message is sent from email services. 
+        The formatting is not SNSAPI flavoured. To work around
+        this and enable unified view, we use this function 
+        to do post-formatting. 
+
+        '''
+        return text.replace('>', '').replace('\r\n', '').replace('\n', '')
 
     def _wait_for_email_subject(self, sub):
         conn = self.imap
@@ -283,7 +323,9 @@ class Email(SNSBase):
                         # Convert header fields into dict
                         d = dict(msg) 
                         # Add other essential fields
-                        d['body'] = self._extract_body(msg.get_payload(), msg)
+                        #t = self._get_text_plain(msg)
+                        #d['body'] = self._extract_body(t.get_payload(), t)
+                        d['body'] = self._format_from_text_plain(self._get_text_plain(msg))
                         d['_pyobj'] = utils.Serialize.dumps(msg)
                         message_list.append(utils.JsonDict(d))
         except Exception, e:
