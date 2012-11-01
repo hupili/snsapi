@@ -128,8 +128,8 @@ class RenrenBase(SNSBase):
         
         try:
             response = self._http_post(RENREN_API_SERVER, params)
-        finally:
-            pass
+        except Exception, e:
+            logger.warning("Catch exception: %s", e)
 
         if type(response) is not list and "error_code" in response:
             logger.warning(response["error_msg"]) 
