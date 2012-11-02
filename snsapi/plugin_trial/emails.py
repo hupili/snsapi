@@ -339,6 +339,8 @@ class Email(SNSBase):
         #    it will disconnect from the server. So in 
         #    later transactions, we should check and 
         #    login again if necessary. 
+        #
+        #    The error caught is "socket error: EOF"
 
         imap_ok = False
         smtp_ok = False
@@ -414,7 +416,8 @@ class Email(SNSBase):
     def update(self, text):
         from email.mime.text import MIMEText
         msg = MIMEText(text, _charset = 'utf-8')
-        title = '[snsapi][status][from:%s][timestamp:%s]' % (self.jsonconf['address'], str(self.time()))
+        #title = '[snsapi][status][from:%s][timestamp:%s]' % (self.jsonconf['address'], str(self.time()))
+        title = '[snsapi][status]%s' % (text[0:10])
         ok_all = True
         for u in self.buddy_list.values():
             toaddr = u['userid'] #userid of email platform is email address
