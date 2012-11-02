@@ -239,7 +239,11 @@ class RenrenShare(RenrenBase):
         api_params = dict(method = "feed.get", \
                 type = "21,32,33,50,51,52", \
                 page = 1, count = count)
-        jsonlist = self.renren_request(api_params)
+        try:
+            jsonlist = self.renren_request(api_params)
+        except RenrenAPIError, e:
+            logger.warning("RenrenAPIError, %s", e)
+            return snstype.MessageList()
         
         statuslist = snstype.MessageList()
         try:
@@ -249,8 +253,7 @@ class RenrenShare(RenrenBase):
                         channel = self.jsonconf['channel_name']\
                         ))
         except Exception, e:
-            #logger.warning("catch expection:%s", e.message)
-            logger.warning("catch expection:%s", str(e))
+            logger.warning("Catch expection:%s", e)
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
@@ -392,8 +395,8 @@ class RenrenStatus(RenrenBase):
             if 'result' in ret and ret['result'] == 1:
                 logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
                 return True
-        except:
-            pass
+        except Exception, e:
+            logger.warning("Catch Exception %s", e)
 
         logger.info("Update status '%s' on '%s' fail", text, self.jsonconf.channel_name)
         return False
@@ -416,8 +419,8 @@ class RenrenStatus(RenrenBase):
             if 'result' in ret and ret['result'] == 1:
                 logger.info("Reply '%s' to status '%s' succeed", text, statusID)
                 return True
-        except:
-            pass
+        except Exception, e:
+            logger.warning("Catch Exception %s", e)
 
         logger.info("Reply '%s' to status '%s' fail", text, statusID)
         return False
