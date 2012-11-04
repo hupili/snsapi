@@ -365,10 +365,10 @@ class RenrenStatus(RenrenBase):
         '''
 
         api_params = dict(method = "feed.get", type = 10, page = 1, count = count)
-        jsonlist = self.renren_request(api_params)
         
         statuslist = snstype.MessageList()
         try:
+            jsonlist = self.renren_request(api_params)
             for j in jsonlist:
                 statuslist.append(self.Message(j,\
                         platform = self.jsonconf['platform'],\
