@@ -112,6 +112,8 @@ $echo -e 'load_config()\nauth()\nprint home_timeline(10)' | python -i snscli.py 
 APP:
 ----
 
+基础应用:
+
    * hellosns: 
    [https://github.com/hupili/snsapi/tree/master/app/hellosns](https://github.com/hupili/snsapi/tree/master/app/hellosns)
    * forwarder: 
@@ -124,6 +126,13 @@ hello SNS将向你展示怎样用10行代码完成与SNS交互的基本功能，
 forwarder可以把一个平台的信息自动地发送到其他
 平台，你需要做地只是填写配置文件，告诉它接收哪个平台信息，发布到哪些平台上。mysofa我想你已经猜到了，
 就是用来抢沙发的 :D
+
+进阶应用:
+
+   * SNSRouter:
+   [https://github.com/hupili/sns-router](https://github.com/hupili/sns-router) . 
+   正如其名，这个app将构建跨平台的智能存档、转发系统。
+   它目前还在活跃的开发阶段。
 
 使用trial状态的插件
 ----
