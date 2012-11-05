@@ -87,3 +87,7 @@ class TwitterStatus(SNSBase):
         except Exception, e:
             logger.warning('update Twitter failed: %s', str(e))
             return False
+
+    def expire_after(self, token = None):
+        # This platform does not have token expire issue. 
+        return -1

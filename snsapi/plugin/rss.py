@@ -103,6 +103,10 @@ class RSS(SNSBase):
             statuslist.append(s)
         return statuslist
 
+    def expire_after(self, token = None):
+        # This platform does not have token expire issue. 
+        return -1
+
 class RSS2RWMessage(RSSMessage):
     platform = "RSS2RW"
     def parse(self):

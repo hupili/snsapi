@@ -424,6 +424,10 @@ class Email(SNSBase):
             ok_all = ok_all and re
         return ok_all
 
+    def expire_after(self, token = None):
+        # This platform does not have token expire issue. 
+        return -1
+
 # === email message fields for future reference
 # TODO:
 #     Enhance the security level by check fields like 

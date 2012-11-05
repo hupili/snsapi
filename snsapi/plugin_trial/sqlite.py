@@ -177,3 +177,7 @@ class SQLite(SNSBase):
         else:
             logger.warning('unknown type: %s', type(text))
             return False
+
+    def expire_after(self, token = None):
+        # This platform does not have token expire issue. 
+        return -1

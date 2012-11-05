@@ -240,24 +240,42 @@ class SNSBase(object):
         return True
 
     def expire_after(self, token = None):
+        '''
+        Calculate how long it is before token expire. 
+
+        Returns:
+           * >0: the time in seconds. 
+           * 0: has already expired. 
+           * -1: there is no token expire issue for this platform. 
+        '''
         if token == None:
             token = self.token
         if token:
-            return token.expires_in - self.time()
+            if token.expires_in - self.time() > 0: 
+                return token.expires_in - self.time()
+            else: 
+                return 0 
         else: 
-            return -1
+            # If there is no 'token' attribute available, 
+            # we regard it as token expired. 
+            return 0
 
     def is_expired(self, token = None):
         '''
-        check if the access token is expired
+        Check if the access token is expired. 
+
+        It delegates the logic to 'expire_after', which is a more 
+        formal module to use. This interface is kept for backward
+        compatibility. 
         '''
         #TODO:
         #    For those token that are near 0, we'd better inform
         #    the upper layer somehow. Or, it may just expire when 
         #    the upper layer calls. 
-        if self.expire_after(token) <= 0:
+        if self.expire_after(token) == 0:
             return True
         else:
+            # >0 (not expire) or ==-1 (no expire issue)
             return False
 
     @staticmethod
