@@ -244,11 +244,11 @@ class SNSPocket(dict):
             The channel name. Use None to read all channels
         """
         status_list = snstype.MessageList()
-        if channel:
+        if channel and not self[channel].is_expired():
             status_list.extend(self[channel].home_timeline(count))
         else:
             for c in self.itervalues():
-                if self.__check_method(c, 'home_timeline'):
+                if self.__check_method(c, 'home_timeline') and not c.is_expired():
                     status_list.extend(c.home_timeline(count))
 
         logger.info("Read %d statuses", len(status_list))
@@ -262,11 +262,11 @@ class SNSPocket(dict):
             The channel name. Use None to update all channels
         """
         re = {}
-        if channel:
+        if channel and not self[channel].is_expired():
             re[channel] = self[channel].update(text)
         else:
             for c in self.itervalues():
-                if self.__check_method(c, 'update'):
+                if self.__check_method(c, 'update') and not c.is_expired():
                     re[c.jsonconf['channel_name']] = c.update(text)
 
         logger.info("Update status '%s'. Result:%s", text, re)
@@ -296,11 +296,11 @@ class SNSPocket(dict):
             return {}
 
         re = {}
-        if channel:
+        if channel and not self[channel].is_expired():
             re = self[channel].reply(message, text)
         else:
             for c in self.itervalues():
-                if self.__check_method(c, 'reply'):
+                if self.__check_method(c, 'reply') and not c.is_expired():
                     #TODO:
                     #    First try to match "channel_name". 
                     #    If there is no match, try to match "platform".
@@ -318,11 +318,11 @@ class SNSPocket(dict):
 
         """
         re = {}
-        if channel:
+        if channel and not self[channel].is_expired():
             re = self[channel].forward(message, text)
         else:
             for c in self.itervalues():
-                if self.__check_method(c, 'forward'):
+                if self.__check_method(c, 'forward') and not c.is_expired():
                     re[c.jsonconf['channel_name']] = c.forward(message, text)
 
         logger.info("Forward status '%s' with text '%s'. Result: %s",\
