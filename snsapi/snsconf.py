@@ -54,8 +54,8 @@ class SNSConf(object):
     See the discussion: https://github.com/hupili/snsapi/issues/8
     '''
 
-    SNSAPI_LOG_INIT_LEVEL = SNSLog.INFO
-    #SNSAPI_LOG_INIT_LEVEL = SNSLog.DEBUG
+    #SNSAPI_LOG_INIT_LEVEL = SNSLog.INFO
+    SNSAPI_LOG_INIT_LEVEL = SNSLog.DEBUG
 
     '''
     Possible values: 
@@ -68,7 +68,8 @@ class SNSConf(object):
     In Release version, set to WARNING
     '''
 
-    SNSAPI_LOG_INIT_VERBOSE = False
+    #SNSAPI_LOG_INIT_VERBOSE = False
+    SNSAPI_LOG_INIT_VERBOSE = True 
 
     '''
     Examples, 
