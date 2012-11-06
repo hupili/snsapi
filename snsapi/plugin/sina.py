@@ -5,7 +5,7 @@ SINA micro-blog client
 '''
 
 from ..snslog import SNSLog as logger 
-from ..snsbase import SNSBase
+from ..snsbase import SNSBase, require_authed
 from .. import snstype
 from ..errors import snserror
 from .. import utils
@@ -118,8 +118,13 @@ class SinaWeiboStatus(SNSBase):
         self._oauth2_first()
 
     def auth_second(self):
-        self._oauth2_second()
+        try:
+            self._oauth2_second()
+        except Exception, e:
+            logger.warning("Auth second fail. Catch exception: %s", e)
+            self.token = None
         
+    @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
         get statuses of yours and your friends'
@@ -144,6 +149,7 @@ class SinaWeiboStatus(SNSBase):
                     ))
         return statuslist
 
+    @require_authed
     def update(self, text):
         '''update a status
         @param text: the update message
@@ -166,6 +172,7 @@ class SinaWeiboStatus(SNSBase):
             logger.warning("Update status fail. Message: %s", e.message)
             return False
         
+    @require_authed
     def reply(self, statusID, text):
         '''reply to a status
         @param text: the comment text

@@ -8,7 +8,7 @@ Codes are adapted from following sources:
 '''
 
 from ..snslog import SNSLog as logger
-from ..snsbase import SNSBase
+from ..snsbase import SNSBase, require_authed
 from .. import snstype
 from ..utils import console_output
 from .. import utils
@@ -77,18 +77,22 @@ class RenrenBase(SNSBase):
         self.request_url(url)
 
     def auth_second(self):
-        #TODO:
-        #    The name 'fetch_code' is not self-explained.
-        #    It actually fetches the authenticated callback_url.
-        #    Code is parsed from this url. 
-        url = self.fetch_code()
-        self.token = self.parseCode(url)
-        args = dict(client_id=self.jsonconf.app_key, redirect_uri = self.auth_info.callback_url)
-        args["client_secret"] = self.jsonconf.app_secret
-        args["code"] = self.token.code
-        args["grant_type"] = "authorization_code"
-        self.token.update(self._http_get(RENREN_ACCESS_TOKEN_URI, args))
-        self.token.expires_in = self.token.expires_in + self.time()
+        try:
+            #TODO:
+            #    The name 'fetch_code' is not self-explained.
+            #    It actually fetches the authenticated callback_url.
+            #    Code is parsed from this url. 
+            url = self.fetch_code()
+            self.token = self.parseCode(url)
+            args = dict(client_id=self.jsonconf.app_key, redirect_uri = self.auth_info.callback_url)
+            args["client_secret"] = self.jsonconf.app_secret
+            args["code"] = self.token.code
+            args["grant_type"] = "authorization_code"
+            self.token.update(self._http_get(RENREN_ACCESS_TOKEN_URI, args))
+            self.token.expires_in = self.token.expires_in + self.time()
+        except Exception, e:
+            logger.warning("Auth second fail. Catch exception: %s", e)
+            self.token = None
 
     def auth(self):
         if self.get_saved_token():
@@ -230,6 +234,7 @@ class RenrenShare(RenrenBase):
         c['platform'] = 'RenrenShare'
         return c
         
+    @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
         get statuses of yours and your friends'
@@ -258,6 +263,7 @@ class RenrenShare(RenrenBase):
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
 
+    @require_authed
     def reply(self, statusID, text):
         """reply status
         @param status: StatusID object
@@ -358,6 +364,7 @@ class RenrenStatus(RenrenBase):
         c['platform'] = 'RenrenStatus'
         return c
         
+    @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
         get statuses of yours and your friends'
@@ -380,6 +387,7 @@ class RenrenStatus(RenrenBase):
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
 
+    @require_authed
     def update(self, text):
         '''update a status
         @param text: the update message
@@ -401,6 +409,7 @@ class RenrenStatus(RenrenBase):
         logger.info("Update status '%s' on '%s' fail", text, self.jsonconf.channel_name)
         return False
 
+    @require_authed
     def reply(self, statusID, text):
         """reply status
         @param status: StatusID object

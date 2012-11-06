@@ -5,7 +5,7 @@ QQ micro-blog client
 '''
 
 from ..snslog import SNSLog as logger 
-from ..snsbase import SNSBase
+from ..snsbase import SNSBase, require_authed
 from .. import snstype
 from .. import utils
 
@@ -108,7 +108,11 @@ class TencentWeiboStatus(SNSBase):
         self._oauth2_first()
 
     def auth_second(self):
-        self._oauth2_second()
+        try:
+            self._oauth2_second()
+        except Exception, e:
+            logger.warning("Auth second fail. Catch exception: %s", e)
+            self.token = None
         
     def _attach_authinfo(self, params):
         params['access_token'] = self.token.access_token
@@ -118,6 +122,7 @@ class TencentWeiboStatus(SNSBase):
         params['scope'] = 'all'
         return params
 
+    @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
         get statuses of yours and your friends'
@@ -144,6 +149,7 @@ class TencentWeiboStatus(SNSBase):
             return []
         return statuslist
     
+    @require_authed
     def update(self, text):
         '''update a status
         @param text: the update message
@@ -163,6 +169,7 @@ class TencentWeiboStatus(SNSBase):
             return True
         return ret
         
+    @require_authed
     def reply(self, statusID, text):
         '''reply to a status
         @param text: the comment text

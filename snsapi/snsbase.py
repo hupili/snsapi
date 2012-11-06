@@ -25,6 +25,20 @@ from snslog import SNSLog as logger
 # === 3rd party modules ===
 from third import oauth
 
+def require_authed(func):
+    '''
+    A decorator to require auth before an operation
+
+    '''
+    def wrapper_require_authed(self, *al, **ad):
+        if self.is_authed():
+            return func(self, *al, **ad)
+        else:
+            logger.warning("Channel '%s' is not authed!", self.jsonconf['channel_name'])
+            return 
+    return wrapper_require_authed
+
+
 class SNSBase(object):
     def __init__(self, channel = None):
 
@@ -150,20 +164,22 @@ class SNSBase(object):
         The second stage of oauth. 
         Fetch authenticated code. 
         '''
-        self.__init_oauth2_client() 
-
-        url = self.fetch_code() 
-        if url == "(null)" :
-            raise snserror.auth
-        self.token = self.parseCode(url)
-        self.token.update(self.auth_client.request_access_token(self.token.code))
-        logger.debug("Authorized! access token is " + str(self.token))
-        logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
+        try:
+            self.__init_oauth2_client() 
+            url = self.fetch_code() 
+            if url == "(null)" :
+                raise snserror.auth
+            self.token = self.parseCode(url)
+            self.token.update(self.auth_client.request_access_token(self.token.code))
+            logger.debug("Authorized! access token is " + str(self.token))
+            logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
+        except Exception, e:
+            logger.warning("Auth second fail. Catch exception: %s", e)
+            self.token = None
     
     def oauth2(self):
         '''
         Authorizing using synchronized invocation of OAuth2.
-
 
         Users need to collect the code in the browser's address bar to this client.
         callback_url MUST be the same one you set when you apply for an app in openSNS platform.
@@ -182,7 +198,17 @@ class SNSBase(object):
             return
         self.oauth2()
         self.save_token()
-    
+
+    def auth_first(self):
+        self._oauth2_first()
+
+    def auth_second(self):
+        try:
+            self._oauth2_second()
+        except Exception, e:
+            logger.warning("Auth second fail. Catch exception: %s", e)
+            self.token = None
+
     def open_brower(self, url):
         return webbrowser.open(url)
     
@@ -202,13 +228,13 @@ class SNSBase(object):
         access token can be saved, it stays valid for a couple of days
         if successfully saved, invoke get_saved_token() to get it back
         '''
-        token = utils.JsonObject(self.token)
-        #TODO: encrypt access token
-
         fname = self.auth_info.save_token_file
         if fname == "(default)" :
             fname = self.jsonconf.channel_name+".token.save"
-        if fname != "(null)" :
+        # Do not save expired token (or None type token)
+        if fname != "(null)" and not self.is_expired():
+            #TODO: encrypt access token
+            token = utils.JsonObject(self.token)
             with open(fname,"w") as fp:
                 json.dump(token, fp)
         
@@ -277,6 +303,12 @@ class SNSBase(object):
         else:
             # >0 (not expire) or ==-1 (no expire issue)
             return False
+
+    def is_authed(self):
+        if self.is_expired():
+            return False
+        else:
+            return True
 
     @staticmethod
     def new_channel(full = False):
@@ -411,6 +443,7 @@ class SNSBase(object):
     #     """docstring for reply"""
     #     pass
 
+    @require_authed
     def forward(self, message, text):
         """
         A general forwarding implementation using update method. 

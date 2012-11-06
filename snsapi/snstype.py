@@ -263,14 +263,15 @@ class MessageList(list):
     def extend(self, l):
         if isinstance(l, MessageList):
             super(MessageList, self).extend(l)
-        else:
+        elif isinstance(l, list):
             # We still extend the list if the user asks to. 
             # However, a warning will be placed. Doing this 
             # may violate some properties of MessageList, e.g. 
             # there is no Deleted Message in the list. 
             super(MessageList, self).extend(l)
             logger.warning("Extend MessageList with non MessageList list.")
-
+        else:
+            logger.warning("Extend MessageList with unknown type.")
 
     def __str__(self):
         tmp = ""
