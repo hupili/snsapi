@@ -359,21 +359,30 @@ class SNSBase(object):
         # Support unicode parameters. 
         # We should encode them as exchanging stream (e.g. utf-8)
         # before URL encoding and issue HTTP requests. 
-        for p in params:
-            params[p] = self._unicode_encode(params[p])
-        uri = urllib.urlencode(params)
-        url = baseurl + "?" + uri
-        resp = urllib.urlopen(url)
-        json_objs = json.loads(resp.read())
-        return json_objs
+        try:
+            for p in params:
+                params[p] = self._unicode_encode(params[p])
+            uri = urllib.urlencode(params)
+            url = baseurl + "?" + uri
+            resp = urllib.urlopen(url)
+            json_objs = json.loads(resp.read())
+            return json_objs
+        except Exception, e:
+            # Tolerate communication fault, like network failure. 
+            logger.warning("_http_get fail: %s", e)
+            return {}
     
     def _http_post(self, baseurl, params):
-        for p in params:
-            params[p] = self._unicode_encode(params[p])
-        data = urllib.urlencode(params)
-        resp = urllib.urlopen(baseurl,data)
-        json_objs = json.loads(resp.read())
-        return json_objs
+        try:
+            for p in params:
+                params[p] = self._unicode_encode(params[p])
+            data = urllib.urlencode(params)
+            resp = urllib.urlopen(baseurl,data)
+            json_objs = json.loads(resp.read())
+            return json_objs
+        except Exception, e:
+            logger.warning("_http_post fail: %s", e)
+            return {}
 
     def _unicode_encode(self, s):
         """
