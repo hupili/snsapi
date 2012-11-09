@@ -167,6 +167,7 @@ class SNSBase(object):
         try:
             self.__init_oauth2_client() 
             url = self.fetch_code() 
+            logger.debug("get url: %s", url)
             if url == "(null)" :
                 raise snserror.auth
             self.token = self.parseCode(url)

@@ -394,12 +394,22 @@ class Email(SNSBase):
             self.smtp.sendmail(fromaddr, toaddr, msg.as_string())  
             return True
         except Exception, e:
-            logger.warning("%s", str(e)) 
+            if e.message.count("socket error: EOF"):
+                logger.debug("Catch EOF. Reconnect...")
+                self.auth()
+            logger.warning("Catch exception: %s", e)
             return False
 
 
     def home_timeline(self, count = 20):
-        r = self._receive(count)
+        try:
+            r = self._receive(count)
+        except Exception, e: 
+            if e.message.count("socket error: EOF"):
+                logger.debug("Catch EOF. Reconnect...")
+                self.auth()
+            logger.warning("Catch exception: %s", e)
+            return snstype.MessageList()
 
         message_list = snstype.MessageList()
         for m in r:
