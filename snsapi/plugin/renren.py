@@ -258,7 +258,7 @@ class RenrenShare(RenrenBase):
                         channel = self.jsonconf['channel_name']\
                         ))
         except Exception, e:
-            logger.warning("Catch expection:%s", e)
+            logger.warning("Catch expection: %s", e)
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist

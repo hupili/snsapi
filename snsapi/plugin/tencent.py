@@ -143,9 +143,8 @@ class TencentWeiboStatus(SNSBase):
                     platform = self.jsonconf['platform'],\
                     channel = self.jsonconf['channel_name']\
                     ))
-        except TypeError, e:
-            #logger.warning("error jsonobj returned: %s", jsonobj)
-            logger.warning("TypeError: %s", e.message)
+        except Exception, e:
+            logger.warning("Catch exception: %s", e)
             return []
         return statuslist
     

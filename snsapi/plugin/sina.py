@@ -137,16 +137,19 @@ class SinaWeiboStatus(SNSBase):
         
         jsonobj = self._http_get(url, params)
         
-        if("error" in  jsonobj):
-            logger.warning("error json object returned: %s", jsonobj)
-            return []
-        
         statuslist = snstype.MessageList()
-        for j in jsonobj['statuses']:
-            statuslist.append(self.Message(j,\
-                    platform = self.jsonconf['platform'],\
-                    channel = self.jsonconf['channel_name']\
-                    ))
+        try:
+            if("error" in  jsonobj):
+                logger.warning("error json object returned: %s", jsonobj)
+                return []
+            for j in jsonobj['statuses']:
+                statuslist.append(self.Message(j,\
+                        platform = self.jsonconf['platform'],\
+                        channel = self.jsonconf['channel_name']\
+                        ))
+        except Exception, e:
+            logger.warning("Catch exception: %s", e)
+
         return statuslist
 
     @require_authed
