@@ -110,24 +110,26 @@ class SQLite(SNSBase):
         self._connect()
 
     def home_timeline(self, count = 20):
-        cur = self.con.cursor()
-        
-        r = cur.execute('''
-        SELECT time,userid,username,text FROM message  
-        ORDER BY time DESC LIMIT ?
-        ''', (count,))
-
         message_list = snstype.MessageList()
-        for m in r:
-            message_list.append(self.Message({
-                    'time':m[0],
-                    'userid':m[1],
-                    'username':m[2],
-                    'text':m[3]
-                    },\
-                    platform = self.jsonconf['platform'],\
-                    channel = self.jsonconf['channel_name']\
-                    ))
+
+        try:
+            cur = self.con.cursor()
+            r = cur.execute('''
+            SELECT time,userid,username,text FROM message  
+            ORDER BY time DESC LIMIT ?
+            ''', (count,))
+            for m in r:
+                message_list.append(self.Message({
+                        'time':m[0],
+                        'userid':m[1],
+                        'username':m[2],
+                        'text':m[3]
+                        },\
+                        platform = self.jsonconf['platform'],\
+                        channel = self.jsonconf['channel_name']\
+                        ))
+        except Exception, e:
+            logger.warning("Catch expection: %s", e)
 
         return message_list
 

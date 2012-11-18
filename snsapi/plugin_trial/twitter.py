@@ -66,12 +66,15 @@ class TwitterStatus(SNSBase):
         logger.info("Current implementation of Twitter does not use auth!")
 
     def home_timeline(self, count = 20):
-        statuses = self.api.GetFriendsTimeline(count = count)
         status_list = snstype.MessageList()
-        for s in statuses:
-            status_list.append(self.Message(s.AsDict(),\
-                    self.jsonconf['platform'],\
-                    self.jsonconf['channel_name']))
+        try:
+            statuses = self.api.GetFriendsTimeline(count = count)
+            for s in statuses:
+                status_list.append(self.Message(s.AsDict(),\
+                        self.jsonconf['platform'],\
+                        self.jsonconf['channel_name']))
+        except Exception, e:
+            logger.warning("Catch expection: %s", e)
         return status_list
 
     def update(self, text):
