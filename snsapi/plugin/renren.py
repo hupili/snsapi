@@ -112,9 +112,16 @@ class RenrenBase(SNSBase):
         """
 
         #request a session key
-        session_key_request_args = {"oauth_token": self.token.access_token}
-        response = self._http_get(RENREN_SESSION_KEY_URI, session_key_request_args)
-        session_key = str(response["renren_token"]["session_key"])
+        try:
+            session_key_request_args = {"oauth_token": self.token.access_token}
+            response = self._http_get(RENREN_SESSION_KEY_URI, session_key_request_args)
+            session_key = str(response["renren_token"]["session_key"])
+        except Exception, e:
+            logger.warning("Catch exception when requesting session key: %s", e)
+            if type(response) is not list and "error_code" in response:
+                logger.warning(response["error_msg"]) 
+                raise RenrenAPIError(response["error_code"], response["error_msg"])
+            return []
 
         #system parameters fill-in
         params["api_key"] = self.jsonconf.app_key
