@@ -164,6 +164,19 @@ def html_entity_unescape(s):
 
     '''
     return HTMLParser.HTMLParser().unescape(s)
+
+def report_time(func):
+    def report_time_wrapper(*al, **ad):
+        start = time.time()
+        ret = func(*al, **ad)
+        end = time.time()
+        logger.info("Function '%s' execution time: %.2f", func.__name__, end - start)
+        return ret
+    return report_time_wrapper
+
+@report_time
+def _test_report_time(i):
+    print "your number: %d" % i
     
 if __name__ == '__main__':
     u = time.time()
@@ -171,3 +184,4 @@ if __name__ == '__main__':
     s = utc2str(u)
     print s
     print str2utc(s)
+    print _test_report_time(3)
