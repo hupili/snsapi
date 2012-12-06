@@ -67,6 +67,9 @@ class RenrenBase(SNSBase):
         
         #if not 'platform_prefix' in self.jsonconf:
         #    self.jsonconf['platform_prefix'] = u'人人'
+
+    def need_auth(self):
+        return True
         
     def auth_first(self):
         args = dict(client_id=self.jsonconf.app_key, redirect_uri = self.auth_info.callback_url)

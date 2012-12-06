@@ -104,6 +104,9 @@ class TencentWeiboStatus(SNSBase):
         #if not 'platform_prefix' in self.jsonconf:
         #    self.jsonconf['platform_prefix'] = u'腾讯'
 
+    def need_auth(self):
+        return True
+
     def auth_first(self):
         self._oauth2_first()
 
