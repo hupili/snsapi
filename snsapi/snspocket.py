@@ -216,7 +216,8 @@ class SNSPocket(dict):
             self[c].auth()
         else:
             for c in self.itervalues():
-                c.auth()
+                if self.__check_method(c, ''):
+                    c.auth()
 
     def __check_method(self, channel, method):
         '''
