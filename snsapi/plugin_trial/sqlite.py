@@ -108,6 +108,12 @@ class SQLite(SNSBase):
             self.con.close()
             self.con = None
         self._connect()
+        
+    def auth_first(self):
+        logger.info("%s platform do not need auth_first!", self.platform)
+
+    def auth_second(self):
+        logger.info("%s platform do not need auth_second!", self.platform)
 
     def home_timeline(self, count = 20):
         message_list = snstype.MessageList()

@@ -311,6 +311,12 @@ class SNSBase(object):
         else:
             return True
 
+    def need_auth(self):
+        '''
+        Whether this channel requires two-stage asynchronous auth. 
+        '''
+        return False
+
     @staticmethod
     def new_channel(full = False):
         '''

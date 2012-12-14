@@ -79,6 +79,12 @@ class RSS(SNSBase):
     def auth(self):
         logger.info("%s platform do not need auth!", self.platform)
         
+    def auth_first(self):
+        logger.info("%s platform do not need auth_first!", self.platform)
+
+    def auth_second(self):
+        logger.info("%s platform do not need auth_second!", self.platform)
+
     def home_timeline(self, count=20):
         '''Get home timeline
         get statuses of yours and your friends'
