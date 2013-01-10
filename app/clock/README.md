@@ -19,6 +19,9 @@
    然后“发状态--睡一会--发状态--睡一会”循环。
    详情见
    [clock.py](https://github.com/hupili/snsapi/blob/master/app/clock/clock.py)。
+   （没用过Python的同学可以参考注释版：
+   [clock-annotated.py](https://github.com/hupili/snsapi/blob/master/app/clock/clock-annotated.py) 
+   ）
    * 将`clock.py`放入`snsapi`的根目录下执行。
 
 **注意：**
