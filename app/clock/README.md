@@ -16,11 +16,12 @@
    （之后要支持其他平台，也就是注册app和填写`channel.json`而已）。
    * 写clock的逻辑：
    先准备语料；
-   然后“发状态--睡一小时--发状态--睡一小时”循环。
-   详情见`clock.py`。
+   然后“发状态--睡一会--发状态--睡一会”循环。
+   详情见
+   [clock.py](https://github.com/hupili/snsapi/blob/master/app/clock/clock.py)。
    * 将`clock.py`放入`snsapi`的根目录下执行。
 
-*注意：*
+**注意：**
 第一次运行的时候，
 请按照console上的提示完成授权流程；
 snsapi默认会将授权信息记录在本地`*.save`中，
@@ -100,3 +101,27 @@ http://localhost:11111/auth/second/?code=b5ae这里是一串授权代码c827db
    有经验想分享？写
    [wiki](https://github.com/hupili/snsapi/wiki)。
 
+## 后记
+
+写这个小app的原因是这两天微博上的几口钟比较火，
+很多同学对怎么实现的表示感兴趣。
+尽管对于会的人来说，用各种方法实现，代码都不过几十行，
+但对于不会的同学，总是不知从哪学起：
+学一门脚本，js、Python、PHP、……；
+怎么完成OAuth；
+需要直接query ajax接口吗？（模拟浏览器）；
+……。
+
+[snsapi](https://snsapi.ie.cuhk.edu.hk/)
+对常用的操作进行了封装，
+使得一处编码可以适用多个平台。
+面向snsapi这套中间件的app，可以很容易迁移。
+我一直在寻找至简但又有用的app做demo，
+希望更多的同学能把SNS“玩”起来。
+不是消遣地玩，
+而是从中获益地玩。
+
+信息是属于每个人的，
+而不是少数“精英”以及几个IT巨头的。
+我们一直在努力，
+探索更高效获取、处理、传播信息的方法。
