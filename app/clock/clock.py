@@ -15,8 +15,8 @@ sp.auth()
 
 while True:
     h, m = datetime.now().hour, datetime.now().minute
-    if m == 9:
-        t = '%s -- 0x%X点钟， %s。(%s)' % ('烫' * h, h, TEXTS[h / 4], AD)
+    if m == 0:
+        t = '%s -- 0x%X点钟， %s。( %s )' % ('烫' * h, h, TEXTS[h / 4], AD)
         print t
         sp.update(t)
     time.sleep(60)
