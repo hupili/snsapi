@@ -1,4 +1,4 @@
-forwarder
+forwarder (OLD)
 ====
 
 This is a general purpose forwarder. 
@@ -18,6 +18,9 @@ This App is a demo before our 2nd round of intensive restructure.
 The implementation is far from optimal now. One can simplify the 
 script to around 20 lines using our latest SNSPocket class. 
 Welcome anyone contribute. -- HU Pili, 20121018
+
+You'd better checkout the Commit 6d685f14c9b5fc2090804157c6c15e0d84ec9023 
+of snsapi to work this old example.
 
 
 Deployment and Initial Test
@@ -81,21 +84,21 @@ and QQ Microblog to be one out channel.
 Invoke `python forwarder.py` and pass all the authorization. 
 It forwards the first message:
 
-![cli 1](https://raw.github.com/hupili/snsapi/master/app/forwarder/screenshots/forwarder3.jpg)
+![cli 1](https://raw.github.com/hupili/snsapi/master/app/forwarder/screenshots/old/forwarder3.jpg)
 
 Now I publish some news on the Sina weibo through web interface:
 
-![sina web](https://raw.github.com/hupili/snsapi/master/app/forwarder/screenshots/forwarder1.jpg)
+![sina web](https://raw.github.com/hupili/snsapi/master/app/forwarder/screenshots/old/forwarder1.jpg)
 
 Invoke forwarder again. 
 forwarder remembers the messages it has forwarded and avoid repitition. 
 It forwards the newly published status on Sina:
 
-![cli 2](https://raw.github.com/hupili/snsapi/master/app/forwarder/screenshots/forwarder4.jpg)
+![cli 2](https://raw.github.com/hupili/snsapi/master/app/forwarder/screenshots/old/forwarder4.jpg)
 
 This is what we see on QQ microblog:
 
-![qq web](https://raw.github.com/hupili/snsapi/master/app/forwarder/screenshots/forwarder2.jpg)
+![qq web](https://raw.github.com/hupili/snsapi/master/app/forwarder/screenshots/old/forwarder2.jpg)
 
 
 Remarks
