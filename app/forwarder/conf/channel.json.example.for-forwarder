@@ -1,0 +1,14 @@
+[
+  {
+    "channel_name": "test_rss", 
+    "open": "yes",
+    "platform": "RSS", 
+    "url": "https://github.com/hupili/snsapi/commits/master.atom" 
+  },
+  {
+    "channel_name": "test_sqlite", 
+    "open": "yes",
+    "platform": "SQLite", 
+    "url": "https://github.com/hupili/snsapi/commits/master.atom" 
+  }
+]
