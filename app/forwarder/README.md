@@ -38,6 +38,11 @@ Advanced
 {}
 ```
 
+   * To limit number of messages queried in one invoke, 
+   you can set the `count` entry in `channel.json`. 
+   * To limit the number of messages write to one channel, 
+   you can set `quota` dict in `forwarder.json`. 
+
 Screenshots (OLD)
 ----
 
