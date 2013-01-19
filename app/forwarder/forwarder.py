@@ -32,6 +32,13 @@ class Forwarder(object):
             if src.get(cn, None):
                 dst[cn] = src[cn]
 
+    def _set_default_quota(self):
+        if not 'quota' in self.jsonconf:
+            self.jsonconf['quota'] = {}
+        for cn in self.sp_out:
+            if not cn in self.jsonconf['quota']:
+                self.jsonconf['quota'][cn] = 1
+
     def load_config(self, fn_channel, fn_forwarder):
         self.sp_all = SNSPocket()
         self.sp_all.load_config(fn_channel)
@@ -41,6 +48,7 @@ class Forwarder(object):
             self.jsonconf = json.load(open(fn_forwarder))
             self._copy_channels(self.sp_all, self.sp_in, self.jsonconf['channel_in'])
             self._copy_channels(self.sp_all, self.sp_out, self.jsonconf['channel_out'])
+            self._set_default_quota()
         except IOError, e:
             logger.warning("Load '%s' failed, use default: no in_channel and out_channel", fn_forwarder)
             # Another possible handle of this error instead of default
@@ -64,27 +72,12 @@ if __name__ == "__main__":
     fwd.auth()
     print fwd.home_timeline()
     print fwd.update('hello')
+    print fwd.sp_out.home_timeline()
+    print fwd.jsonconf
 
     sys.exit()
 
     # ======== below is the old code =====
-
-    channels = channel_init('conf/channel.json') ;
-    #authenticate all channels
-    for cname in channels:
-        channels[cname].auth()
-
-    fp = open(abspath('conf/forwarder.json'), "r")
-    fconf = json.load(fp)
-    channel_in = fconf['channel_in']
-    channel_out = fconf['channel_out']
-    print "channel_in ===== "
-    for c in channel_in :
-        print c
-    print "channel_out ===== "
-    for c in channel_out :
-        print c
-
 
     #load message information and check in channels. 
     #merge new messages into local storage
@@ -117,11 +110,6 @@ if __name__ == "__main__":
                 #The message is new
                 #forward it to all output channels
 
-    #set quota/run for each out_channel 
-    #TODO: make it configurable
-    quota = {}
-    for c in channel_out :
-        quota[c] = 1
 
     #forward non-successful messages to all out_channels
     for m in messages :
