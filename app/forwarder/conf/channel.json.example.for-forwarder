@@ -9,6 +9,6 @@
     "channel_name": "test_sqlite", 
     "open": "yes",
     "platform": "SQLite", 
-    "url": "https://github.com/hupili/snsapi/commits/master.atom" 
+    "url": "test_sqlite.db" 
   }
 ]
