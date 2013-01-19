@@ -36,7 +36,7 @@ class RSSMessage(snstype.Message):
         #    prefix information to Message class (not Message 
         #    instance). 
         self.parsed.userid = self.raw.get('author')
-        self.parsed.time = utils.str2utc(self.raw.get('published'))
+        self.parsed.time = utils.str2utc(self.raw.get(['updated', 'published']))
 
         self.parsed.title = self.raw.get('title')
         self.parsed.link = self.raw.get('link')
