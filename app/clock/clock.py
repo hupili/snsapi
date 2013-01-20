@@ -18,5 +18,6 @@ while True:
     if m == 0:
         t = '%s -- 0x%X点钟， %s。( %s )' % ('烫' * h, h, TEXTS[h / 4], AD)
         print t
-        sp.update(t)
+        # SNSAPI use unicode internally
+        sp.update(t.decode('utf-8'))
     time.sleep(60)
