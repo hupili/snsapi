@@ -233,7 +233,7 @@ Section 7. Cross Channel Operation
     configure one RSS2RW channel. You can write feeds using 
     RSS2RW channel. Here's the basic settings:
 
-    >>> n["platform"] = "rss2rw"
+    >>> n["platform"] = "RSS2RW"
     >>> n["channel_name"] = "output"
     >>> n["url"] = "output.atom"
     >>> add_channel(n)
