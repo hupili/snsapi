@@ -5,7 +5,7 @@ from snsapi.utils import console_input,console_output
 
 if __name__ == "__main__":
     sp = SNSPocket()
-    sp.read_config()
+    sp.load_config()
 
     sp.auth()
 
