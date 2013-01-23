@@ -1,139 +1,133 @@
 # -*- coding: utf-8 -*-
 
 import time
-import hashlib
+from os.path import abspath
+
 import snsapi
 from snsapi import errors 
-try:
-    import json
-except ImportError:
-    import simplejson as json
-from os.path import abspath
-import sys
+from snsapi import utils as snsapi_utils
+from snsapi.utils import json
+from snsapi.snspocket import SNSPocket
+from snsapi.snslog import SNSLog as logger
 
-def channel_init(fn_channel):
-    fname = abspath(fn_channel)
-    channels = {}
-    try:
-        with open(fname, "r") as fp:
-            allinfo = json.load(fp)
-            for site in allinfo:
-                print "=== channel:%s;open:%s;platform:%s" % \
-                        (site['channel_name'],site['open'],site['platform'])
-                if site['open'] == "yes" :
-                    #TODO: the following code seems clumsy
-                    #any way to simplify it? 
-                    #e.g. use the string name to the the corresponding class directly
-                    if site['platform'] == "sina" :
-                        #clis.append(snsapi.sina.SinaAPI(site))
-                        channels[site['channel_name']] = snsapi.sina.SinaAPI(site)
-                    elif site['platform'] == "rss":
-                        #clis.append(snsapi.rss.RSSAPI(site))
-                        channels[site['channel_name']] = snsapi.rss.RSSAPI(site)
-                    elif site['platform'] == "qq":
-                        #clis.append(snsapi.qq.QQAPI(site))
-                        channels[site['channel_name']] = snsapi.qq.QQAPI(site)
-                    else:
-                        raise errors.NoSuchPlatform
-            return channels
-    except IOError:
-        raise errors.NoConfigFile
+class Forwarder(object):
+    def __init__(self, fn_channel = "conf/channel.json", 
+            fn_forwarder = "conf/forwarder.json",
+            fn_message = "messages.json"):
+        super(Forwarder, self).__init__()
 
+        self.fn_channel = fn_channel
+        self.fn_forwarder = fn_forwarder
+        self.fn_message = fn_message
+        self.load_config(fn_channel, fn_forwarder)
+        self.db_init()
 
-if __name__ == "__main__":
+    def db_init(self):
+        try:
+            self.messages = json.load(open(self.fn_message))
+        except IOError, e:
+            if e.errno == 2: #no such file
+                self.messages = {}
+            else:
+                raise e
 
-    channels = channel_init('conf/channel.json') ;
-    #authenticate all channels
-    for cname in channels:
-        channels[cname].auth()
+    def db_save(self):
+        from snsapi.utils import JsonDict
+        dct = JsonDict(self.messages)
+        open(self.fn_message,'w').write(dct._dumps_pretty())
 
-    fp = open(abspath('conf/forwarder.json'), "r")
-    fconf = json.load(fp)
-    channel_in = fconf['channel_in']
-    channel_out = fconf['channel_out']
-    print "channel_in ===== "
-    for c in channel_in :
-        print c
-    print "channel_out ===== "
-    for c in channel_out :
-        print c
-
-    try:
-        messages = json.load(open('messages.json'))
-    except IOError, e:
-        if e.errno == 2: #no such file
-            messages = {}
+    def db_add(self, msg):
+        '''
+        msg: the snsapi.Message object
+        '''
+        sig = msg.digest()
+        if sig in self.messages:
+            logger.debug("One duplicate message: %s", sig)
         else:
-            raise e
+            logger.debug("New message: %s", str(msg))
+            self.messages[sig] = {
+                'sig': sig,
+                'time': msg.parsed.time,
+                'username': msg.parsed.username,
+                'text': msg.parsed.text,
+                'success': {"__null": "yes"}
+            }
 
-    #load message information and check in channels. 
-    #merge new messages into local storage
-    #messages = json.load(open(abspath('messages.json'),'r'))
-    for cin_name in channel_in :
-        print "==== Reading channel: %s" % (cin_name)
-        cin_obj = channels[cin_name]
-        #TODO: make it configurable for each channel
-        sl = cin_obj.home_timeline(2)
+    def db_get_message(self):
+        '''
+        Pick one message that is not forwarded (successfully). Returen a 
+        list of <channel_name, msg> pairs. If the intended out channel is  
+        limited in quota, we do not append it. 
+        '''
+        ret = []
+        for (sig, msg) in self.messages.iteritems():
+            for (cn, quota)  in self.jsonconf['quota'].iteritems():
+                if cn in self.messages[sig]['success'] and self.messages[sig]['success'][cn] == "yes":
+                    pass
+                else:
+                    if quota > 0:
+                        self.jsonconf['quota'][cn] -= 1 
+                        ret.append((cn, msg))
+        return ret
+
+    def _copy_channels(self, src, dst, names):
+        for cn in names:
+            if src.get(cn, None):
+                dst[cn] = src[cn]
+
+    def _set_default_quota(self):
+        if not 'quota' in self.jsonconf:
+            self.jsonconf['quota'] = {}
+        for cn in self.sp_out:
+            if not cn in self.jsonconf['quota']:
+                self.jsonconf['quota'][cn] = 1
+
+    def load_config(self, fn_channel, fn_forwarder):
+        self.sp_all = SNSPocket()
+        self.sp_all.load_config(fn_channel)
+        self.sp_in = SNSPocket()
+        self.sp_out = SNSPocket()
+        try:
+            self.jsonconf = json.load(open(fn_forwarder))
+            self._copy_channels(self.sp_all, self.sp_in, self.jsonconf['channel_in'])
+            self._copy_channels(self.sp_all, self.sp_out, self.jsonconf['channel_out'])
+            self._set_default_quota()
+        except IOError, e:
+            logger.warning("Load '%s' failed, use default: no in_channel and out_channel", fn_forwarder)
+            # Another possible handle of this error instead of default
+            #raise errors.NoConfigFile
+        logger.info("SNSPocket for all: %s", self.sp_all)
+        logger.info("SNSPocket for in channel: %s", self.sp_in)
+        logger.info("SNSPocket for out channel: %s", self.sp_out)
+
+    def auth(self, *args, **kargs):
+        return self.sp_all.auth(*args, **kargs)
+
+    def home_timeline(self, *args, **kargs):
+        return self.sp_in.home_timeline(*args, **kargs)
+
+    def update(self, *args, **kargs):
+        return self.sp_out.update(*args, **kargs)
+
+    def format_msg(self, msg):
+        return "[%s] at %s \n %s (fwd at:%s)"  % (msg['username'], msg['time'], msg['text'], time.time())
+
+    def forward(self):
+        sl = self.home_timeline()
         for s in sl:
-            #s.show()
-            #print type(s.created_at)
-            #print type(s.username)
-            #print type(s.text)
-            msg_full = unicode(s.created_at) + unicode(s.username) + unicode(s.text)
-            sig = hashlib.sha1(msg_full.encode('utf-8')).hexdigest()
-            #sig = hashlib.sha1(msg_full).hexdigest() # <-- this line will raise an error
-            if sig in messages:
-                print "One duplicate message:%s" % (sig)
-            else:
-                print ">>>New message"
-                s.show()
-                messages[sig] = {
-                    'sig': sig,
-                    'created_at': s.created_at,
-                    'username': s.username,
-                    'text': s.text,
-                    'success':{"__null":"yes"}
-                }
-                #The message is new
-                #forward it to all output channels
-
-    #set quota/run for each out_channel 
-    #TODO: make it configurable
-    quota = {}
-    for c in channel_out :
-        quota[c] = 1
-
-    #forward non-successful messages to all out_channels
-    for m in messages :
-        #break
-        for cout_name in quota :
-            if cout_name in messages[m]['success'] and messages[m]['success'][cout_name] == "yes":
-                pass
-            else:
-                if quota[cout_name] > 0:
-                    quota[cout_name] -= 1 
-                    cout_obj = channels[cout_name]
-                    #text = "[%s] at %s \n %s"  % (s.username, s.created_at, s.text)
-                    #text = "[%s] at %s \n %s (forward time:%s)"  % (s.username, s.created_at, s.text, time.time())
-                    s = messages[m]
-                    print "forwarding %s to %s" % (m, cout_name)
-                    text = "[%s] at %s \n %s (forward time:%s)"  % (s['username'], s['created_at'], s['text'], time.time())
-                    print "Text: %s" % (text)
-                    #TODO: check the real cause of the problem.
-                    #      It is aleady announec in the front of this file 
-                    #      that all strings should be treated as UTF-8 encoding. 
-                    #      Why do the following problem happen?
-                    if ( cout_obj.update(text.encode('utf-8')) ):
-                        messages[m]['success'][cout_name] = "yes"
-                        print "Forward success: %s" % (sig)
-                    else:
-                        messages[m]['success'][cout_name] = "no"
-                        print "Forward fail: %s" % (sig)
-
-    print "forwarding done!"
-    #print messages
-
-    json.dump(messages, open('messages.json','w')) 
-    #json.dumps({'1':2,3:4})
-    sys.exit()
-
+            self.db_add(s)
+        for (cn, msg) in self.db_get_message():
+            text = self.format_msg(msg) 
+            r = self.sp_out[cn].update(text)
+            msg['success'][cn] = "yes" if r else "no"
+            logger.info("forward '%s' -- %s", text, r)
+                
+if __name__ == "__main__":
+    fwd = Forwarder()
+    fwd.auth()
+    #print fwd.home_timeline()
+    #print fwd.update('hello')
+    #print fwd.sp_out.home_timeline()
+    #print fwd.jsonconf
+    fwd.forward()
+    fwd.db_save()

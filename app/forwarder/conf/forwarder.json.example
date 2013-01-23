@@ -1,11 +1,10 @@
 {
   "channel_in" : 
   [
-    "test_feed_1", 
-    "test_feed_2"
+    "test_rss" 
   ], 
   "channel_out" :
   [
-    "sina_account_1"
+    "test_sqlite"
   ]
 }

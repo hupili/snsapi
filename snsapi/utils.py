@@ -61,6 +61,13 @@ class JsonDict(JsonObject):
         '''
         dict entry reading with fault tolerance. 
 
+        :attr:
+            A str or a list of str. 
+
+        If attr is a list, we will try all the candidates until 
+        one 'get' is successful. If none of the candidates succeed,
+        we will return a "(null)"
+
         e.g. RSS format is very diverse. 
         To my current knowledge, some formats have 'author' fields, 
         but others do not:
@@ -70,10 +77,20 @@ class JsonDict(JsonObject):
            * rdf : yes
         This function will return a string "(null)" by default if the 
         field does not exist. The purpose is to expose unified interface
-        to upper layers. (seeing "(null)" is better than catching an error. 
+        to upper layers. seeing "(null)" is better than catching an error. 
 
         '''
-        return dict.get(self, attr, "(null)")
+        if isinstance(attr, str):
+            return dict.get(self, attr, "(null)")
+        elif isinstance(attr, list):
+            for a in attr:
+                val = dict.get(self, a, None)
+                if val:
+                    return val
+            return "(null)"
+        else:
+            logger.warning("Unkown type: %s", type(attr))
+            return "(null)"
 
         
 def console_input(string = None):

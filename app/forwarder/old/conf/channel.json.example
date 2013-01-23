@@ -1,0 +1,36 @@
+[
+  {
+    "channel_name": "sina_account_1", 
+    "open": "yes", 
+    "platform": "sina", 
+    "app_key": "", 
+    "app_secret": "",
+    "user_id": "",
+	"auth_info":
+	{
+	  "callback_url": "http://copy.the.code.to.client/",
+	  "cmd_fetch_code": "(built-in)",
+	  "cmd_request_url": "(built-in)",
+	  "save_token_file": "(built-in)"
+	},
+	"__auth_info(example to use individulized commands)":
+	{
+	  "callback_url": "http://copy.the.code.to.client/",
+	  "cmd_fetch_code": "./auxiliary/fetch_code_local.sh",
+	  "cmd_request_url": "./auxiliary/request_url_wget.sh",
+	  "save_token_file": "(built-in)"
+	}
+  },
+  {
+    "channel_name": "test_feed_1", 
+    "open": "yes",
+    "platform": "rss", 
+    "url": "../../test/sample-rss/feed1.xml" 
+  },
+  {
+    "channel_name": "test_feed_2", 
+    "open": "yes",
+    "platform": "rss", 
+    "url": "../../test/sample-rss/feed2.xml" 
+  }
+]

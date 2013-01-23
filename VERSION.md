@@ -1,5 +1,31 @@
-SNSAPI 0.2
+SNSAPI 0.4
 ====
+
+0.4
+----
+
+   * New auth flow functions: `is_authed`, `need_auth`, `is_expired`. 
+   * Use `requirement.txt` to maintain dependency. 
+   * Add a "clock" demo app. 
+   * Rewrite "forwarder" using new architecture. 
+   * Support limiting home_timeline's count by config. (handy to operate multiple channels). 
+   * JsonDict function support stronger `get`: enumerate a list of properties. (handy to parse different version of data source)
+   * Fix an RSS date parsing error. 
+   * Change to nosetests. 
+
+0.3
+----
+
+   * Restructure nested Message class, allowing them to be pickled. 
+   * Fault tolerant auth flow. 
+   * Fault tolerant HTTP request/response. 
+   * A `report_time` decorator is added to `utils`. 
+   You can use it to get execution time of functions. 
+   * A `require_authed` decorator is added to `snsbase`. 
+   Plugin developers should put it before the methods, 
+   whose invokation require a authed state. 
+   * Fix Tencent Weibo html entity problem. 
+   The texts in Message object is unified to have html entities unescaped. 
 
 0.2
 ----

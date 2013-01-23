@@ -19,6 +19,7 @@ snscli上手测试：
    * 获得该项目： 
       * 使用Git： `git clone https://github.com/hupili/snsapi.git`。 
       * 直接下载zip包： [https://github.com/hupili/snsapi/zipball/master](https://github.com/hupili/snsapi/zipball/master)
+   * 安装依赖库：`[sudo] pip install -r requirements.txt`。
    * 进入项目根目录，`python -i snscli.py`。
 
 我们在`snscli.py`中集成完整的教程，
