@@ -10,7 +10,7 @@ if __name__ == "__main__":
     '''
 
     sp = SNSPocket()
-    sp.read_config()
+    sp.load_config()
 
     sp.auth()
 
