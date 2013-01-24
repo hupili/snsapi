@@ -11,6 +11,7 @@ __status__ = 'development'
 from nose.tools import ok_
 from nose.tools import eq_
 from test_config import *
+from test_utils import *
 from snsapi.snsbase import SNSBase
 
 sys.path = [DIR_TEST] + sys.path
@@ -26,15 +27,14 @@ class TestSNSBase(TestBase):
     def test_snsbase_new_channel_normal(self):
         nc = SNSBase.new_channel()
         eq_(2, len(nc), WRONG_RESULT_ERROR)
-        ok_(('channel_name' in nc), WRONG_RESULT_ERROR)
-        ok_(('open' in nc), WRONG_RESULT_ERROR)
+        in_('channel_name', nc)
+        in_('open', nc)
 
     def test_snsbase_new_channel_full(self):
         nc = SNSBase.new_channel(full=True)
-        print nc
         eq_(4, len(nc), WRONG_RESULT_ERROR)
-        ok_(('channel_name' in nc), WRONG_RESULT_ERROR)
-        ok_(('open' in nc), WRONG_RESULT_ERROR)
-        ok_(('description' in nc), WRONG_RESULT_ERROR)
-        ok_(('methods' in nc), WRONG_RESULT_ERROR)
+        in_('channel_name', nc)
+        in_('open', nc)
+        in_('description', nc)
+        in_('methods', nc)
 
