@@ -25,6 +25,8 @@ from ..utils import json
 
 import time
 import email
+from email.mime.text import MIMEText
+from email.header import decode_header, make_header
 import imaplib
 import smtplib
 
@@ -40,8 +42,8 @@ class EmailMessage(snstype.Message):
         self._parse(self.raw)
     
     def _decode_header(self, header_value):
-        from email.header import decode_header
         ret = unicode()
+        #print decode_header(header_value)
         for (s,e) in decode_header(header_value):
             ret += s.decode(e) if e else s
         return ret
@@ -80,6 +82,13 @@ class EmailMessage(snstype.Message):
         else:
             self.parsed.username = sender
             self.parsed.userid = sender
+
+        #TODO:
+        #    The following is just temporary method to enable reply email. 
+        #    See the above TODO for details. The following information 
+        #    suffices to reply email. However, they do not form a real ID. 
+        self.ID.title = self.parsed.title
+        self.ID.reply_to = dct.get('Reply-To', self.parsed.userid)
 
 class Email(SNSBase):
 
@@ -385,7 +394,6 @@ class Email(SNSBase):
             logger.warning("Email channel '%s' auth failed!!", self.jsonconf['channel_name'])
             return False
             
-
     def _send(self, toaddr, title, msg):
         '''
         :param toaddr:
@@ -397,7 +405,7 @@ class Email(SNSBase):
         fromaddr = self.jsonconf['address']
         msg['From'] = fromaddr
         msg['To'] = toaddr
-        msg['Subject'] = title
+        msg['Subject'] = make_header([(self._unicode_encode(title), 'utf-8')])
 
         try:
             self.smtp.sendmail(fromaddr, toaddr, msg.as_string())  
@@ -421,21 +429,20 @@ class Email(SNSBase):
             return snstype.MessageList()
 
         message_list = snstype.MessageList()
-        for m in r:
-            message_list.append(self.Message(
-                    m,\
-                    platform = self.jsonconf['platform'],\
-                    channel = self.jsonconf['channel_name']\
-                    ))
+        try:
+            for m in r:
+                message_list.append(self.Message(
+                        m,\
+                        platform = self.jsonconf['platform'],\
+                        channel = self.jsonconf['channel_name']\
+                        ))
+        except Exception, e:
+            logger.warning("Catch expection: %s", e)
 
+        logger.info("Read %d statuses from '%s'", len(message_list), self.jsonconf.channel_name)
         return message_list
 
-    @require_authed
-    def update(self, text):
-        from email.mime.text import MIMEText
-        msg = MIMEText(text, _charset = 'utf-8')
-        #title = '[snsapi][status][from:%s][timestamp:%s]' % (self.jsonconf['address'], str(self.time()))
-        title = '[snsapi][status]%s' % (text[0:10])
+    def _send_to_all_buddy(self, title, msg):
         ok_all = True
         for u in self.buddy_list.values():
             toaddr = u['userid'] #userid of email platform is email address
@@ -445,29 +452,29 @@ class Email(SNSBase):
         return ok_all
 
     @require_authed
+    def update(self, text, title = None):
+        '''
+        :title:
+            The unique field of email. Other platforms do not use it. If not supplied, 
+            we'll format a title according to SNSAPI convention.
+        '''
+        msg = MIMEText(text, _charset = 'utf-8')
+        if not title:
+            #title = '[snsapi][status][from:%s][timestamp:%s]' % (self.jsonconf['address'], str(self.time()))
+            title = '[snsapi][status]%s' % (text[0:10])
+        return self._send_to_all_buddy(title, msg)
+
+    @require_authed
     def reply(self, statusID, text):
         """reply status
         @param status: StatusID object
         @param text: string, the reply message
         @return: success or not
         """
-
-        api_params = dict(method = "share.addComment", content = text, \
-            share_id = statusID.status_id, user_id = statusID.source_user_id)
-
-        try:
-            ret = self.renren_request(api_params)
-            logger.debug("Reply to status '%s' return: %s", statusID, ret)
-            if 'result' in ret and ret['result'] == 1:
-                logger.info("Reply '%s' to status '%s' succeed", text, statusID)
-                return True
-            else:
-                return False
-        except Exception, e:
-            logger.warning("Reply failed: %s", e)
-
-        logger.info("Reply '%s' to status '%s' fail", text, statusID)
-        return False
+        msg = MIMEText(text, _charset = 'utf-8')
+        title = "Re:" + statusID.title
+        toaddr = statusID.reply_to
+        return self._send(toaddr, title, msg)
 
     def expire_after(self, token = None):
         # Check whether the user supplied secrets are correct
