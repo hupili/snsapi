@@ -38,6 +38,13 @@ class EmailMessage(snstype.Message):
     def parse(self):
         self.ID.platform = self.platform
         self._parse(self.raw)
+    
+    def _decode_header(self, header_value):
+        from email.header import decode_header
+        ret = unicode()
+        for (s,e) in decode_header(header_value):
+            ret += s.decode(e) if e else s
+        return ret
 
     def _parse(self, dct):
         #TODO:
@@ -60,7 +67,7 @@ class EmailMessage(snstype.Message):
         #     I prefer 2. at present. Our Message objects are designed 
         #     to be able to digest themselves. 
 
-        self.parsed.title = dct.get('Subject')
+        self.parsed.title = self._decode_header(dct.get('Subject'))
         self.parsed.text = dct.get('body')
         self.parsed.time = utils.str2utc(dct.get('Date'))
 
