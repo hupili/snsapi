@@ -17,7 +17,7 @@ Premature warning:
 
 from ..snslog import SNSLog
 logger = SNSLog
-from ..snsbase import SNSBase
+from ..snsbase import SNSBase, require_authed
 from .. import snstype
 from ..utils import console_output
 from .. import utils
@@ -369,6 +369,8 @@ class Email(SNSBase):
             logger.warning("SMTP Authentication failed! Channel '%s'", self.jsonconf['channel_name'])
 
         if imap_ok and smtp_ok:
+            self.imap_ok = True
+            self.smtp_ok = True
             logger.info("Email channel '%s' auth success", self.jsonconf['channel_name'])
             self._get_buddy_list()
             return True
@@ -400,7 +402,7 @@ class Email(SNSBase):
             logger.warning("Catch exception: %s", e)
             return False
 
-
+    @require_authed
     def home_timeline(self, count = 20):
         try:
             r = self._receive(count)
@@ -421,6 +423,7 @@ class Email(SNSBase):
 
         return message_list
 
+    @require_authed
     def update(self, text):
         from email.mime.text import MIMEText
         msg = MIMEText(text, _charset = 'utf-8')
@@ -434,9 +437,43 @@ class Email(SNSBase):
             ok_all = ok_all and re
         return ok_all
 
+    @require_authed
+    def reply(self, statusID, text):
+        """reply status
+        @param status: StatusID object
+        @param text: string, the reply message
+        @return: success or not
+        """
+
+        api_params = dict(method = "share.addComment", content = text, \
+            share_id = statusID.status_id, user_id = statusID.source_user_id)
+
+        try:
+            ret = self.renren_request(api_params)
+            logger.debug("Reply to status '%s' return: %s", statusID, ret)
+            if 'result' in ret and ret['result'] == 1:
+                logger.info("Reply '%s' to status '%s' succeed", text, statusID)
+                return True
+            else:
+                return False
+        except Exception, e:
+            logger.warning("Reply failed: %s", e)
+
+        logger.info("Reply '%s' to status '%s' fail", text, statusID)
+        return False
+
     def expire_after(self, token = None):
-        # This platform does not have token expire issue. 
-        return -1
+        # Check whether the user supplied secrets are correct
+        if self.imap_ok == True and self.smtp_ok == True:
+            # -1: Means this platform does not have token expire issue. 
+            #     More precisely, when the secrets are correct, 
+            #     you can re-login at any time. Same effect as 
+            #     refresing the token of OSN. 
+            return -1
+        else:
+            # 0: Means it has already expired. The effect of incorrect 
+            #    secrets is same as expired. 
+            return 0
 
 # === email message fields for future reference
 # TODO:

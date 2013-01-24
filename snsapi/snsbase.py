@@ -306,10 +306,7 @@ class SNSBase(object):
             return False
 
     def is_authed(self):
-        if self.is_expired():
-            return False
-        else:
-            return True
+        return False if self.is_expired() else True
 
     def need_auth(self):
         '''
