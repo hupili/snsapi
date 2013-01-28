@@ -15,6 +15,12 @@ from .. import snstype
 from ..errors import snserror
 from .. import utils
 
+'''
+	Not completely supporting, because it has too much work ..... 
+	It's a good example of how to auth and using Github api
+	I'll try to add more support on this
+	2013-1-28 12:38
+'''
 
 logger.debug("%s plugged!", __file__)
 
