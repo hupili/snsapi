@@ -37,3 +37,11 @@ class TestSNSBase(TestBase):
         in_('smtp_port', nc)
         in_('username', nc)
 
+    def test_home_timeline_normal(self):
+        pass
+
+    def test_home_timeline_not_authed(self):
+        pass
+
+    def test_snsbase_new_channel_empty(self):
+        pass
