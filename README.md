@@ -1,4 +1,3 @@
-
 *My update
 ----
 2013-1-28 12:42
@@ -8,7 +7,7 @@
       测试方法：
       在根目录下，python simple-github-test.py
    
-   TODO: 想重新写test模块儿，一个好的项目，test和demo是吸引其他人投入贡献的很重要的工具。
+   TODO: 想重新写test模块儿，现在的test模块根本没法用，一个好的项目，test和demo是吸引其他人投入贡献的很重要的工具。
    
 ----
 
