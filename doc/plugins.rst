@@ -23,6 +23,10 @@ tencent
 renren
 ----------------------------
 
+.. autoclass:: snsapi.plugin.renren.RenrenBase
+   :members: 
+   :undoc-members:
+
 .. autoclass:: snsapi.plugin.renren.RenrenStatus
    :members: 
    :undoc-members:
