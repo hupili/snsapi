@@ -38,6 +38,6 @@ rss
    :members: 
    :undoc-members:
 
-.. autoclass:: snsapi.plugin.rss2rw.RSS2RW
+.. autoclass:: snsapi.plugin.rss.RSS2RW
    :members: 
    :undoc-members:
