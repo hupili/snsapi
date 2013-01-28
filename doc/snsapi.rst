@@ -2,10 +2,10 @@
 SNSAPI Middleware
 =========================
 
-snsapi.py
+snsbase.py
 ---------
 
-.. automodule:: snsapi.snsapi
+.. automodule:: snsapi.snsbase
     :members:
     :undoc-members:
 
