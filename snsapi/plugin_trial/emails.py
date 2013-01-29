@@ -99,7 +99,9 @@ class Email(SNSBase):
         self.platform = self.__class__.__name__
 
         self.imap = None
+        self.imap_ok = False
         self.smtp = None
+        self.smtp_ok = False
 
     @staticmethod
     def new_channel(full = False):
@@ -114,7 +116,7 @@ class Email(SNSBase):
         c['password'] = 'password'
         c['address'] = 'username@gmail.com'
         return c
-        
+       
     def read_channel(self, channel):
         super(Email, self).read_channel(channel) 
 
