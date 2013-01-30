@@ -95,7 +95,7 @@ class TencentWeiboStatus(SNSBase):
         if not "auth_url" in self.auth_info:
             self.auth_info.auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
         if not "callback_url" in self.auth_info:
-            self.auth_info.callback_url = "http://copy.the.code.to.client/"
+            self.auth_info.callback_url = "http://snsapi.sinaapp.com/auth.php"
 
         # Tencent limit is a little more than 140.
         # We just use 140, which is a global industrial standard.

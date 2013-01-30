@@ -105,7 +105,7 @@ class SinaWeiboStatus(SNSBase):
         if not "auth_url" in self.auth_info:
             self.auth_info.auth_url = "https://api.weibo.com/oauth2/"
         if not "callback_url" in self.auth_info:
-            self.auth_info.callback_url = "http://copy.the.code.to.client/"
+            self.auth_info.callback_url = "http://snsapi.sinaapp.com/auth.php"
 
         # According to our test, it is 142 unicode character
         # We also use 140 by convention
