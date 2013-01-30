@@ -190,7 +190,7 @@ Section 5. Configure one "Real" SNS (OSN)
     >>> nc["app_secret"] = "YOU_APP_SECRET_KEY"
     >>> nc["app_key"] = "YOU_APP_KEY"
     >>> nc["channel_name"] = "test_renren"
-    >>> nc["auth_info"]["callback_url"] = "https://snsapi.ie.cuhk.edu.hk/aux/auth.php"
+    >>> nc["auth_info"]["callback_url"] = "http://snsapi.sinaapp.com/auth.php"
     >>> add_channel(nc)
     >>> auth()
     >>> sl = home_timeline(count = 5)
