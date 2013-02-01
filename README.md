@@ -177,6 +177,8 @@ git submodule update
    目前由xuanqinanhai维护。
    * [SNSAPI Github Wiki](https://github.com/hupili/snsapi/wiki)，
    所有github用户均可进行编辑，欢迎分享你的经验！
+   * [SNSAPI Google Group](https://groups.google.com/forum/?fromgroups#!forum/snsapi)
+   请加入这个社区，一同推进SNSAPI，我们会及时解决你遇到的各种问题。
 
 Copy Left
 ---------
