@@ -16,8 +16,8 @@ import time
 import urllib
 import urllib2
 #import logging
-from ..snslog import SNSLog
-logger = SNSLog
+#from ..snslog import SNSLog
+#logger = SNSLog
 
 def _obj_hook(pairs):
     '''

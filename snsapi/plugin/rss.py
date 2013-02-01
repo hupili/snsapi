@@ -3,6 +3,10 @@
 '''
 RSS Feed 
 
+Contains:
+   * RSS Read-only feed platform. 
+   * RSS Read/Write platform.
+
 '''
 
 

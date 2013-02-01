@@ -1,14 +1,24 @@
 #-*- encoding: utf-8 -*-
 
 '''
-SINA micro-blog client
+Sina Weibo client
 '''
 
-from ..snslog import SNSLog as logger 
-from ..snsbase import SNSBase, require_authed
-from .. import snstype
-from ..errors import snserror
-from .. import utils
+if __name__ == '__main__':
+    import sys
+    sys.path.append('..')
+    from snslog import SNSLog as logger
+    from snsbase import SNSBase, require_authed
+    import snstype
+    from utils import console_output
+    import utils
+else:
+    import sys
+    from ..snslog import SNSLog as logger
+    from ..snsbase import SNSBase, require_authed
+    from .. import snstype
+    from ..utils import console_output
+    from .. import utils
 
 logger.debug("%s plugged!", __file__)
 
@@ -198,3 +208,30 @@ class SinaWeiboStatus(SNSBase):
             logger.info("Reply '%s' to status '%s' fail: %s", text, self.jsonconf.channel_name, ret)
             return False
 
+if __name__ == '__main__':
+    print '\n\n\n'
+    print '==== SNSAPI Demo of sina.py module ====\n'
+    # Create and fill in app information
+    sina_conf = SinaWeiboStatus.new_channel()
+    sina_conf['channel_name'] = 'test_sina'
+    sina_conf['app_key'] = '2932547522'                           # Chnage to your own keys
+    sina_conf['app_secret'] = '93969e0d835ffec8dcd4a56ecf1e57ef'  # Change to your own keys
+    # Instantiate the channel
+    sina = SinaWeiboStatus(sina_conf)
+    # OAuth your app
+    print 'SNSAPI is going to authorize your app.'
+    print 'Please make sure:'
+    print '   * You have filled in your own app_key and app_secret in this script.'
+    print '   * You configured the callback_url on open.weibo.com as'
+    print '     http://snsapi.sinaapp.com/auth.php'
+    print 'Press [Enter] to continue or Ctrl+C to end.'
+    raw_input()
+    sina.auth()
+    # Test get 2 messages from your timeline
+    status_list = sina.home_timeline(2)
+    print '\n\n--- Statuses of your friends is followed ---'
+    print status_list
+    print '--- End of status timeline ---\n\n'
+
+    print 'Short demo ends here! You can do more with SNSAPI!'
+    print 'Please join our group for further discussions'

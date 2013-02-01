@@ -1,7 +1,7 @@
 #-*- encoding: utf-8 -*-
 
 '''
-QQ micro-blog client
+Tencent Weibo Client
 '''
 
 from ..snslog import SNSLog as logger 
