@@ -1,5 +1,26 @@
-SNSAPI 0.4
+SNSAPI 0.4.1
 ====
+
+Version string convention: `x.y.z`
+
+   * `x`: Major version with architectural upgrades. 
+   * `y`: Minor version with functional extension. 
+   * `z`: Micro version with small fix. 
+
+0.4.1
+----
+
+   * Fix `load_config` in `app/hellosns/`
+   * Email platform: check expire;
+   support decode email header; 
+   support parse 'reply-to' header field;
+   * Fix import path error of unit test.
+   * More sample unit test of email channel. 
+   * Fix unicode error of `app/clock/`
+   * Fix Sphinx document. 
+   * All defaut auth helper is changed to http://snsapi.sinaapp.com/auth.php
+   * Support Module test of `renren.py` and `sina.py`. 
+
 
 0.4
 ----
