@@ -46,7 +46,7 @@ snsapi默认会将授权信息记录在本地`*.save`中，
     "channel_name": "sina_account_1", 
     "auth_info": {
       "save_token_file": "(default)", 
-      "callback_url": "https://snsapi.ie.cuhk.edu.hk/aux/bouncer/redir/localhost/11111/", 
+      "callback_url": "http://snsapi.sinaapp.com/bouncer/redir/localhost/11111/", 
       "cmd_fetch_code": "(console_input)", 
       "cmd_request_url": "(console_output)"
     }, 

@@ -83,7 +83,7 @@ class TencentWeiboStatus(SNSBase):
         c['auth_info'] = {
                 "save_token_file": "(default)", 
                 "cmd_request_url": "(default)", 
-                "callback_url": "https://snsapi.ie.cuhk.edu.hk/aux/auth.php", 
+                "callback_url": "http://snsapi.sinaapp.com/auth.php", 
                 "cmd_fetch_code": "(default)" 
                 } 
 
@@ -95,7 +95,7 @@ class TencentWeiboStatus(SNSBase):
         if not "auth_url" in self.auth_info:
             self.auth_info.auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
         if not "callback_url" in self.auth_info:
-            self.auth_info.callback_url = "http://copy.the.code.to.client/"
+            self.auth_info.callback_url = "http://snsapi.sinaapp.com/auth.php"
 
         # Tencent limit is a little more than 140.
         # We just use 140, which is a global industrial standard.

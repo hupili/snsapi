@@ -47,7 +47,7 @@ class RenrenBase(SNSBase):
         c['auth_info'] = {
                 "save_token_file": "(default)", 
                 "cmd_request_url": "(default)", 
-                "callback_url": "https://snsapi.ie.cuhk.edu.hk/aux/auth.php", 
+                "callback_url": "http://snsapi.sinaapp.com/auth.php", 
                 "cmd_fetch_code": "(default)" 
                 } 
 
@@ -58,7 +58,10 @@ class RenrenBase(SNSBase):
         super(RenrenBase, self).read_channel(channel) 
 
         if not "callback_url" in self.auth_info: 
-            self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
+            self.auth_info.callback_url = "http://snsapi.sinaapp.com/auth.php"
+            # The following is official test link. 
+            # Keep here for future reference. 
+            #self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
 
         # Renren API document says the limit is 140 character....
         # After test, it seems 245 unicode character. 

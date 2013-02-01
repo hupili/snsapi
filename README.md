@@ -11,11 +11,12 @@ snsapi
    * SNSAPI附带提供一个CLI，使用stdin/stdout与其他程序交互。
    不用学习Python，即可使用SNSAPI完成众多操作。
 
-snscli上手测试：
-----
+snscli上手测试
+--------------
 
    * 首先你需要装Python2.7。
-   其他兼容版本见相关的wiki页面。
+   其他兼容版本见
+   [相关的wiki页面](https://github.com/hupili/snsapi/wiki/Compatibility-report)。
    * 获得该项目： 
       * 使用Git： `git clone https://github.com/hupili/snsapi.git`。 
       * 或直接下载zip包： [https://github.com/hupili/snsapi/zipball/master](https://github.com/hupili/snsapi/zipball/master)
@@ -74,7 +75,7 @@ snscli上手测试：
 还等什么？赶快开启snscli的教程吧。
 
 stdin/stdout测试
-----
+----------------
 
 下面这行linux命令将向你展示snsapi的stdin/stdout接口。
 
@@ -95,49 +96,51 @@ $echo -e 'load_config()\nauth()\nprint home_timeline(10)' | python -i snscli.py 
 你可以定制自己的过滤规则、转发规则，等等。
 
 
-编码问题：
-----
+编码问题
+--------
 
-另外：整个工程使用utf-8编码的，所以如果在windows的cmd窗口中运行程序可能出现编码问题。
-若如此，打开snsapi/snsconf.py，把最后一行的
-
-```
-    SNSAPI_CONSOLE_STDOUT_ENCODING = 'utf-8'
-```
-
-更改为
+整个工程是使用utf-8编码的。
+SNSAPI默认使用utf-8读写外部数据，
+在SNSAPI内部统一使用unicode。
+如果在中文系统下运行出编码问题，
+请打开snsapi/snsconf.py，把最后一行的
 
 ```
-    SNSAPI_CONSOLE_STDOUT_ENCODING = 'gbk'
+SNSAPI_CONSOLE_STDOUT_ENCODING = 'utf-8'
+```
+
+更改为（比如你系统使用的是gbk）
+
+```
+SNSAPI_CONSOLE_STDOUT_ENCODING = 'gbk'
 ```
     
-APP:
+应用
 ----
 
 基础应用:
 
    * hellosns: 
-   [https://github.com/hupili/snsapi/tree/master/app/hellosns](https://github.com/hupili/snsapi/tree/master/app/hellosns)
+   [https://github.com/hupili/snsapi/tree/master/app/hellosns](https://github.com/hupili/snsapi/tree/master/app/hellosns).
+   hello SNS将向你展示怎样用10行代码完成与SNS交互的基本功能，
+   它就是利用SNSAPI开发app的hello world啦。
    * forwarder: 
-   [https://github.com/hupili/snsapi/tree/master/app/forwarder](https://github.com/hupili/snsapi/tree/master/app/forwarder)
+   [https://github.com/hupili/snsapi/tree/master/app/forwarder](https://github.com/hupili/snsapi/tree/master/app/forwarder).
+   forwarder可以把一个平台的信息自动地发送到其他
+   平台，你需要做地只是填写配置文件，告诉它接收哪个平台信息，发布到哪些平台上。
    * mysofa: 
-   [https://github.com/hupili/snsapi/tree/master/app/mysofa](https://github.com/hupili/snsapi/tree/master/app/mysofa)
-
-hello SNS将向你展示怎样用10行代码完成与SNS交互的基本功能，
-它就是利用SNSAPI开发app的hello world啦。
-forwarder可以把一个平台的信息自动地发送到其他
-平台，你需要做地只是填写配置文件，告诉它接收哪个平台信息，发布到哪些平台上。mysofa我想你已经猜到了，
-就是用来抢沙发的 :D
+   [https://github.com/hupili/snsapi/tree/master/app/mysofa](https://github.com/hupili/snsapi/tree/master/app/mysofa).
+   mysofa我想你已经猜到了，就是用来抢沙发的 :D
 
 进阶应用:
 
    * SNSRouter:
-   [https://github.com/hupili/sns-router](https://github.com/hupili/sns-router) . 
+   [https://github.com/hupili/sns-router](https://github.com/hupili/sns-router). 
    正如其名，这个app将构建跨平台的智能存档、转发系统。
    它目前还在活跃的开发阶段。
 
-使用trial状态的插件
-----
+trial状态的插件
+---------------
 
 SNSAPI中会不断加入新的插件。
 标准插件会所需的代码会包含在项目中，打包下载即可使用。
@@ -150,23 +153,41 @@ git submodule init
 git submodule update
 ```
 
-Other:
+开启和关闭trial插件请见`snsapi/platform.py`，
+选择注释是否`import`他们即可。
+
+后记
 ----
 
-如果你不了解geek的世界，我能理解你看到一个没有图形界面，充斥各种代码和术语的软件，是多么的糟糕
-和令你困惑，但如果你想很快地实践自己对社交网络的一些新奇想法，入手snsapi吧！
+如果你不了解geek的世界，我能理解你看到一个
+没有图形界面、充斥各种代码和术语的软件，
+是多么的糟糕和令你困惑，
+但如果你想很快地实践自己对社交网络的一些新奇想法，入手snsapi吧！
 
-项目还在成长，所以还有很多考虑不到的东西请多包涵，也请给我们多提建议，更加欢迎你能参与进来，与我们
-一起改造社交网络！
+项目还在成长，所以还有很多考虑不到的东西请多包涵，
+也请给我们多提建议，更加欢迎你能参与进来，与我们一起改造社交网络！
 
-Copy Left:
----
+资源
+----
+
+   * [SNSAPI官网](http://snsapi.ie.cuhk.edu.hk/)。
+   目前由hupili维护，如果发现问题，请通知管理员。
+   也欢迎直接发patch到[repo](https://github.com/hupili/snsapi-website)。
+   * [SNSAPI中文网](http://snsapi.sinaapp.com/)。
+   目前由xuanqinanhai维护。
+   * [SNSAPI Github Wiki](https://github.com/hupili/snsapi/wiki)，
+   所有github用户均可进行编辑，欢迎分享你的经验！
+   * [SNSAPI Google Group](https://groups.google.com/forum/?fromgroups#!forum/snsapi)
+   请加入这个社区，一同推进SNSAPI，我们会及时解决你遇到的各种问题。
+
+Copy Left
+---------
 
 ![copyleft](http://unlicense.org/pd-icon.png)
 
 [http://unlicense.org](http://unlicense.org)
 
-All files of this project are released to public domain, 
+All files of this project are released to public domain,
 except for the followings:
 
    * `snsapi/third/*`: The third party modules. 
