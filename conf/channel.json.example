@@ -9,7 +9,7 @@
     "user_name": "",
 	"auth_info":
 	{
-	  "callback_url": "http://localhost:12121/auth.php",
+	  "callback_url": "http://snsapi.sinaapp.com/auth.php",
 	  "cmd_fetch_code": "(default)",
 	  "cmd_request_url": "(default)",
 	  "save_token_file": "(default)"
