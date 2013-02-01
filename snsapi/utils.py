@@ -57,7 +57,7 @@ class JsonDict(JsonObject):
     def _dumps_pretty(self):
         return json.dumps(self, indent=2)
 
-    def get(self, attr):
+    def get(self, attr, default_value = "(null)"):
         '''
         dict entry reading with fault tolerance. 
 
@@ -81,16 +81,16 @@ class JsonDict(JsonObject):
 
         '''
         if isinstance(attr, str):
-            return dict.get(self, attr, "(null)")
+            return dict.get(self, attr, default_value)
         elif isinstance(attr, list):
             for a in attr:
                 val = dict.get(self, a, None)
                 if val:
                     return val
-            return "(null)"
+            return default_value
         else:
             logger.warning("Unkown type: %s", type(attr))
-            return "(null)"
+            return default_value
 
         
 def console_input(string = None):

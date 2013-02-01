@@ -24,6 +24,7 @@ from snslog import SNSLog as logger
 
 # === 3rd party modules ===
 from third import oauth
+oauth.logger = logger
 
 def require_authed(func):
     '''
