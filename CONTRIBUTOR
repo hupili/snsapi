@@ -1,6 +1,20 @@
-In chronological order of when their codes are merged in to the project.
+Get your work merged into the project:
+
+   * [1] Make pull request on Github. (default)
+   * [2] Send Git patch file to the maintainer.
+   * [3] Demo the upgrades and let the maintainer formally merge it.
+   
+For [1] and [2], you can find their upgrades by grepping the log. For
+[3], we will briefly describe the upgrades. [1] is recommended. Don't be
+afraid that your code may be rejected by the maintainer. We shall
+discuss with you and help you solve all the problems so that your code
+can be merged.
+
+List of contributors:
+(In chronological order of when their codes are merged in to the project)
 
 @uxian
 @hupili
 @cllu
 @AntSworD
+@xuanqinanhai (username+password auth: authproxy; local)
