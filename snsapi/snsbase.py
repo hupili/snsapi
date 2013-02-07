@@ -11,6 +11,7 @@ It provides common authenticate and communicate methods.
 import webbrowser
 from utils import json
 import urllib
+import urllib2
 from errors import snserror
 import base64
 import urlparse
@@ -94,7 +95,26 @@ class SNSBase(object):
                     raise snserror.auth.fetchcode
             finally:
                 del self.httpd
-        else :
+        elif self.auth_info.cmd_fetch_code == "(authproxy_username_password)":
+            try:
+                uid = self.auth_info.login_username
+                password = self.auth_info.login_password
+                app_key = self.jsonconf.app_key
+                app_secret = self.jsonconf.app_secret
+                callback_uri = self.auth_info.callback_url
+                authproxy_url = self.auth_info.authproxy_url
+                params = urllib.urlencode({'userid': uid,
+                    'password': password, 'app_key': app_key,
+                    'app_secret': app_secret,'callback_uri':callback_uri})
+                req = urllib2.Request(url=authproxy_url,data=params);
+                code = urllib2.urlopen(req).read()
+                logger.debug("response from authproxy: %s", code)
+                # Just to conform to previous SNSAPI convention
+                return "http://snsapi.snsapi/?code=%s" % code
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+                raise snserror.auth.fetchcode
+        else:  # Execute arbitrary command to fetch code
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
             logger.debug("fetch_code command is: %s", cmd) 
             ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
@@ -110,6 +130,9 @@ class SNSBase(object):
     def request_url(self, url):
         if self.auth_info.cmd_request_url == "(webbrowser)" :
             self.open_brower(url)
+        elif self.auth_info.cmd_request_url == "(dummy)" :
+            logger.debug("dummy method used for request_url(). Do nothing.")
+            pass
         elif self.auth_info.cmd_request_url == "(console_output)" :
             utils.console_output(url)
         elif self.auth_info.cmd_request_url == "(local_webserver)+(webbrowser)" :
@@ -123,7 +146,7 @@ class SNSBase(object):
                 self.open_brower(url)
             except socket.error:
                 raise snserror.auth
-        else :
+        else:  # Execute arbitrary command to request url
             self.__last_request_time = self.time()
             cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
             logger.debug("request_url command is: %s", cmd) 
