@@ -136,6 +136,48 @@ class SinaWeiboStatus(SNSBase):
         except Exception, e:
             logger.warning("Auth second fail. Catch exception: %s", e)
             self.token = None
+
+    def _fetch_code_local_username_password(self):
+        try:
+            login_username = self.auth_info.login_username
+            login_password = self.auth_info.login_password
+            app_key = self.jsonconf.app_key
+            app_secret = self.jsonconf.app_secret
+            callback_url = self.auth_info.callback_url
+
+            referer_url = self._last_requested_url
+
+            postdata = {"client_id": app_key,
+                        "redirect_uri": callback_url,
+                        "userId": login_username,
+                        "passwd": login_password,
+                        "isLoginSina": "0",
+                        "action": "submit",
+                        "response_type": "code",
+            }
+
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.1; rv:11.0) Gecko/20100101 Firefox/11.0",
+                       "Host": "api.weibo.com",
+                       "Referer": referer_url
+            }
+
+            #TODO:
+            #    Unify all the urllib, urllib2 invocation to snsbase
+            import urllib2
+            import urllib
+            auth_url = "https://api.weibo.com/oauth2/authorize"
+            #auth_url = self.auth_info.auth_url
+            req = urllib2.Request(url = auth_url,
+                                  data = urllib.urlencode(postdata),
+                                  headers = headers
+            )
+            
+            resp = urllib2.urlopen(req)
+            resp_url = resp.geturl()
+            logger.debug("response URL from local post: %s", resp_url)
+            return resp_url
+        except Exception, e:
+            logger.warning("Catch exception: %s", e)
         
     @require_authed
     def home_timeline(self, count=20):

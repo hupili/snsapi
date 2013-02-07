@@ -120,6 +120,14 @@ class SNSBase(object):
             except Exception, e:
                 logger.warning("Catch exception: %s", e)
                 raise snserror.auth.fetchcode
+        elif self.auth_info.cmd_fetch_code == "(local_username_password)":
+            # Currently available for SinaWeibo. 
+            # The platform must implement _fetch_code_local_username_password() method
+            try:
+                return self._fetch_code_local_username_password()
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+                raise snserror.auth.fetchcode
         else:  # Execute arbitrary command to fetch code
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
             logger.debug("fetch_code command is: %s", cmd) 
@@ -134,6 +142,7 @@ class SNSBase(object):
             return ret
 
     def request_url(self, url):
+        self._last_requested_url = url
         if self.auth_info.cmd_request_url == "(webbrowser)" :
             self.open_brower(url)
         elif self.auth_info.cmd_request_url == "(dummy)" :
