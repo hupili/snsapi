@@ -96,17 +96,23 @@ class SNSBase(object):
             finally:
                 del self.httpd
         elif self.auth_info.cmd_fetch_code == "(authproxy_username_password)":
+            # Currently available for SinaWeibo. 
+            # Before using this method, please deploy one authproxy:
+            #    * https://github.com/xuanqinanhai/weibo-simulator/
+            # Or, you can use the official one:
+            #    * https://snsapi.ie.cuhk.edu.hk/authproxy/auth.php
+            # (Not recommended; only for test purpose; do not use in production)
             try:
-                uid = self.auth_info.login_username
-                password = self.auth_info.login_password
+                login_username = self.auth_info.login_username
+                login_password = self.auth_info.login_password
                 app_key = self.jsonconf.app_key
                 app_secret = self.jsonconf.app_secret
-                callback_uri = self.auth_info.callback_url
+                callback_url = self.auth_info.callback_url
                 authproxy_url = self.auth_info.authproxy_url
-                params = urllib.urlencode({'userid': uid,
-                    'password': password, 'app_key': app_key,
-                    'app_secret': app_secret,'callback_uri':callback_uri})
-                req = urllib2.Request(url=authproxy_url,data=params);
+                params = urllib.urlencode({'userid': login_username,
+                    'password': login_password, 'app_key': app_key,
+                    'app_secret': app_secret,'callback_uri': callback_url})
+                req = urllib2.Request(url=authproxy_url, data=params);
                 code = urllib2.urlopen(req).read()
                 logger.debug("response from authproxy: %s", code)
                 # Just to conform to previous SNSAPI convention
