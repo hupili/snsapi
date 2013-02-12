@@ -213,7 +213,7 @@ class SNSPocket(dict):
     def auth(self, channel = None):
         """docstring for auth"""
         if channel:
-            self[c].auth()
+            self[channel].auth()
         else:
             for c in self.itervalues():
                 if self.__check_method(c, ''):
