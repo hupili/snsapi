@@ -31,14 +31,14 @@ class TestSnsapi(unittest.TestCase):
         #self.assertIsNotNone(self.sns.platform)
         pass
         
-    def test_parseCode(self):
+    def test__parse_code(self):
         #sina example
         url = "http://copy.the.code.to.client/?code=b5ffaed78a284a55e81ffe142c4771d9"
-        token = self.sns.parseCode(url)
+        token = self.sns._parse_code(url)
         self.assertTrue(type(token.code)==str and len(token.code)>10)
         #qq example
         url = "http://copy.the.code.to.client/?code=fad92807419b5aac433c4128A05e1Cad&openid=921CFC3AF04d76FE59D98a2029D0B978&openkey=6C2FCABD153B18625BAAB1BA206EF2C6";
-        token = self.sns.parseCode(url)
+        token = self.sns._parse_code(url)
         self.assertTrue(type(token.code)==str and len(token.code)>10)
         self.assertTrue(type(token.openid)==str and len(token.openid)>10)
 
