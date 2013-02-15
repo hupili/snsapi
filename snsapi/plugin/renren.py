@@ -48,7 +48,10 @@ class RenrenBase(SNSBase):
 
     @staticmethod
     def new_channel(full = False):
-        #c = super(RenrenBase).new_channel(full)
+        '''
+        docstring placeholder
+        '''
+
         c = SNSBase.new_channel(full)
 
         c['app_key'] = ''
@@ -65,6 +68,10 @@ class RenrenBase(SNSBase):
 
         
     def read_channel(self, channel):
+        '''
+        docstring placeholder
+        '''
+
         super(RenrenBase, self).read_channel(channel) 
 
         if not "callback_url" in self.auth_info: 
@@ -82,9 +89,17 @@ class RenrenBase(SNSBase):
         #    self.jsonconf['platform_prefix'] = u'人人'
 
     def need_auth(self):
+        '''
+        docstring placeholder
+        '''
+
         return True
         
     def auth_first(self):
+        '''
+        docstring placeholder
+        '''
+
         args = dict(client_id=self.jsonconf.app_key, redirect_uri = self.auth_info.callback_url)
         args["response_type"] = "code"
         args["scope"] = "read_user_status status_update publish_comment"
@@ -93,13 +108,17 @@ class RenrenBase(SNSBase):
         self.request_url(url)
 
     def auth_second(self):
+        '''
+        docstring placeholder
+        '''
+
         try:
             #TODO:
             #    The name 'fetch_code' is not self-explained.
             #    It actually fetches the authenticated callback_url.
             #    Code is parsed from this url. 
             url = self.fetch_code()
-            self.token = self.parseCode(url)
+            self.token = self._parse_code(url)
             args = dict(client_id=self.jsonconf.app_key, redirect_uri = self.auth_info.callback_url)
             args["client_secret"] = self.jsonconf.app_secret
             args["code"] = self.token.code
@@ -111,6 +130,10 @@ class RenrenBase(SNSBase):
             self.token = None
 
     def auth(self):
+        '''
+        docstring placeholder
+        '''
+
         if self.get_saved_token():
             return
 
@@ -122,10 +145,10 @@ class RenrenBase(SNSBase):
         logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
 
     def renren_request(self, params = None):
-        """
+        '''
         A general purpose encapsulation of renren API. 
         It fills in system paramters and compute the signature. 
-        """
+        '''
 
         #request a session key
         try:
@@ -253,15 +276,25 @@ class RenrenShare(RenrenBase):
 
     @staticmethod
     def new_channel(full = False):
+        '''
+        docstring placeholder
+
+        '''
+
         c = RenrenBase.new_channel(full)
         c['platform'] = 'RenrenShare'
         return c
         
     @require_authed
     def home_timeline(self, count=20):
-        '''Get home timeline
-        get statuses of yours and your friends'
-        @param count: number of statuses
+        '''
+        Get timeline of Renren statuses
+
+        :param count: 
+            Number of statuses
+
+        :return:
+            At most ``count`` statuses (can be less).
         '''
 
         api_params = dict(method = "feed.get", \
@@ -288,11 +321,15 @@ class RenrenShare(RenrenBase):
 
     @require_authed
     def reply(self, statusID, text):
-        """reply status
-        @param status: StatusID object
-        @param text: string, the reply message
-        @return: success or not
-        """
+        '''
+        docstring placeholder
+        '''
+
+        #"""reply status
+        #@param status: StatusID object
+        #@param text: string, the reply message
+        #@return: success or not
+        #"""
 
         api_params = dict(method = "share.addComment", content = text, \
             share_id = statusID.status_id, user_id = statusID.source_user_id)
