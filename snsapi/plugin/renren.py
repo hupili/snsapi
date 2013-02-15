@@ -516,8 +516,12 @@ class RenrenBlogMessage(snstype.Message):
 
     def _parse_feed_blog(self, dct):
         self.ID.feed_id = dct["post_id"]
+        self.ID.user_type = dct["actor_type"]
         self.ID.blog_id = dct["source_id"]
-        self.ID.source_user_id = dct["actor_id"]
+        if dct["actor_type"] == "user":
+            self.ID.source_user_id = dct["actor_id"]
+        else:  #page
+            self.ID.source_page_id = dct["actor_id"]
 
         self.parsed.userid = dct['actor_id']
         self.parsed.username = dct['name']
@@ -548,7 +552,7 @@ class RenrenBlog(RenrenBase):
         '''
 
         api_params = {'method': 'feed.get',
-                      'type': '20',
+                      'type': '20,22',
                       'page': 1, 
                       'count': count}
 
@@ -615,10 +619,19 @@ class RenrenBlog(RenrenBase):
         :return: success or not
         '''
 
+        if mID.user_type == 'user':
+            owner_key = 'uid'
+            owner_value = mID.source_user_id
+        else:  # 'page'
+            owner_key = 'page_id'
+            owner_value = mID.source_page_id
+
         api_params = {'method': 'blog.addComment',
                       'content': text,
                       'id': mID.blog_id, 
-                      'uid': mID.source_user_id}
+                      owner_key: owner_value}
+
+        logger.debug('request parameters: %s', api_params)
 
         try:
             ret = self.renren_request(api_params)
