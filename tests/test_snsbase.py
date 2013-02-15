@@ -38,3 +38,14 @@ class TestSNSBase(TestBase):
         in_('description', nc)
         in_('methods', nc)
 
+    def _parse_code_ok(self, url, code):
+        sns = SNSBase()
+        token = sns._parse_code(url)
+        ok_(isinstance(token, snsapi.utils.JsonDict))
+        eq_(token.code, code)
+
+    def test__parse_code(self):
+        # Sina example
+        self._parse_code_ok('http://copy.the.code.to.client/?code=b5ffaed78a284a55e81ffe142c4771d9', 'b5ffaed78a284a55e81ffe142c4771d9')
+        # Tencent example
+        self._parse_code_ok('http://copy.the.code.to.client/?code=fad92807419b5aac433c4128A05e1Cad&openid=921CFC3AF04d76FE59D98a2029D0B978&openkey=6C2FCABD153B18625BAAB1BA206EF2C6', 'fad92807419b5aac433c4128A05e1Cad')

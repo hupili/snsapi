@@ -262,10 +262,10 @@ class SNSBase(object):
         :param url: 
             contain code and optionally other parameters
 
-        :return: JsonObject within code and openid
+        :return: JsonDict containing 'code' and (optional) other URL parameters
 
         '''
-        return utils.JsonObject(urlparse.parse_qsl(urlparse.urlparse(url).query))
+        return utils.JsonDict(urlparse.parse_qsl(urlparse.urlparse(url).query))
 
     def save_token(self):
         '''
