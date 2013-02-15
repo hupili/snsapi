@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 '''
-snsapi base class. 
+snsapi base class.
 
-All plugins are derived from this class. 
+All plugins are derived from this class.
 It provides common authenticate and communicate methods.
 '''
 
@@ -11,6 +11,7 @@ It provides common authenticate and communicate methods.
 import webbrowser
 from utils import json
 import urllib
+import urllib2
 from errors import snserror
 import base64
 import urlparse
@@ -28,15 +29,18 @@ oauth.logger = logger
 
 def require_authed(func):
     '''
-    A decorator to require auth before an operation
+A decorator to require auth before an operation
 
-    '''
+'''
     def wrapper_require_authed(self, *al, **ad):
         if self.is_authed():
             return func(self, *al, **ad)
         else:
             logger.warning("Channel '%s' is not authed!", self.jsonconf['channel_name'])
-            return 
+            return
+    doc_orig = func.__doc__ if func.__doc__ else ''
+    doc_new = doc_orig + '\n **NOTE: This method require authorization before invokation.**'
+    wrapper_require_authed.__doc__ = doc_new
     return wrapper_require_authed
 
 
@@ -58,11 +62,11 @@ class SNSBase(object):
         #self.str2utc = lambda s: utils.str2utc(s)
         self._urlencode = lambda params : urllib.urlencode(params)
         
-        # We can not init the auth client here. 
-        # As the base class, this part is first 
+        # We can not init the auth client here.
+        # As the base class, this part is first
         # executed. Not until we execute the derived
         # class, e.g. sina.py, can we get all the
-        # information to init an auth client. 
+        # information to init an auth client.
         self.auth_client = None
 
         if channel:
@@ -73,7 +77,7 @@ class SNSBase(object):
             utils.console_output("Please input the whole url from Broswer's address bar:")
             return self.console_input().strip()
         elif self.auth_info.cmd_fetch_code == "(local_webserver)":
-            try: 
+            try:
                 self.httpd.handle_request()
                 if 'code' in self.httpd.query_params:
                     code = self.httpd.query_params['code']
@@ -81,24 +85,57 @@ class SNSBase(object):
                     return "http://localhost/?%s" % urllib.urlencode(self.httpd.query_params)
                 else:
                     #TODO:
-                    #    There is a non repeatable bug here. 
-                    #    When we have multiple platforms to authorize, 
-                    #    successive platforms may fail in this branch. 
-                    #    That means there is other HTTP request to the local HTTP server
-                    #    before the call_back URL. 
+                    # There is a non repeatable bug here.
+                    # When we have multiple platforms to authorize,
+                    # successive platforms may fail in this branch.
+                    # That means there is other HTTP request to the local HTTP server
+                    # before the call_back URL.
                     #
-                    #    Solution:
-                    #        * Configure different port for different channels. 
-                    #          This is solved at upper layer. 
-                    #        * Support random port by default. 
+                    # Solution:
+                    # * Configure different port for different channels.
+                    # This is solved at upper layer.
+                    # * Support random port by default.
                     raise snserror.auth.fetchcode
             finally:
                 del self.httpd
-        else :
+        elif self.auth_info.cmd_fetch_code == "(authproxy_username_password)":
+            # Currently available for SinaWeibo.
+            # Before using this method, please deploy one authproxy:
+            # * https://github.com/xuanqinanhai/weibo-simulator/
+            # Or, you can use the official one:
+            # * https://snsapi.ie.cuhk.edu.hk/authproxy/auth.php
+            # (Not recommended; only for test purpose; do not use in production)
+            try:
+                login_username = self.auth_info.login_username
+                login_password = self.auth_info.login_password
+                app_key = self.jsonconf.app_key
+                app_secret = self.jsonconf.app_secret
+                callback_url = self.auth_info.callback_url
+                authproxy_url = self.auth_info.authproxy_url
+                params = urllib.urlencode({'userid': login_username,
+                    'password': login_password, 'app_key': app_key,
+                    'app_secret': app_secret,'callback_uri': callback_url})
+                req = urllib2.Request(url=authproxy_url, data=params);
+                code = urllib2.urlopen(req).read()
+                logger.debug("response from authproxy: %s", code)
+                # Just to conform to previous SNSAPI convention
+                return "http://snsapi.snsapi/?code=%s" % code
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+                raise snserror.auth.fetchcode
+        elif self.auth_info.cmd_fetch_code == "(local_username_password)":
+            # Currently available for SinaWeibo.
+            # The platform must implement _fetch_code_local_username_password() method
+            try:
+                return self._fetch_code_local_username_password()
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+                raise snserror.auth.fetchcode
+        else: # Execute arbitrary command to fetch code
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
-            logger.debug("fetch_code command is: %s", cmd) 
+            logger.debug("fetch_code command is: %s", cmd)
             ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
-            tries = 1 
+            tries = 1
             while ret == "(null)" :
                 tries += 1
                 if tries > self.__fetch_code_max_try :
@@ -108,13 +145,17 @@ class SNSBase(object):
             return ret
 
     def request_url(self, url):
+        self._last_requested_url = url
         if self.auth_info.cmd_request_url == "(webbrowser)" :
             self.open_brower(url)
+        elif self.auth_info.cmd_request_url == "(dummy)" :
+            logger.debug("dummy method used for request_url(). Do nothing.")
+            pass
         elif self.auth_info.cmd_request_url == "(console_output)" :
             utils.console_output(url)
         elif self.auth_info.cmd_request_url == "(local_webserver)+(webbrowser)" :
-            host = self.auth_info.host 
-            port = self.auth_info.port 
+            host = self.auth_info.host
+            port = self.auth_info.port
             from third.server import ClientRedirectServer
             from third.server import ClientRedirectHandler
             import socket
@@ -123,22 +164,22 @@ class SNSBase(object):
                 self.open_brower(url)
             except socket.error:
                 raise snserror.auth
-        else :
+        else: # Execute arbitrary command to request url
             self.__last_request_time = self.time()
             cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
-            logger.debug("request_url command is: %s", cmd) 
+            logger.debug("request_url command is: %s", cmd)
             res = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.read().rstrip()
-            logger.debug("request_url result is: %s", res) 
+            logger.debug("request_url result is: %s", res)
             return
 
-    # The init process is separated out and we 
-    # adopt an idle evaluation strategy for it. 
-    # This is because the two stages of OAtuh 
-    # should be context-free. We can not assume 
+    # The init process is separated out and we
+    # adopt an idle evaluation strategy for it.
+    # This is because the two stages of OAtuh
+    # should be context-free. We can not assume
     # calling the second is right after calling
-    # the first. They can be done in different 
+    # the first. They can be done in different
     # invokation of the script. They can be done
-    # on different servers. 
+    # on different servers.
     def __init_oauth2_client(self):
         if self.auth_client == None:
             try:
@@ -151,9 +192,9 @@ class SNSBase(object):
 
     def _oauth2_first(self):
         '''
-        The first stage of oauth. 
-        Generate auth url and request. 
-        '''
+The first stage of oauth.
+Generate auth url and request.
+'''
         self.__init_oauth2_client()
 
         url = self.auth_client.get_authorize_url()
@@ -162,16 +203,16 @@ class SNSBase(object):
 
     def _oauth2_second(self):
         '''
-        The second stage of oauth. 
-        Fetch authenticated code. 
-        '''
+The second stage of oauth.
+Fetch authenticated code.
+'''
         try:
-            self.__init_oauth2_client() 
-            url = self.fetch_code() 
+            self.__init_oauth2_client()
+            url = self.fetch_code()
             logger.debug("get url: %s", url)
             if url == "(null)" :
                 raise snserror.auth
-            self.token = self.parseCode(url)
+            self.token = self._parse_code(url)
             self.token.update(self.auth_client.request_access_token(self.token.code))
             logger.debug("Authorized! access token is " + str(self.token))
             logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
@@ -181,11 +222,11 @@ class SNSBase(object):
     
     def oauth2(self):
         '''
-        Authorizing using synchronized invocation of OAuth2.
+Authorizing using synchronized invocation of OAuth2.
 
-        Users need to collect the code in the browser's address bar to this client.
-        callback_url MUST be the same one you set when you apply for an app in openSNS platform.
-        '''
+Users need to collect the code in the browser's address bar to this client.
+callback_url MUST be the same one you set when you apply for an app in openSNS platform.
+'''
         
         logger.info("Try to authenticate '%s' using OAuth2", self.jsonconf.channel_name)
         self._oauth2_first()
@@ -193,9 +234,9 @@ class SNSBase(object):
 
     def auth(self):
         """
-        General entry for authorization.  
-        It uses OAuth2 by default. 
-        """
+General entry for authorization.
+It uses OAuth2 by default.
+"""
         if self.get_saved_token():
             return
         self.oauth2()
@@ -214,22 +255,23 @@ class SNSBase(object):
     def open_brower(self, url):
         return webbrowser.open(url)
     
-    def parseCode(self, url):
+    def _parse_code(self, url):
         '''
-        .. py:function:: -
+Parse code from a URL containing ``code=xx`` parameter
 
-        :param url: 
-            contain code and openID
+:param url:
+contain code and optionally other parameters
 
-        :return: JsonObject within code and openid
-        '''
+:return: JsonObject within code and openid
+
+'''
         return utils.JsonObject(urlparse.parse_qsl(urlparse.urlparse(url).query))
 
     def save_token(self):
         '''
-        access token can be saved, it stays valid for a couple of days
-        if successfully saved, invoke get_saved_token() to get it back
-        '''
+access token can be saved, it stays valid for a couple of days
+if successfully saved, invoke get_saved_token() to get it back
+'''
         fname = self.auth_info.save_token_file
         if fname == "(default)" :
             fname = self.jsonconf.channel_name+".token.save"
@@ -269,37 +311,37 @@ class SNSBase(object):
 
     def expire_after(self, token = None):
         '''
-        Calculate how long it is before token expire. 
+Calculate how long it is before token expire.
 
-        Returns:
-           * >0: the time in seconds. 
-           * 0: has already expired. 
-           * -1: there is no token expire issue for this platform. 
-        '''
+Returns:
+* >0: the time in seconds.
+* 0: has already expired.
+* -1: there is no token expire issue for this platform.
+'''
         if token == None:
             token = self.token
         if token:
-            if token.expires_in - self.time() > 0: 
+            if token.expires_in - self.time() > 0:
                 return token.expires_in - self.time()
-            else: 
-                return 0 
-        else: 
-            # If there is no 'token' attribute available, 
-            # we regard it as token expired. 
+            else:
+                return 0
+        else:
+            # If there is no 'token' attribute available,
+            # we regard it as token expired.
             return 0
 
     def is_expired(self, token = None):
         '''
-        Check if the access token is expired. 
+Check if the access token is expired.
 
-        It delegates the logic to 'expire_after', which is a more 
-        formal module to use. This interface is kept for backward
-        compatibility. 
-        '''
+It delegates the logic to 'expire_after', which is a more
+formal module to use. This interface is kept for backward
+compatibility.
+'''
         #TODO:
-        #    For those token that are near 0, we'd better inform
-        #    the upper layer somehow. Or, it may just expire when 
-        #    the upper layer calls. 
+        # For those token that are near 0, we'd better inform
+        # the upper layer somehow. Or, it may just expire when
+        # the upper layer calls.
         if self.expire_after(token) == 0:
             return True
         else:
@@ -311,20 +353,21 @@ class SNSBase(object):
 
     def need_auth(self):
         '''
-        Whether this channel requires two-stage asynchronous auth. 
-        '''
+Whether this channel requires two-stage asynchronous auth.
+'''
         return False
 
     @staticmethod
     def new_channel(full = False):
         '''
-        Return a JsonDict object containing channel configurations. 
+Return a JsonDict object containing channel configurations.
 
-        full:
-            False: only returns essential fields. 
-            True: returns all fields (essential + optional). 
+:param full: Whether to return all config fields.
 
-        '''
+* False: only returns essential fields.
+* True: returns all fields (essential + optional).
+
+'''
 
         c = utils.JsonDict()
         c['channel_name'] = 'new_channel_name'
@@ -333,7 +376,7 @@ class SNSBase(object):
         if full:
             c['description'] = "a string for you to memorize"
             # Defaultly enabled methods in SNSPocket batch operation
-            c['methods'] = "" 
+            c['methods'] = ""
 
         return c
     
@@ -350,19 +393,19 @@ class SNSBase(object):
             self.auth_info['port'] = 12121
 
         #if not 'text_length_limit' in self.jsonconf:
-        #    self.jsonconf['text_length_limit'] = 140
+        # self.jsonconf['text_length_limit'] = 140
 
     def setup_oauth_key(self, app_key, app_secret):
         '''
-        If you do not want to use read_channel, and want to set app_key on your own, here it is.
-        '''
+If you do not want to use read_channel, and want to set app_key on your own, here it is.
+'''
         self.jsonconf.app_key = app_key
         self.jsonconf.app_secret = app_secret
 
     def _http_get(self, baseurl, params):
-        # Support unicode parameters. 
+        # Support unicode parameters.
         # We should encode them as exchanging stream (e.g. utf-8)
-        # before URL encoding and issue HTTP requests. 
+        # before URL encoding and issue HTTP requests.
         try:
             for p in params:
                 params[p] = self._unicode_encode(params[p])
@@ -372,7 +415,7 @@ class SNSBase(object):
             json_objs = json.loads(resp.read())
             return json_objs
         except Exception, e:
-            # Tolerate communication fault, like network failure. 
+            # Tolerate communication fault, like network failure.
             logger.warning("_http_get fail: %s", e)
             return {}
     
@@ -390,27 +433,27 @@ class SNSBase(object):
 
     def _unicode_encode(self, s):
         """
-        Detect if a string is unicode and encode as utf-8 if necessary
-        """
+Detect if a string is unicode and encode as utf-8 if necessary
+"""
         if isinstance(s, unicode):
-            return s.encode('utf-8') 
+            return s.encode('utf-8')
         else:
             return s
     
     def _cat(self, length, text_list):
         '''
-        Concatenate strings. 
+Concatenate strings.
 
-        :param length:
-            The output should not exceed length unicode characters. 
+:param length:
+The output should not exceed length unicode characters.
 
-        :param text_list:
-            A list of text pieces. Each element is a tuple (text, priority). 
-            The _cat function will concatenate the texts using the oder in 
-            text_list. If the output exceeds length, (part of) some texts 
-            will be cut according to the priority. The lower priority one 
-            text is assigned, the earlier it will be cut. 
-        '''
+:param text_list:
+A list of text pieces. Each element is a tuple (text, priority).
+The _cat function will concatenate the texts using the oder in
+text_list. If the output exceeds length, (part of) some texts
+will be cut according to the priority. The lower priority one
+text is assigned, the earlier it will be cut.
+'''
         
         delim = "||"
         
@@ -428,7 +471,7 @@ class SNSBase(object):
                     extra_length -= len(t)
                 else:
                     output_list.append((o, t[0:(len(t) - extra_length)], p))
-                    extra_length = 0 
+                    extra_length = 0
 
             output_list.sort(key = lambda tup: tup[0])
             return delim.join([t for (o, t, p) in output_list])
@@ -440,48 +483,47 @@ class SNSBase(object):
     # Just a memo of possible methods
 
     # def home_timeline(self, count=20):
-    #     '''Get home timeline
-    #     get statuses of yours and your friends'
-    #     @param count: number of statuses
-    #     Always returns a list of Message objects. If errors happen in the 
-    #     requesting process, return an empty list. The plugin is recommended
-    #     to log warning message for debug use. 
-    #     '''
-    #     pass
+    # '''Get home timeline
+    # get statuses of yours and your friends'
+    # @param count: number of statuses
+    # Always returns a list of Message objects. If errors happen in the
+    # requesting process, return an empty list. The plugin is recommended
+    # to log warning message for debug use.
+    # '''
+    # pass
          
     # def update(self, text):
-    #     """docstring for update"""
-    #     pass
+    # """docstring for update"""
+    # pass
 
     # def reply(self, mID, text):
-    #     """docstring for reply"""
-    #     pass
+    # """docstring for reply"""
+    # pass
 
     @require_authed
     def forward(self, message, text):
         """
-        A general forwarding implementation using update method. 
-        
-        :param message:
-            The Message object. The message you want to forward. 
+A general forwarding implementation using update method.
+:param message:
+The Message object. The message you want to forward.
 
-        :param text:
-            A unicode string. The comments you add to the message. 
+:param text:
+A unicode string. The comments you add to the message.
 
-        :return:
-            Successful or not: True / False 
+:return:
+Successful or not: True / False
 
-        """
+"""
         
         if not isinstance(message, snstype.Message):
             logger.warning("unknown type to forward: %s", type(message))
             return False
 
         if self.update == None:
-            # This warning message is for those who build application on 
+            # This warning message is for those who build application on
             # individual plugin classes. If the developers based their app
-            # on SNSPocket, they will see the warning message given by the 
-            # dummy update method. 
+            # on SNSPocket, they will see the warning message given by the
+            # dummy update method.
             logger.warning("this platform does not have update(). can not forward")
             return False
 
@@ -489,13 +531,13 @@ class SNSBase(object):
         if 'text_length_limit' in self.jsonconf:
             tll = self.jsonconf['text_length_limit']
         #orig_text = "[%s:%s][%s]%s" % (message.platform, message.parsed.username, \
-        #        utils.utc2str(message.parsed.time), message.parsed.text)
+        # utils.utc2str(message.parsed.time), message.parsed.text)
         #if 'platform_prefix' in self.jsonconf:
-        #    platform_prefix = self.jsonconf['platform_prefix']
+        # platform_prefix = self.jsonconf['platform_prefix']
         #else:
 
         #TODO:
-        #    This mapping had better be configurable from user side
+        # This mapping had better be configurable from user side
         mapping = {
                 'RSS': u'RSS',
                 'RSS2RW': u'RSS2RW',
@@ -516,11 +558,11 @@ class SNSBase(object):
             #TODO:
             #
             # We wrap unicode() here, in case the 'text_trace' field
-            # or 'text_orig' field is parsed to None. 
+            # or 'text_orig' field is parsed to None.
             #
-            # This problem can also be solved at _cat() function. In 
-            # this way, it we can compat the message further. i.e. 
-            # When one field is None, we omit the text "None" and 
+            # This problem can also be solved at _cat() function. In
+            # this way, it we can compat the message further. i.e.
+            # When one field is None, we omit the text "None" and
             # delimiter.
             final = self._cat(tll, [(text, 5), (last_user, 4), \
                     (unicode(message.parsed.text_trace), 1), \
@@ -531,3 +573,5 @@ class SNSBase(object):
        
         #print final
         return self.update(final)
+
+
