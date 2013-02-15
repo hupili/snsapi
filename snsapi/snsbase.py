@@ -39,7 +39,7 @@ def require_authed(func):
             logger.warning("Channel '%s' is not authed!", self.jsonconf['channel_name'])
             return 
     doc_orig = func.__doc__ if func.__doc__ else ''
-    doc_new = doc_orig + '\n        **This method require authorization.**'
+    doc_new = doc_orig + '\n        **NOTE: This method require authorization before invokation.**'
     wrapper_require_authed.__doc__ = doc_new
     return wrapper_require_authed
 
