@@ -25,7 +25,7 @@ class MessageID(utils.JsonDict):
        * platform: Name of the platform (e.g. RenrenStatus)
        * channel: Name of the instantiated channel \
        (e.g. 'renren_account_1'). \
-       Same as channel's `.jsonconf['channel_name']`
+       Same as a channel's ``.jsonconf['channel_name']``.
 
     In order to reply one status, here's the information 
     required by each platforms:
