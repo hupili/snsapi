@@ -3,7 +3,7 @@ SNSAPI Middleware
 =========================
 
 snsbase.py
----------
+-------------------
 
 .. automodule:: snsapi.snsbase
     :members:

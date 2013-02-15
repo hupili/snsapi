@@ -15,7 +15,6 @@ Contents:
    plugins
    apps
 
-
 Indices and tables
 ==================
 
