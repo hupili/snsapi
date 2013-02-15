@@ -139,10 +139,12 @@ class SinaWeiboStatus(SNSBase):
         
     @require_authed
     def home_timeline(self, count=20):
-        '''Get home timeline
-        get statuses of yours and your friends'
-        @param count: number of statuses
-        '''
+        """
+	Get home timeline
+        * Get statuses of yours and your friends'
+        * The param count is : number of statuses
+
+        """
         url = "https://api.weibo.com/2/statuses/home_timeline.json"
         params = {}
         params['count'] = count
