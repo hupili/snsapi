@@ -5,7 +5,24 @@ Sample Applications Written in SNSAPI
 hellosns
 ----------------------
 
-.. automodule:: app.hellosns
+``test_read_all.py``
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: app.hellosns.test_read_all
+   :members:
+   :undoc-members:
+
+``test_write_all.py``
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: app.hellosns.test_write_all
+   :members:
+   :undoc-members:
+
+``test_read_reply.py``
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: app.hellosns.test_read_reply
    :members:
    :undoc-members:
 
@@ -26,6 +43,6 @@ mysofa
 clock
 ----------------------
 
-.. automodule:: app.clock.clock_annotate
+.. automodule:: app
    :members:
    :undoc-members:
