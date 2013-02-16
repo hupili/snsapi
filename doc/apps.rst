@@ -43,6 +43,6 @@ mysofa
 clock
 ----------------------
 
-.. automodule:: app
-   :members:
-   :undoc-members:
+The scripts can not be autodoc-ed due to (possibly) non-ascii characters there. 
+We'll add the doc once the problem is solved. 
+Please read the app README instead: https://github.com/hupili/snsapi/tree/master/app/clock
