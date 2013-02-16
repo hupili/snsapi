@@ -38,3 +38,35 @@ class TestSNSBase(TestBase):
         in_('description', nc)
         in_('methods', nc)
 
+    def _build_sns_with_token(self, seconds_after_current_time):
+        from snsapi.utils import JsonDict
+        import time
+        token = JsonDict()
+        token.expires_in = time.time() + seconds_after_current_time
+        sns = SNSBase()
+        sns.token = token
+        return sns
+
+    def test_snsbase_expire_after_1(self):
+        # Before expiration
+        gt_(self._build_sns_with_token(2).expire_after(), 1.5)
+        gt_(self._build_sns_with_token(20).expire_after(), 19.5)
+
+    def test_snsbase_expire_after_2(self):
+        # On or after expiration
+        eq_(self._build_sns_with_token(0).expire_after(), 0)
+        eq_(self._build_sns_with_token(-2).expire_after(), 0)
+        eq_(self._build_sns_with_token(-20).expire_after(), 0)
+
+    def test_snsbase_expire_after_3(self):
+        # Token not exist, consider as expired. 
+        eq_(SNSBase().expire_after(), 0)
+
+    def test_snsbase_is_expired(self):
+        nok_(self._build_sns_with_token(2).is_expired())
+        ok_(self._build_sns_with_token(-2).is_expired())
+
+    def test_snsbase_is_authed(self):
+        ok_(self._build_sns_with_token(2).is_authed())
+        nok_(self._build_sns_with_token(-2).is_authed())
+

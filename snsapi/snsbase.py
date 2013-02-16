@@ -309,10 +309,12 @@ class SNSBase(object):
         '''
         Calculate how long it is before token expire. 
 
-        Returns:
+        :return:
+
            * >0: the time in seconds. 
            * 0: has already expired. 
            * -1: there is no token expire issue for this platform. 
+
         '''
         if token == None:
             token = self.token
@@ -349,8 +351,18 @@ class SNSBase(object):
 
     def need_auth(self):
         '''
-        Whether this channel requires two-stage asynchronous auth. 
+        Whether this platform requires two-stage authorization.
+
+        Note:
+
+           * Some platforms have authorization flow but we do not use it,
+             e.g. Twitter, where we have a permanent key for developer
+             They'll return False.
+           * If your platform do need authorization, please override this
+             method in your subclass.
+
         '''
+
         return False
 
     @staticmethod
