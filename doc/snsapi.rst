@@ -8,6 +8,8 @@ snsbase.py
 .. automodule:: snsapi.snsbase
     :members:
     :undoc-members:
+    :private-members:
+    :member-order: bysource
 
 snsconf.py
 -------------------
