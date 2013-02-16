@@ -2,19 +2,13 @@
 SNSAPI Pluggins (Specifics for Different Platform)
 ==================================================
 
-Plugin
---------
-
-.. automodule:: snsapi.plugin
-   :members:
-   :undoc-members:
-
 Sina
 ----------------------------
 
 .. automodule:: snsapi.plugin.sina
    :members: 
    :undoc-members:
+   :member-order: bysource
 
 Tencent
 ----------------------------
@@ -22,6 +16,7 @@ Tencent
 .. automodule:: snsapi.plugin.tencent
    :members: 
    :undoc-members:
+   :member-order: bysource
 
 Renren
 ----------------------------
@@ -29,6 +24,7 @@ Renren
 .. automodule:: snsapi.plugin.renren
    :members: 
    :undoc-members:
+   :member-order: bysource
 
 RSS
 ----------------------------
@@ -36,3 +32,4 @@ RSS
 .. automodule:: snsapi.plugin.rss
    :members: 
    :undoc-members:
+   :member-order: bysource
