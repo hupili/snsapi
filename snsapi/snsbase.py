@@ -38,6 +38,9 @@ def require_authed(func):
         else:
             logger.warning("Channel '%s' is not authed!", self.jsonconf['channel_name'])
             return 
+    doc_orig = func.__doc__ if func.__doc__ else ''
+    doc_new = doc_orig + '\n        **NOTE: This method require authorization before invokation.**'
+    wrapper_require_authed.__doc__ = doc_new
     return wrapper_require_authed
 
 
@@ -209,7 +212,7 @@ class SNSBase(object):
             logger.debug("get url: %s", url)
             if url == "(null)" :
                 raise snserror.auth
-            self.token = self.parseCode(url)
+            self.token = self._parse_code(url)
             self.token.update(self.auth_client.request_access_token(self.token.code))
             logger.debug("Authorized! access token is " + str(self.token))
             logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
@@ -252,16 +255,17 @@ class SNSBase(object):
     def open_brower(self, url):
         return webbrowser.open(url)
     
-    def parseCode(self, url):
+    def _parse_code(self, url):
         '''
-        .. py:function:: -
+        Parse code from a URL containing ``code=xx`` parameter
 
         :param url: 
-            contain code and openID
+            contain code and optionally other parameters
 
-        :return: JsonObject within code and openid
+        :return: JsonDict containing 'code' and (optional) other URL parameters
+
         '''
-        return utils.JsonObject(urlparse.parse_qsl(urlparse.urlparse(url).query))
+        return utils.JsonDict(urlparse.parse_qsl(urlparse.urlparse(url).query))
 
     def save_token(self):
         '''
@@ -370,9 +374,10 @@ class SNSBase(object):
         '''
         Return a JsonDict object containing channel configurations. 
 
-        full:
-            False: only returns essential fields. 
-            True: returns all fields (essential + optional). 
+        :param full: Whether to return all config fields.
+
+           * False: only returns essential fields. 
+           * True: returns all fields (essential + optional). 
 
         '''
 

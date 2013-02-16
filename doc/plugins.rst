@@ -2,46 +2,37 @@
 SNSAPI Pluggins (Specifics for Different Platform)
 ==================================================
 
+Plugin
+--------
+
 .. automodule:: snsapi.plugin
    :members:
    :undoc-members:
 
-sina
+Sina
 ----------------------------
 
-.. autoclass:: snsapi.plugin.sina.SinaWeiboStatus
+.. automodule:: snsapi.plugin.sina
    :members: 
    :undoc-members:
 
-tencent
+Tencent
 ----------------------------
 
-.. autoclass:: snsapi.plugin.tencent.TencentWeiboStatus
+.. automodule:: snsapi.plugin.tencent
    :members: 
    :undoc-members:
 
-renren
+Renren
 ----------------------------
 
-.. autoclass:: snsapi.plugin.renren.RenrenBase
+.. automodule:: snsapi.plugin.renren
    :members: 
    :undoc-members:
 
-.. autoclass:: snsapi.plugin.renren.RenrenStatus
-   :members: 
-   :undoc-members:
-
-.. autoclass:: snsapi.plugin.renren.RenrenShare
-   :members: 
-   :undoc-members:
-
-rss
+RSS
 ----------------------------
 
-.. autoclass:: snsapi.plugin.rss.RSS
-   :members: 
-   :undoc-members:
-
-.. autoclass:: snsapi.plugin.rss.RSS2RW
+.. automodule:: snsapi.plugin.rss
    :members: 
    :undoc-members:
