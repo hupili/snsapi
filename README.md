@@ -179,7 +179,8 @@ git submodule update
    * [SNSAPI中文网](http://snsapi.sinaapp.com/)。
    目前由xuanqinanhai维护。
    * [SNSAPI文档](https://snsapi.ie.cuhk.edu.hk/doc/)。
-   这是用Python生成的Doc。
+   用Sphinx从Python代码直接生成的Doc。
+   也可以在使用SNSAPI的过程中，通过`help(XXX)`唤出。
    * [SNSAPI Github Wiki](https://github.com/hupili/snsapi/wiki)，
    所有github用户均可进行编辑，欢迎分享你的经验！
    * [SNSAPI Google Group](https://groups.google.com/forum/?fromgroups#!forum/snsapi)
