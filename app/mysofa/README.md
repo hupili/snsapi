@@ -1,6 +1,8 @@
 mysofa
 ====
 
+**Warning: The code is under reconstruction using new SNSAPI interface. Do not use this app until it is done.**
+
 Hope this be a super simple example to motivate you using snsapi~
 
 Caveats
