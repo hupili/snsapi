@@ -81,4 +81,3 @@ class TestSNSBase(TestBase):
         self._parse_code_ok('http://copy.the.code.to.client/?code=b5ffaed78a284a55e81ffe142c4771d9', 'b5ffaed78a284a55e81ffe142c4771d9')
         # Tencent example
         self._parse_code_ok('http://copy.the.code.to.client/?code=fad92807419b5aac433c4128A05e1Cad&openid=921CFC3AF04d76FE59D98a2029D0B978&openkey=6C2FCABD153B18625BAAB1BA206EF2C6', 'fad92807419b5aac433c4128A05e1Cad')
->>>>>>> a47d70d9bbd04ca4100e70013187b2ec4187369f
