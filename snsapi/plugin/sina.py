@@ -12,8 +12,16 @@ if __name__ == '__main__':
     import snstype
     from utils import console_output
     import utils
+    import re
+    import urllib
+    import urllib2
+    import json
 else:
     import sys
+    import re
+    import urllib
+    import urllib2
+    import json
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
@@ -92,6 +100,7 @@ class SinaWeiboStatus(SNSBase):
         
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
+    
 
     @staticmethod
     def new_channel(full = False):
@@ -136,48 +145,6 @@ class SinaWeiboStatus(SNSBase):
         except Exception, e:
             logger.warning("Auth second fail. Catch exception: %s", e)
             self.token = None
-
-    def _fetch_code_local_username_password(self):
-        try:
-            login_username = self.auth_info.login_username
-            login_password = self.auth_info.login_password
-            app_key = self.jsonconf.app_key
-            app_secret = self.jsonconf.app_secret
-            callback_url = self.auth_info.callback_url
-
-            referer_url = self._last_requested_url
-
-            postdata = {"client_id": app_key,
-                        "redirect_uri": callback_url,
-                        "userId": login_username,
-                        "passwd": login_password,
-                        "isLoginSina": "0",
-                        "action": "submit",
-                        "response_type": "code",
-            }
-
-            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.1; rv:11.0) Gecko/20100101 Firefox/11.0",
-                       "Host": "api.weibo.com",
-                       "Referer": referer_url
-            }
-
-            #TODO:
-            #    Unify all the urllib, urllib2 invocation to snsbase
-            import urllib2
-            import urllib
-            auth_url = "https://api.weibo.com/oauth2/authorize"
-            #auth_url = self.auth_info.auth_url
-            req = urllib2.Request(url = auth_url,
-                                  data = urllib.urlencode(postdata),
-                                  headers = headers
-            )
-            
-            resp = urllib2.urlopen(req)
-            resp_url = resp.geturl()
-            logger.debug("response URL from local post: %s", resp_url)
-            return resp_url
-        except Exception, e:
-            logger.warning("Catch exception: %s", e)
         
     @require_authed
     def home_timeline(self, count=20):
@@ -206,6 +173,26 @@ class SinaWeiboStatus(SNSBase):
             logger.warning("Catch exception: %s", e)
 
         return statuslist
+    @require_authed
+    def _short_url_weibo(self, url):
+        gurl = 'https://api.weibo.com/2/short_url/shorten.json?url_long=%s' % urllib.quote(url)
+        gurl = gurl + "&access_token=" + self.token.access_token
+        req = urllib2.Request(gurl, data='')
+        req.add_header('User_Agent', 'toolbar')
+        results = json.load(urllib2.urlopen(req))
+        return results["urls"][0]["url_short"]
+
+    @require_authed
+    def _replace_with_short_url(self, text):
+        p = re.compile("[a-zA-z]+://[^\s]*")
+        lst = p.findall(text)
+        result = text
+        for c in lst:
+            ex_c = self._expand_url(c);
+            surl = self._short_url_weibo(ex_c)
+            result = result.replace(c,surl)
+        return result
+
 
     @require_authed
     def update(self, text):
@@ -215,7 +202,8 @@ class SinaWeiboStatus(SNSBase):
         '''
 
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
-
+        self._replace_with_short_url(text)
+     
         url = "https://api.weibo.com/2/statuses/update.json"
         params = {}
         params['status'] = text
