@@ -17,7 +17,6 @@ import base64
 import urlparse
 import datetime
 import subprocess
-import re
 
 # === snsapi modules ===
 import snstype
@@ -39,6 +38,9 @@ def require_authed(func):
         else:
             logger.warning("Channel '%s' is not authed!", self.jsonconf['channel_name'])
             return 
+    doc_orig = func.__doc__ if func.__doc__ else ''
+    doc_new = doc_orig + '\n        **NOTE: This method require authorization before invokation.**'
+    wrapper_require_authed.__doc__ = doc_new
     return wrapper_require_authed
 
 
@@ -96,7 +98,40 @@ class SNSBase(object):
                     raise snserror.auth.fetchcode
             finally:
                 del self.httpd
-        else :
+        elif self.auth_info.cmd_fetch_code == "(authproxy_username_password)":
+            # Currently available for SinaWeibo. 
+            # Before using this method, please deploy one authproxy:
+            #    * https://github.com/xuanqinanhai/weibo-simulator/
+            # Or, you can use the official one:
+            #    * https://snsapi.ie.cuhk.edu.hk/authproxy/auth.php
+            # (Not recommended; only for test purpose; do not use in production)
+            try:
+                login_username = self.auth_info.login_username
+                login_password = self.auth_info.login_password
+                app_key = self.jsonconf.app_key
+                app_secret = self.jsonconf.app_secret
+                callback_url = self.auth_info.callback_url
+                authproxy_url = self.auth_info.authproxy_url
+                params = urllib.urlencode({'userid': login_username,
+                    'password': login_password, 'app_key': app_key,
+                    'app_secret': app_secret,'callback_uri': callback_url})
+                req = urllib2.Request(url=authproxy_url, data=params);
+                code = urllib2.urlopen(req).read()
+                logger.debug("response from authproxy: %s", code)
+                # Just to conform to previous SNSAPI convention
+                return "http://snsapi.snsapi/?code=%s" % code
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+                raise snserror.auth.fetchcode
+        elif self.auth_info.cmd_fetch_code == "(local_username_password)":
+            # Currently available for SinaWeibo. 
+            # The platform must implement _fetch_code_local_username_password() method
+            try:
+                return self._fetch_code_local_username_password()
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+                raise snserror.auth.fetchcode
+        else:  # Execute arbitrary command to fetch code
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
             logger.debug("fetch_code command is: %s", cmd) 
             ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
@@ -110,8 +145,12 @@ class SNSBase(object):
             return ret
 
     def request_url(self, url):
+        self._last_requested_url = url
         if self.auth_info.cmd_request_url == "(webbrowser)" :
             self.open_brower(url)
+        elif self.auth_info.cmd_request_url == "(dummy)" :
+            logger.debug("dummy method used for request_url(). Do nothing.")
+            pass
         elif self.auth_info.cmd_request_url == "(console_output)" :
             utils.console_output(url)
         elif self.auth_info.cmd_request_url == "(local_webserver)+(webbrowser)" :
@@ -125,7 +164,7 @@ class SNSBase(object):
                 self.open_brower(url)
             except socket.error:
                 raise snserror.auth
-        else :
+        else:  # Execute arbitrary command to request url
             self.__last_request_time = self.time()
             cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
             logger.debug("request_url command is: %s", cmd) 
@@ -173,7 +212,7 @@ class SNSBase(object):
             logger.debug("get url: %s", url)
             if url == "(null)" :
                 raise snserror.auth
-            self.token = self.parseCode(url)
+            self.token = self._parse_code(url)
             self.token.update(self.auth_client.request_access_token(self.token.code))
             logger.debug("Authorized! access token is " + str(self.token))
             logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
@@ -216,16 +255,17 @@ class SNSBase(object):
     def open_brower(self, url):
         return webbrowser.open(url)
     
-    def parseCode(self, url):
+    def _parse_code(self, url):
         '''
-        .. py:function:: -
+        Parse code from a URL containing ``code=xx`` parameter
 
         :param url: 
-            contain code and openID
+            contain code and optionally other parameters
 
-        :return: JsonObject within code and openid
+        :return: JsonDict containing 'code' and (optional) other URL parameters
+
         '''
-        return utils.JsonObject(urlparse.parse_qsl(urlparse.urlparse(url).query))
+        return utils.JsonDict(urlparse.parse_qsl(urlparse.urlparse(url).query))
 
     def save_token(self):
         '''
@@ -267,17 +307,18 @@ class SNSBase(object):
             return False
 
         logger.info("Read saved token for '%s' successfully", self.jsonconf.channel_name)
-        print self.token
         return True
 
     def expire_after(self, token = None):
         '''
         Calculate how long it is before token expire. 
 
-        Returns:
+        :return:
+
            * >0: the time in seconds. 
            * 0: has already expired. 
            * -1: there is no token expire issue for this platform. 
+
         '''
         if token == None:
             token = self.token
@@ -314,8 +355,18 @@ class SNSBase(object):
 
     def need_auth(self):
         '''
-        Whether this channel requires two-stage asynchronous auth. 
+        Whether this platform requires two-stage authorization.
+
+        Note:
+
+           * Some platforms have authorization flow but we do not use it,
+             e.g. Twitter, where we have a permanent key for developer
+             They'll return False.
+           * If your platform do need authorization, please override this
+             method in your subclass.
+
         '''
+
         return False
 
     @staticmethod
@@ -323,9 +374,10 @@ class SNSBase(object):
         '''
         Return a JsonDict object containing channel configurations. 
 
-        full:
-            False: only returns essential fields. 
-            True: returns all fields (essential + optional). 
+        :param full: Whether to return all config fields.
+
+           * False: only returns essential fields. 
+           * True: returns all fields (essential + optional). 
 
         '''
 
@@ -399,23 +451,6 @@ class SNSBase(object):
             return s.encode('utf-8') 
         else:
             return s
-
-    def _expand_url(self, url):
-		'''
-		expand a shorten url
-		
-		:param url
-				The url will be expanded if it is a shorten url, or it will 				return the origin url string. url should contain the protocol
-				like "http://"
-		'''
-		ex_url = urllib.urlopen(url)
-		if ex_url.url == url:
-			return ex_url.url
-		else:
-			return self._expand_url(ex_url.url)
-    
-    
-    
     
     def _cat(self, length, text_list):
         '''
@@ -431,7 +466,7 @@ class SNSBase(object):
             will be cut according to the priority. The lower priority one 
             text is assigned, the earlier it will be cut. 
         '''
-
+        
         delim = "||"
         
         if length:
@@ -456,11 +491,8 @@ class SNSBase(object):
             # length is None, meaning unlimited
             return delim.join([t for (t, p) in text_list])
 
-            
-	
-			
-    
-    	    # Just a memo of possible methods
+
+    # Just a memo of possible methods
 
     # def home_timeline(self, count=20):
     #     '''Get home timeline
