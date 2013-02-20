@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+'''
+forwarder (SNSAPI Sample Application)
+
+introduction placeholder
+'''
 
 import time
 from os.path import abspath
