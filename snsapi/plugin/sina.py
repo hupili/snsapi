@@ -12,8 +12,16 @@ if __name__ == '__main__':
     import snstype
     from utils import console_output
     import utils
+    import re
+    import urllib
+    import urllib2
+    import json
 else:
     import sys
+    import re
+    import urllib
+    import urllib2
+    import json
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
@@ -92,6 +100,7 @@ class SinaWeiboStatus(SNSBase):
         
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
+    
 
     @staticmethod
     def new_channel(full = False):
@@ -164,6 +173,26 @@ class SinaWeiboStatus(SNSBase):
             logger.warning("Catch exception: %s", e)
 
         return statuslist
+    @require_authed
+    def _short_url_weibo(self, url):
+        gurl = 'https://api.weibo.com/2/short_url/shorten.json?url_long=%s' % urllib.quote(url)
+        gurl = gurl + "&access_token=" + self.token.access_token
+        req = urllib2.Request(gurl, data='')
+        req.add_header('User_Agent', 'toolbar')
+        results = json.load(urllib2.urlopen(req))
+        return results["urls"][0]["url_short"]
+
+    @require_authed
+    def _replace_with_short_url(self, text):
+        p = re.compile("[a-zA-z]+://[^\s]*")
+        lst = p.findall(text)
+        result = text
+        for c in lst:
+            ex_c = self._expand_url(c);
+            surl = self._short_url_weibo(ex_c)
+            result = result.replace(c,surl)
+        return result
+
 
     @require_authed
     def update(self, text):
@@ -173,7 +202,8 @@ class SinaWeiboStatus(SNSBase):
         '''
 
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
-
+        self._replace_with_short_url(text)
+     
         url = "https://api.weibo.com/2/statuses/update.json"
         params = {}
         params['status'] = text
