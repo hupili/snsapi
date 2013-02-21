@@ -82,11 +82,15 @@ class TestSNSBase(TestBase):
         # Tencent example
         self._parse_code_ok('http://copy.the.code.to.client/?code=fad92807419b5aac433c4128A05e1Cad&openid=921CFC3AF04d76FE59D98a2029D0B978&openkey=6C2FCABD153B18625BAAB1BA206EF2C6', 'fad92807419b5aac433c4128A05e1Cad')
     
-    def _expand_url_ok(self, url, code):
+    def _expand_url_ok(self, url, expected_url):
         sns = SNSBase()
         ex_url = sns._expand_url(url)
-        eq_(ex_url, code)
+        eq_(ex_url, expected_url)
     
     def test__expand_url(self):
-        #Sina short url
-        self._expand_url_ok("http://t.cn/h51yw","http://www.google.com.hk/")
+        # Sina short url
+        self._expand_url_ok("http://t.cn/h51yw", "http://www.google.com.hk/")
+        # Renren short url
+        self._expand_url_ok("http://rrurl.cn/f3oFox", "http://www.google.com.hk/")
+        # Tencent short url
+        self._expand_url_ok("http://url.cn/1TTspM", "http://www.google.com.hk/")
