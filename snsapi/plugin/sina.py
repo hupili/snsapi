@@ -209,6 +209,9 @@ class SinaWeiboStatus(SNSBase):
 
     @require_authed
     def _short_url_weibo(self, url):
+        import urllib2
+        import urllib
+        import json
         gurl = 'https://api.weibo.com/2/short_url/shorten.json?url_long=%s' % urllib.quote(url)
         gurl = gurl + "&access_token=" + self.token.access_token
         req = urllib2.Request(gurl, data='')
@@ -218,6 +221,7 @@ class SinaWeiboStatus(SNSBase):
 
     @require_authed
     def _replace_with_short_url(self, text):
+        import re
         p = re.compile("[a-zA-z]+://[^\s]*")
         lst = p.findall(text)
         result = text
