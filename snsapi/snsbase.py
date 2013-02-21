@@ -453,18 +453,24 @@ class SNSBase(object):
             return s
     
     def _expand_url(self, url):
-		'''
-		expand a shorten url
-		
-		:param url
-				The url will be expanded if it is a shorten url, or it will 				return the origin url string. url should contain the protocol
-				like "http://"
-		'''
-		ex_url = urllib.urlopen(url)
-		if ex_url.url == url:
-			return ex_url.url
-		else:
-			return self._expand_url(ex_url.url)
+        '''
+        expand a shorten url
+        
+        :param url
+            The url will be expanded if it is a short url, or it will
+            return the origin url string. url should contain the protocol
+            like "http://"
+        '''
+        try:
+            ex_url = urllib.urlopen(url)
+            if ex_url.url == url:
+                return ex_url.url
+            else:
+                return self._expand_url(ex_url.url)
+        except IOError, e:
+            # Deal with "service or name unknow" error
+            logger.warning('Error when expanding URL. Maybe invalid URL: %s', e)
+            return url
 
     def _cat(self, length, text_list):
         '''
