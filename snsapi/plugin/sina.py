@@ -182,8 +182,9 @@ class SinaWeiboStatus(SNSBase):
     @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
-        get statuses of yours and your friends'
-        @param count: number of statuses
+
+            * function : get statuses of yours and your friends'
+            * parameter count: number of statuses
         '''
         url = "https://api.weibo.com/2/statuses/home_timeline.json"
         params = {}
@@ -210,8 +211,9 @@ class SinaWeiboStatus(SNSBase):
     @require_authed
     def update(self, text):
         '''update a status
-        @param text: the update message
-        @return: success or not
+
+           * parameter text: the update message
+           * return: success or not
         '''
 
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
@@ -233,8 +235,9 @@ class SinaWeiboStatus(SNSBase):
     @require_authed
     def reply(self, statusID, text):
         '''reply to a status
-        @param text: the comment text
-        @return: success or not
+
+           * parameter text: the comment text
+           * return: success or not
         '''
         url = "https://api.weibo.com/2/comments/create.json"
         params = {}
