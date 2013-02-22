@@ -4,21 +4,20 @@
 Utilities for test
 '''
 import json
+import os.path
+DIR_TEST = os.path.abspath(os.path.dirname(__file__))
+DIR_ROOT = os.path.dirname(DIR_TEST)
+DIR_CONF = os.path.join(DIR_ROOT, "conf")
+DIR_SNSAPI = os.path.join(DIR_ROOT, "snsapi")
     
 def get_config_paths():
     '''
     How to get the path of config.json in test directory, Use this. 
     '''
-    import os.path
-    paths = {}
-    pathname = os.path.abspath("conf/channel.json")
-    pathname = pathname.replace('test/', "")
-    pathname = pathname.replace('test\\', "")
-    paths['channel'] = pathname
-    pathname = os.path.abspath("conf/snsapi.json")
-    pathname = pathname.replace('test/', "")
-    pathname = pathname.replace('test\\', "")
-    paths['snsapi'] = pathname
+    paths = {
+            'channel': os.path.join(DIR_CONF, 'channel.json'), 
+            'snsapi': os.path.join(DIR_CONF, 'snsapi.json')
+            }
     return paths
 
 def get_channel(platform):
@@ -52,3 +51,9 @@ class TestInitNoSuchPlatform(TestInitError):
             print "Test init error -- No such platform : %s. " \
             "Please check your channel.json config. " % self.platform
         
+if __name__ == '__main__':
+    print DIR_TEST
+    print DIR_ROOT
+    print DIR_CONF
+    print DIR_SNSAPI
+    print get_config_paths()

@@ -1,0 +1,21 @@
+{
+  "platform": "Email",
+  "imap_host": "imap.gmail.com",
+  "imap_port": 993,
+  "smtp_host": "smtp.gmail.com",
+  "smtp_port": 587,
+  "username": "USERNAME",
+  "password": "PASSWORD",
+  "address": "USERNAME@gmail.com",
+  "channel_name": "test_email",
+  "open": "yes", 
+  "manual_buddy_list": [
+  {   
+    "username": "SNSAPI", 
+    "userid": "snsapi-test@googlegroups.com"
+  }
+  ],
+  "home_timeline":{
+    "count": 5
+  }   
+}

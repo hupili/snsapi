@@ -3,6 +3,10 @@
 '''
 RSS Feed 
 
+Contains:
+   * RSS Read-only feed platform. 
+   * RSS Read/Write platform.
+
 '''
 
 
@@ -36,7 +40,7 @@ class RSSMessage(snstype.Message):
         #    prefix information to Message class (not Message 
         #    instance). 
         self.parsed.userid = self.raw.get('author')
-        self.parsed.time = utils.str2utc(self.raw.get('published'))
+        self.parsed.time = utils.str2utc(self.raw.get(['updated', 'published']))
 
         self.parsed.title = self.raw.get('title')
         self.parsed.link = self.raw.get('link')
@@ -69,6 +73,7 @@ class RSS(SNSBase):
     @staticmethod
     def new_channel(full = False):
         c = SNSBase.new_channel(full)
+        c['platform'] = 'RSS'
         c['url'] = 'https://github.com/hupili/snsapi/commits/master.atom'
 
         return c
@@ -140,6 +145,12 @@ class RSS2RW(RSS):
         # default parameter for writing RSS2 feeds
         self.author = "snsapi"
         self.entry_timeout = 3600 #in seconds, default 1 hour
+
+    @staticmethod
+    def new_channel(full = False):
+        c = RSS.new_channel(full)
+        c['platform'] = 'RSS2RW'
+        return c
 
     def read_channel(self, channel):
         super(RSS2RW, self).read_channel(channel)

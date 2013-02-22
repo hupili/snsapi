@@ -1,5 +1,6 @@
 #!/bin/bash
 
+rm -rf _build/
 mkdir -p _build/
 mkdir -p _static/
 mkdir -p _templates/

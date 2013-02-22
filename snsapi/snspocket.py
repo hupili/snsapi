@@ -175,10 +175,10 @@ class SNSPocket(dict):
 
         logger.info("save configs done")
 
-    def new_channel(self, pl = None, **argd):
+    def new_channel(self, pl = None, **kwarg):
         if pl:
             try:
-                return getattr(platform, pl).new_channel(**argd)
+                return getattr(platform, pl).new_channel(**kwarg)
             except AttributeError:
                 logger.warning("can not find platform '%s'", pl)
                 return utils.JsonDict()
@@ -213,10 +213,11 @@ class SNSPocket(dict):
     def auth(self, channel = None):
         """docstring for auth"""
         if channel:
-            self[c].auth()
+            self[channel].auth()
         else:
             for c in self.itervalues():
-                c.auth()
+                if self.__check_method(c, ''):
+                    c.auth()
 
     def __check_method(self, channel, method):
         '''
@@ -236,20 +237,37 @@ class SNSPocket(dict):
                 return True 
         return False
 
-    def home_timeline(self, count = 20, channel = None):
+    def _home_timeline(self, count, ch):
+        #TODO:
+        #    The following set default parameter for home_timeline.
+        #    Other methods may also need default parameter some time. 
+        #    We should seek for a more unified solution. 
+        #    e.g. 
+        #    When adding channels, hide their original function 
+        #    and substitue it with a partial evaluated version 
+        #    using configured defaults
+        if not count:
+            if 'home_timeline' in ch.jsonconf:
+                count = ch.jsonconf['home_timeline']['count']
+            else:
+                count = 20
+        return ch.home_timeline(count)
+
+    def home_timeline(self, count = None, channel = None):
         """
         Route to home_timeline method of snsapi. 
         
         :param channel:
             The channel name. Use None to read all channels
         """
+
         status_list = snstype.MessageList()
         if channel and not self[channel].is_expired():
-            status_list.extend(self[channel].home_timeline(count))
+            status_list.extend(self._home_timeline(count, self[channel]))
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'home_timeline') and not c.is_expired():
-                    status_list.extend(c.home_timeline(count))
+                    status_list.extend(self._home_timeline(count, c))
 
         logger.info("Read %d statuses", len(status_list))
         return status_list

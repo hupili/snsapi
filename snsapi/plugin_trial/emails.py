@@ -17,7 +17,7 @@ Premature warning:
 
 from ..snslog import SNSLog
 logger = SNSLog
-from ..snsbase import SNSBase
+from ..snsbase import SNSBase, require_authed
 from .. import snstype
 from ..utils import console_output
 from .. import utils
@@ -25,6 +25,8 @@ from ..utils import json
 
 import time
 import email
+from email.mime.text import MIMEText
+from email.header import decode_header, make_header
 import imaplib
 import smtplib
 
@@ -38,6 +40,13 @@ class EmailMessage(snstype.Message):
     def parse(self):
         self.ID.platform = self.platform
         self._parse(self.raw)
+    
+    def _decode_header(self, header_value):
+        ret = unicode()
+        #print decode_header(header_value)
+        for (s,e) in decode_header(header_value):
+            ret += s.decode(e) if e else s
+        return ret
 
     def _parse(self, dct):
         #TODO:
@@ -60,7 +69,7 @@ class EmailMessage(snstype.Message):
         #     I prefer 2. at present. Our Message objects are designed 
         #     to be able to digest themselves. 
 
-        self.parsed.title = dct.get('Subject')
+        self.parsed.title = self._decode_header(dct.get('Subject'))
         self.parsed.text = dct.get('body')
         self.parsed.time = utils.str2utc(dct.get('Date'))
 
@@ -74,6 +83,13 @@ class EmailMessage(snstype.Message):
             self.parsed.username = sender
             self.parsed.userid = sender
 
+        #TODO:
+        #    The following is just temporary method to enable reply email. 
+        #    See the above TODO for details. The following information 
+        #    suffices to reply email. However, they do not form a real ID. 
+        self.ID.title = self.parsed.title
+        self.ID.reply_to = dct.get('Reply-To', self.parsed.userid)
+
 class Email(SNSBase):
 
     Message = EmailMessage
@@ -83,7 +99,9 @@ class Email(SNSBase):
         self.platform = self.__class__.__name__
 
         self.imap = None
+        self.imap_ok = False
         self.smtp = None
+        self.smtp_ok = False
 
     @staticmethod
     def new_channel(full = False):
@@ -98,7 +116,7 @@ class Email(SNSBase):
         c['password'] = 'password'
         c['address'] = 'username@gmail.com'
         return c
-        
+       
     def read_channel(self, channel):
         super(Email, self).read_channel(channel) 
 
@@ -369,6 +387,8 @@ class Email(SNSBase):
             logger.warning("SMTP Authentication failed! Channel '%s'", self.jsonconf['channel_name'])
 
         if imap_ok and smtp_ok:
+            self.imap_ok = True
+            self.smtp_ok = True
             logger.info("Email channel '%s' auth success", self.jsonconf['channel_name'])
             self._get_buddy_list()
             return True
@@ -376,7 +396,6 @@ class Email(SNSBase):
             logger.warning("Email channel '%s' auth failed!!", self.jsonconf['channel_name'])
             return False
             
-
     def _send(self, toaddr, title, msg):
         '''
         :param toaddr:
@@ -388,7 +407,7 @@ class Email(SNSBase):
         fromaddr = self.jsonconf['address']
         msg['From'] = fromaddr
         msg['To'] = toaddr
-        msg['Subject'] = title
+        msg['Subject'] = make_header([(self._unicode_encode(title), 'utf-8')])
 
         try:
             self.smtp.sendmail(fromaddr, toaddr, msg.as_string())  
@@ -400,7 +419,7 @@ class Email(SNSBase):
             logger.warning("Catch exception: %s", e)
             return False
 
-
+    @require_authed
     def home_timeline(self, count = 20):
         try:
             r = self._receive(count)
@@ -412,20 +431,20 @@ class Email(SNSBase):
             return snstype.MessageList()
 
         message_list = snstype.MessageList()
-        for m in r:
-            message_list.append(self.Message(
-                    m,\
-                    platform = self.jsonconf['platform'],\
-                    channel = self.jsonconf['channel_name']\
-                    ))
+        try:
+            for m in r:
+                message_list.append(self.Message(
+                        m,\
+                        platform = self.jsonconf['platform'],\
+                        channel = self.jsonconf['channel_name']\
+                        ))
+        except Exception, e:
+            logger.warning("Catch expection: %s", e)
 
+        logger.info("Read %d statuses from '%s'", len(message_list), self.jsonconf.channel_name)
         return message_list
 
-    def update(self, text):
-        from email.mime.text import MIMEText
-        msg = MIMEText(text, _charset = 'utf-8')
-        #title = '[snsapi][status][from:%s][timestamp:%s]' % (self.jsonconf['address'], str(self.time()))
-        title = '[snsapi][status]%s' % (text[0:10])
+    def _send_to_all_buddy(self, title, msg):
         ok_all = True
         for u in self.buddy_list.values():
             toaddr = u['userid'] #userid of email platform is email address
@@ -434,9 +453,43 @@ class Email(SNSBase):
             ok_all = ok_all and re
         return ok_all
 
+    @require_authed
+    def update(self, text, title = None):
+        '''
+        :title:
+            The unique field of email. Other platforms do not use it. If not supplied, 
+            we'll format a title according to SNSAPI convention.
+        '''
+        msg = MIMEText(text, _charset = 'utf-8')
+        if not title:
+            #title = '[snsapi][status][from:%s][timestamp:%s]' % (self.jsonconf['address'], str(self.time()))
+            title = '[snsapi][status]%s' % (text[0:10])
+        return self._send_to_all_buddy(title, msg)
+
+    @require_authed
+    def reply(self, statusID, text):
+        """reply status
+        @param status: StatusID object
+        @param text: string, the reply message
+        @return: success or not
+        """
+        msg = MIMEText(text, _charset = 'utf-8')
+        title = "Re:" + statusID.title
+        toaddr = statusID.reply_to
+        return self._send(toaddr, title, msg)
+
     def expire_after(self, token = None):
-        # This platform does not have token expire issue. 
-        return -1
+        # Check whether the user supplied secrets are correct
+        if self.imap_ok == True and self.smtp_ok == True:
+            # -1: Means this platform does not have token expire issue. 
+            #     More precisely, when the secrets are correct, 
+            #     you can re-login at any time. Same effect as 
+            #     refresing the token of OSN. 
+            return -1
+        else:
+            # 0: Means it has already expired. The effect of incorrect 
+            #    secrets is same as expired. 
+            return 0
 
 # === email message fields for future reference
 # TODO:

@@ -3,6 +3,13 @@
 '''
 snsapi Basic Hardcode Conf
 
+See documentations of variables for more information.
+
+For first time users, please ignore the following discussion in the same
+section. They are intended for SNSAPI middleware developers. I don't 
+want to confuse you at the moement. When you are ready to refactor this 
+piece of code, you can come back to read them discuss in the group. 
+
 This files may look weird at first glance, 
 here's a short background story on how I 
 get to this point:
@@ -81,8 +88,8 @@ class SNSConf(object):
        * [DEBUG][20120829-142322]SinaAPI plugged! 
     '''
 
-    SNSAPI_LOG_INIT_LOGFILE = None
     #SNSAPI_LOG_INIT_LOGFILE = "snsapi.log"
+    SNSAPI_LOG_INIT_LOGFILE = None
 
     '''
        * None: Output to STDOUT. Good for Debug version. 
