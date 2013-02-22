@@ -290,8 +290,11 @@ class RenrenShare(RenrenBase):
         '''
         Get timeline of Renren statuses
 
-           * parameter count: Number of statuses
-           * return: At most ``count`` statuses (can be less).
+        :param count: 
+            Number of statuses
+
+        :return:
+            At most ``count`` statuses (can be less).
         '''
 
         api_params = dict(method = "feed.get", \
@@ -322,12 +325,11 @@ class RenrenShare(RenrenBase):
         docstring placeholder
         '''
 
-        """reply status
-
-           * parameter status: StatusID object
-           * paramter text: string, the reply message
-           * return: success or not
-        """
+        #"""reply status
+        #@param status: StatusID object
+        #@param text: string, the reply message
+        #@return: success or not
+        #"""
 
         api_params = dict(method = "share.addComment", content = text, \
             share_id = statusID.status_id, user_id = statusID.source_user_id)
@@ -425,9 +427,8 @@ class RenrenStatus(RenrenBase):
     @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
-
-           * function : get statuses of yours and your friends'
-           * parameter count: number of statuses
+        get statuses of yours and your friends'
+        @param count: number of statuses
         '''
 
         api_params = dict(method = "feed.get", type = 10, page = 1, count = count)
@@ -449,9 +450,8 @@ class RenrenStatus(RenrenBase):
     @require_authed
     def update(self, text):
         '''update a status
-        
-           * parameter text: the update message
-           * return: success or not
+        @param text: the update message
+        @return: success or not
         '''
 
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
@@ -472,10 +472,9 @@ class RenrenStatus(RenrenBase):
     @require_authed
     def reply(self, statusID, text):
         """reply status
-
-           * parameter status: StatusID object
-           * parameter text: string, the reply message
-           * return: success or not
+        @param status: StatusID object
+        @param text: string, the reply message
+        @return: success or not
         """
 
         #TODO: check platform and place a warning
