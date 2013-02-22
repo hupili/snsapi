@@ -45,16 +45,24 @@ layer configure it. Put the confs in the \
 from snslog import SNSLog
 
 class SNSConf(object):
-    """Hardcode Confs for SNSAPI"""
+    """
+    Hardcode Confs for SNSAPI
+
+    """
     
     SNSAPI_CONSOLE_STDOUT_ENCODING = 'utf-8'
+
+    '''
+    See ``SNSAPI_CONSOLE_STDIN_ENCODING``.
+    '''
+
     SNSAPI_CONSOLE_STDIN_ENCODING = 'utf-8'
 
     '''
-    For chinese version windows systems, you may want to 
-    change 
-        SNSAPI_CONSOLE_STDOUT_ENCODING = 'utf-8'
-        SNSAPI_CONSOLE_STDIN_ENCODING = 'utf-8'
+    For chinese version windows systems, you may want to change 
+    ``SNSAPI_CONSOLE_STDOUT_ENCODING = 'utf-8'``
+    and
+    ``SNSAPI_CONSOLE_STDIN_ENCODING = 'utf-8'``
     to 'gbk'. For others, check the encoding of 
     your console and set it accordingly. 
 
