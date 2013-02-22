@@ -1,0 +1,3 @@
+[submodule "snsapi/third/xiaohuangji"]
+	path = snsapi/third/xiaohuangji
+	url = git://github.com/hupili/xiaohuangji
