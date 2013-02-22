@@ -97,7 +97,7 @@ class RSS(SNSBase):
            * parameter count: number of statuses
         '''
 
-        d = feedparser.parsetere(self.jsonconf.url)
+        d = feedparser.parse(self.jsonconf.url)
         
         statuslist = snstype.MessageList()
         for j in d['items']:

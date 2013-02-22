@@ -177,7 +177,7 @@ class TencentWeiboStatus(SNSBase):
     def reply(self, statusID, text):
         '''reply to a status
         
-	   * parameter text: the comment text
+           * parameter text: the comment text
            * return: success or not
         '''
         url = "https://open.t.qq.com/api/t/reply"
