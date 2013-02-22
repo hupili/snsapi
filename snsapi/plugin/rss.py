@@ -92,11 +92,12 @@ class RSS(SNSBase):
 
     def home_timeline(self, count=20):
         '''Get home timeline
-        get statuses of yours and your friends'
-        @param count: number of statuses
+
+           * function : get statuses of yours and your friends'
+           * param count: number of statuses
         '''
 
-        d = feedparser.parse(self.jsonconf.url)
+        d = feedparser.parsetere(self.jsonconf.url)
         
         statuslist = snstype.MessageList()
         for j in d['items']:
@@ -165,7 +166,8 @@ class RSS2RW(RSS):
         The file pointed to by self.jsonconf.url should be writable.
         Remember to set 'author' and 'entry_timeout' in configurations. 
         Or the default values are used. 
-        @param text: messages to update in a feeds
+        
+           * param text: messages to update in a feeds
         '''
 
         from dateutil import parser as dtparser, tz
