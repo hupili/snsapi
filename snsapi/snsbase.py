@@ -262,10 +262,10 @@ class SNSBase(object):
         :param url: 
             contain code and optionally other parameters
 
-        :return: JsonObject within code and openid
+        :return: JsonDict containing 'code' and (optional) other URL parameters
 
         '''
-        return utils.JsonObject(urlparse.parse_qsl(urlparse.urlparse(url).query))
+        return utils.JsonDict(urlparse.parse_qsl(urlparse.urlparse(url).query))
 
     def save_token(self):
         '''
@@ -313,10 +313,12 @@ class SNSBase(object):
         '''
         Calculate how long it is before token expire. 
 
-        Returns:
+        :return:
+
            * >0: the time in seconds. 
            * 0: has already expired. 
            * -1: there is no token expire issue for this platform. 
+
         '''
         if token == None:
             token = self.token
@@ -353,8 +355,18 @@ class SNSBase(object):
 
     def need_auth(self):
         '''
-        Whether this channel requires two-stage asynchronous auth. 
+        Whether this platform requires two-stage authorization.
+
+        Note:
+
+           * Some platforms have authorization flow but we do not use it,
+             e.g. Twitter, where we have a permanent key for developer
+             They'll return False.
+           * If your platform do need authorization, please override this
+             method in your subclass.
+
         '''
+
         return False
 
     @staticmethod
@@ -440,6 +452,26 @@ class SNSBase(object):
         else:
             return s
     
+    def _expand_url(self, url):
+        '''
+        expand a shorten url
+        
+        :param url
+            The url will be expanded if it is a short url, or it will
+            return the origin url string. url should contain the protocol
+            like "http://"
+        '''
+        try:
+            ex_url = urllib.urlopen(url)
+            if ex_url.url == url:
+                return ex_url.url
+            else:
+                return self._expand_url(ex_url.url)
+        except IOError, e:
+            # Deal with "service or name unknow" error
+            logger.warning('Error when expanding URL. Maybe invalid URL: %s', e)
+            return url
+
     def _cat(self, length, text_list):
         '''
         Concatenate strings. 
