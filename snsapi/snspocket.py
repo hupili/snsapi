@@ -183,7 +183,7 @@ class SNSPocket(dict):
                 logger.warning("can not find platform '%s'", pl)
                 return utils.JsonDict()
         else:
-            return utils.JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))   
+            return utils.JsonDict(json.load(open(abspath('my/conf/init-channel.json.example'),'r')))   
 
     def list_platform(self):
         console_output("")

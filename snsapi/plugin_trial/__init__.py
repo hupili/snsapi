@@ -7,3 +7,4 @@
 from sqlite import SQLite
 from twitter import TwitterStatus
 from emails import Email
+from github import GithubStatus
