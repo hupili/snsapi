@@ -94,7 +94,7 @@ class RSS(SNSBase):
         '''Get home timeline
 
            * function : get statuses of yours and your friends'
-           * param count: number of statuses
+           * parameter count: number of statuses
         '''
 
         d = feedparser.parsetere(self.jsonconf.url)
@@ -167,7 +167,7 @@ class RSS2RW(RSS):
         Remember to set 'author' and 'entry_timeout' in configurations. 
         Or the default values are used. 
         
-           * param text: messages to update in a feeds
+           * parameter text: messages to update in a feeds
         '''
 
         from dateutil import parser as dtparser, tz
