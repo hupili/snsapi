@@ -27,6 +27,7 @@ __DIR_ME = abspath(__file__)
 __DIR_THIRD = join(dirname(dirname(__DIR_ME)), 'third')
 sys.path.append(__DIR_THIRD)
 from xiaohuangji.renren import RenRen as RenrenXiaohuangji
+import requests
 
 logger.debug("%s plugged!", __file__)
 
@@ -42,6 +43,31 @@ class RenrenWebBase(SNSBase):
         self._renren = RenrenXiaohuangji()
 
         self._icode_fn = None
+
+    def _cookie_str2jar(self, cookie_str):
+        cookie_dict = dict([v.split('=', 1) for v in cookie_str.strip().split(';')])
+        return requests.utils.cookiejar_from_dict(cookie_dict)
+
+    def _cookie_jar2str(self, cookie_jar):
+        cookie_dict = requests.utils.dict_from_cookiejar(cookie_jar)
+        return ';'.join([k + '=' + v for k, v in cookie_dict.iteritems()])
+
+    def _token_xiaohuangji2snsapi(self):
+        obj = {'cookie': self._cookie_jar2str(self._renren.session.cookies),
+               'token': self._renren.token,
+               'info': self._renren.info}
+        self.token = obj
+
+    def _token_snsapi2xiaohuangji(self):
+        obj = self.token
+        self._renren.session.cookies = self._cookie_str2jar(obj['cookie'])
+        self._renren.token = obj['token']
+        self._renren.info = obj['info']
+        self._renren.getToken()
+        if self._renren.token['requestToken'] != '':
+            return True
+        else:
+            return False
 
     @staticmethod
     def new_channel(full = False):
@@ -117,8 +143,47 @@ class RenrenWebBase(SNSBase):
         '''
         docstring placeholder
         '''
+        if self.get_saved_token() and self._token_snsapi2xiaohuangji():
+            return
+
+        logger.info("Try to authenticate '%s'", self.jsonconf.channel_name)
         self.auth_first()
         self.auth_second()
+        self._token_xiaohuangji2snsapi()
+        self.save_token()
+        logger.debug("The token is" + str(self.token))
+        logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
+
+    def expire_after(self, token = None):
+        '''
+        Calculate how long it is before token expire. 
+
+        :return:
+
+           * >0: the time in seconds. 
+           * 0: has already expired. 
+           * -1: there is no token expire issue for this platform. 
+             (RenrenWeb series do not return this one)
+
+        **NOTE:** The behaviour is different from that of SNSBase. 
+        We omit one 'token' parameter for simplicity. That is, you 
+        can only test the expiration time the current instance is 
+        holding but not other arbitrary tokens. If 'token' is not 
+        None, we just pretend it has expired. 
+
+        '''
+        if not token is None:
+            return 0
+        try:
+            if self._token_snsapi2xiaohuangji():
+                # Any positive number can do
+                return 1
+            else: 
+                # Current token is invalid, need to re auth()
+                return 0
+        except Exception, e:
+            logger.warning('Catch exception: %s', e)
+            return 0
 
 class RenrenWebNotificationMessage(snstype.Message):
     platform = "RenrenWebNotification"
