@@ -26,7 +26,7 @@ from os.path import abspath, join, dirname
 __DIR_ME = abspath(__file__)
 __DIR_THIRD = join(dirname(dirname(__DIR_ME)), 'third')
 sys.path.append(__DIR_THIRD)
-from xiaohuangji.renren import RenRen as RenrenXiaohuangjiInt
+from xiaohuangji.renren import RenRen as RenrenXiaohuangji
 
 logger.debug("%s plugged!", __file__)
 
@@ -35,10 +35,13 @@ class RenrenWebError(Exception):
         super(RenrenAPIError, self).__init__(message)
         self.code = code
 
-class RenrenWebBase(RenrenXiaohuangjiInt):
+class RenrenWebBase(SNSBase):
     def __init__(self, channel = None):
-        super(RenrenBase, self).__init__(channel)
+        super(RenrenWebBase, self).__init__(channel)
         self.platform = self.__class__.__name__
+        self._renren = RenrenXiaohuangji()
+
+        self._icode_fn = None
 
     @staticmethod
     def new_channel(full = False):
@@ -52,9 +55,9 @@ class RenrenWebBase(RenrenXiaohuangjiInt):
         c['app_secret'] = ''
         c['platform'] = 'RenrenWebBase'
         c['auth_info'] = {'save_token_file': '(default)', 
-                          'cmd_request_url': '(dummy)', 
+                          'cmd_request_url': '(console_output)', 
                           'callback_url': 'http://snsapi.sinaapp.com/auth.php', 
-                          'cmd_fetch_code': '(dummy)',
+                          'cmd_fetch_code': '(console_input)',
                           'login_username': '',
                           'login_password': ''
                           } 
@@ -84,19 +87,38 @@ class RenrenWebBase(RenrenXiaohuangjiInt):
         '''
         docstring placeholder
         '''
-        pass
+        if self._renren.getShowCaptcha():
+            import os
+            self._icode_fn = 'icode.%s.jpg' % os.getpid()
+            self._renren.getICode(self._icode_fn)
+            logger.warning('This is renren_web API, mimicing auth flow. '
+                    + 'Please input the captcha in this format: "http://me/?code={Your captcha here}"'
+                    + 'We will improve this point later')
+            self.request_url(self._icode_fn)
+        else:
+            logger.info('No captcha is needed. We will log in renren web automatically.')
 
     def auth_second(self):
         '''
         docstring placeholder
         '''
-        pass
+        url = self.fetch_code()
+        params = self._parse_code(url)
+        self._renren._login(self.jsonconf.auth_info['login_username'], 
+                self.jsonconf.auth_info['login_password'], 
+                params['code'])
+
+        if self._icode_fn:
+            import os
+            os.remove(self._icode_fn)
+            self._icode_fn = None
 
     def auth(self):
         '''
         docstring placeholder
         '''
-        pass
+        self.auth_first()
+        self.auth_second()
 
 class RenrenWebNotificationMessage(snstype.Message):
     platform = "RenrenWebNotification"
@@ -148,7 +170,7 @@ class RenrenWebNotification(RenrenWebBase):
         return c
         
     @require_authed
-    def home_timeline(self, count=20):
+    def home_timeline(self, count=1):
         '''
         Get timeline of Renren statuses
 
@@ -198,7 +220,23 @@ if __name__ == '__main__':
     except:
         print "please configure your renren account in 'my_account.py' first"
         sys.exit(-1)
-    renren = RenrenXiaohuangjiInt()
-    renren.login(accounts[0][0], accounts[0][1])
-    print renren.info
 
+    nc = RenrenWebBase.new_channel()
+    nc['auth_info']['login_username'] = accounts[0][0]
+    nc['auth_info']['login_password'] = accounts[0][1]
+
+    print nc
+
+    renren = RenrenWebBase(nc)
+    renren.auth()
+    print renren._renren.getUserInfo()
+
+    #renren = RenrenXiaohuangjiInt()
+    #renren.login(accounts[0][0], accounts[0][1])
+    #notifications = renren.getNotifications()
+    #print notifications
+    #for n in notifications:
+    #    payloads, content = renren.getNotiData(n)
+    #    print payloads
+    #    print content
+    #    payloads['message'] = 'test reply "%s"' % content
