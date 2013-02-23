@@ -14,8 +14,6 @@ from test_config import *
 from test_utils import *
 from snsapi.plugin_trial.emails import Email
 
-sys.path = [DIR_TEST] + sys.path
-
 class TestSNSBase(TestBase):
 
     def setup(self):
