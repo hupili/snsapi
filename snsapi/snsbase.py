@@ -17,7 +17,6 @@ import base64
 import urlparse
 import datetime
 import subprocess
-import re
 
 # === snsapi modules ===
 import snstype
@@ -308,7 +307,6 @@ class SNSBase(object):
             return False
 
         logger.info("Read saved token for '%s' successfully", self.jsonconf.channel_name)
-        print self.token
         return True
 
     def expire_after(self, token = None):
@@ -453,23 +451,6 @@ class SNSBase(object):
             return s.encode('utf-8') 
         else:
             return s
-
-    def _expand_url(self, url):
-		'''
-		expand a shorten url
-		
-		:param url
-				The url will be expanded if it is a shorten url, or it will 				return the origin url string. url should contain the protocol
-				like "http://"
-		'''
-		ex_url = urllib.urlopen(url)
-		if ex_url.url == url:
-			return ex_url.url
-		else:
-			return self._expand_url(ex_url.url)
-    
-    
-    
     
     def _expand_url(self, url):
         '''
@@ -505,7 +486,7 @@ class SNSBase(object):
             will be cut according to the priority. The lower priority one 
             text is assigned, the earlier it will be cut. 
         '''
-
+        
         delim = "||"
         
         if length:
@@ -530,11 +511,8 @@ class SNSBase(object):
             # length is None, meaning unlimited
             return delim.join([t for (t, p) in text_list])
 
-            
-	
-			
-    
-    	    # Just a memo of possible methods
+
+    # Just a memo of possible methods
 
     # def home_timeline(self, count=20):
     #     '''Get home timeline
