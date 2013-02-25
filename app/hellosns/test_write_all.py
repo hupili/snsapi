@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+'''
+Update status on all channels
+
+docstring placeholder
+'''
 
 from snsapi.snspocket import SNSPocket
 from snsapi.utils import console_input,console_output

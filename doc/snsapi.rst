@@ -3,11 +3,13 @@ SNSAPI Middleware
 =========================
 
 snsbase.py
----------
+-------------------
 
 .. automodule:: snsapi.snsbase
     :members:
     :undoc-members:
+    :private-members:
+    :member-order: bysource
 
 snsconf.py
 -------------------
@@ -36,6 +38,24 @@ snstype.py
 utils.py
 -------------------
 .. automodule:: snsapi.utils
+    :members:
+    :undoc-members:
+
+errors.py
+-------------------
+.. automodule:: snsapi.errors
+    :members:
+    :undoc-members:
+
+platform.py
+-------------------
+.. automodule:: snsapi.platform
+    :members:
+    :undoc-members:
+
+snspocket.py
+-------------------
+.. automodule:: snsapi.snspocket
     :members:
     :undoc-members:
 
