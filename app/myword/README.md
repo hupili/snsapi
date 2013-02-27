@@ -9,7 +9,7 @@ myword reads the timeline and check if someone "at" him.
 If someone "at" myword with a word, it will reply the message with the word's translation.
                                     ---hzhua 2013.2.25
 															
-Dictionary API is provided by "dic.zhan-hui.com"
+Dictionary API is provided by "dic.zhan-dui.com"
 
 Steps:
 ----
