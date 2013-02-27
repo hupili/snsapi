@@ -177,10 +177,10 @@ class NewChannel(tkSimpleDialog.Dialog):
 
         # auth_info
         if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
-            c['auth_info']['callback_url'] = self.callback_url.get()
-            c['auth_info']['cmd_request_url'] = self.cmd_request_url.get()
-            c['auth_info']['cmd_fetch_code'] = self.cmd_fetch_code.get()
-            c['auth_info']['save_token_file'] = self.save_token_file.get()
+            channel['auth_info']['callback_url'] = self.callback_url.get()
+            channel['auth_info']['cmd_request_url'] = self.cmd_request_url.get()
+            channel['auth_info']['cmd_fetch_code'] = self.cmd_fetch_code.get()
+            channel['auth_info']['save_token_file'] = self.save_token_file.get()
 
         self.result = channel
 
