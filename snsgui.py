@@ -240,6 +240,7 @@ class StatusList(Tkinter.Text):
         self.tag_config('username', foreground = '#885a62')
         self.tag_config('time', foreground = '#cf9e8b')
         self.tag_config('other', foreground = '#808080')
+        self.tag_config('right', justify = Tkinter.RIGHT)
 
         # `Show More button'
         self.tag_config('center', justify = Tkinter.CENTER)
@@ -273,6 +274,10 @@ class StatusList(Tkinter.Text):
         mark_start = mark + '.start'
         mark_end = mark + '.end'
         tag_text = mark + '.text'
+        tag_forward = mark + '.forward'
+        tag_reply = mark + '.reply'
+        self.tag_config(tag_forward, foreground = '#dec1b6')
+        self.tag_config(tag_reply, foreground = '#dec1b6')
         self.tag_config(tag_text, borderwidth = 0)
         if index == 0:
             anchor = 'head'
@@ -297,6 +302,14 @@ class StatusList(Tkinter.Text):
         else:
             self.insert(mark_end, text, 'text')
         self.insert(mark_end, '\n', 'text')
+
+        # action buttons
+        self.insert(mark_end, 'forward', (tag_forward, 'right'))
+        self.tag_bind(tag_forward, '<Button-1>', lambda e, status = status: gui.forward_status(status))
+        self.insert(mark_end, ' | ', ('text', 'other'))
+        self.insert(mark_end, 'reply', (tag_reply, 'right'))
+        self.tag_bind(tag_reply, '<Button-1>', lambda e, status = status: gui.reply_status(status))
+        self.insert(mark_end, ' \n', 'text')
 
         self.configure(state = Tkinter.DISABLED)
 
@@ -441,6 +454,16 @@ by Alex.wang(iptux7#gmail.com)''')
         text = self.get_post_text('Post to channel %s' % self.channel)
         if text:
             sp[self.channel].update(text)
+
+    def reply_status(self, status):
+        text = self.get_post_text('Reply to This Status')
+        if text:
+            sp[status.ID.channel].reply(status.ID, text)
+
+    def forward_status(self, status):
+        text = self.get_post_text('Forward Status to %s' % self.channel, 'forward')
+        if text:
+            sp[self.channel].forward(status, text)
 
 
 def main():
