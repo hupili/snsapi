@@ -36,7 +36,7 @@ def get_word(text):
 	
 def translate(word):
     """
-    Translate a word with dic.zhan-hui.com
+    Translate a word with dic.zhan-dui.com
     """
     url = "http://dic.zhan-dui.com/api.php?s=" + word + "&type=json"
     req = urllib2.Request(url, data='')
