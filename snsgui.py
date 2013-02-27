@@ -185,6 +185,45 @@ class NewChannel(tkSimpleDialog.Dialog):
         self.result = channel
 
 
+class TextDialog(tkSimpleDialog.Dialog):
+    def __init__(self, master, title, init_text = ''):
+        self.init_text = init_text
+        tkSimpleDialog.Dialog.__init__(self, master, title)
+
+    def destroy(self):
+        self.textWidget.unbind('<Return>', self.bind_id)
+        tkSimpleDialog.Dialog.destroy(self)
+
+    def body(self, master):
+        self.textWidget = Tkinter.Text(master, width = 50, height = 6)
+        self.bind_id = self.textWidget.bind('<Return>', self.enter_key)
+        self.textWidget.insert('1.0', self.init_text)
+        self.textWidget.pack(expand = True, fill = Tkinter.BOTH)
+
+        return self.textWidget
+
+    def enter_key(self, event):
+        self.textWidget.insert(Tkinter.END, '\n')
+
+        # this will stop further bound function, e.g. `OK' button
+        return 'break'
+
+    def get_text(self):
+        text = ''
+        for key, value, index in self.textWidget.dump('1.0', Tkinter.END, text = True):
+            text += value
+        return text.rstrip()
+
+    def validate(self):
+        if not self.get_text():
+            return False
+
+        return True
+
+    def apply(self):
+        self.result = self.get_text()
+
+
 class StatusList(Tkinter.Text):
     '''Text widget to show status'''
     def __init__(self, master):
@@ -193,6 +232,7 @@ class StatusList(Tkinter.Text):
         self.__misc()
         for s in sp.home_timeline(5):
             self.insert_status(s)
+
     def __misc(self):
         # common used tags
         self.tag_config('link', foreground = "blue", underline = 1)
@@ -387,15 +427,20 @@ by Alex.wang(iptux7#gmail.com)''')
         cname = channel['channel_name']
         self.channelListMenu.add_command(label = cname, command = lambda channel = cname: self.switch_channel(channel))
 
-    def post_status(self):
+    def get_post_text(self, title, init_text = ''):
         if not self.channel:
             tkMessageBox.showwarning(TITLE, 'switch to a channel first')
             return
         if sp[self.channel].platform == RSS:
             tkMessageBox.showwarning(TITLE, 'cannot post to RSS channel')
             return
-        # TODO
-        pass
+
+        return TextDialog(self, title, init_text).result
+
+    def post_status(self):
+        text = self.get_post_text('Post to channel %s' % self.channel)
+        if text:
+            sp[self.channel].update(text)
 
 
 def main():
