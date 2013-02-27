@@ -55,11 +55,13 @@ def translate(word):
 
 def main():
     """docstring for main"""
-
-    #load channel configurations
-    channels = json.load(open('conf/channel.json'))
+	#set system default encoding to utf-8 to avoid encoding problems
     reload(sys)
     sys.setdefaultencoding( "utf-8" )
+    
+    #load channel configurations
+    channels = json.load(open('conf/channel.json'))
+    
     
 
     #find one account
