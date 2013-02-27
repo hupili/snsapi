@@ -13,7 +13,6 @@ import tkMessageBox
 import tkSimpleDialog
 import webbrowser
 from snsapi.snspocket import SNSPocket
-from snsapi.snstype import Message
 from snsapi.utils import utc2str
 
 
@@ -46,47 +45,69 @@ class NewChannel(tkSimpleDialog.Dialog):
 
         self.channel_name = Tkinter.StringVar(master)
         Tkinter.Label(master, text = 'Channel Name:').grid(row = row, column = 0, sticky = Tkinter.E)
-        channelEntry = Tkinter.Entry(master, textvariable = self.channel_name).grid(row = row, column = 1)
+        channelEntry = Tkinter.Entry(master, textvariable = self.channel_name).grid(row = row, column = 1, sticky = Tkinter.NSEW)
         row += 1
 
         if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO, TWITTER):
             self.app_key = Tkinter.StringVar(master)
             Tkinter.Label(master, text = 'App Key:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.app_key).grid(row = row, column = 1)
+            Tkinter.Entry(master, textvariable = self.app_key).grid(row = row, column = 1, sticky = Tkinter.NSEW)
             row += 1
 
             self.app_secret = Tkinter.StringVar(master)
             Tkinter.Label(master, text = 'App Secret:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.app_secret).grid(row = row, column = 1)
+            Tkinter.Entry(master, textvariable = self.app_secret).grid(row = row, column = 1, sticky = Tkinter.NSEW)
             row += 1
 
         if self.platform in (EMAIL, RSS_RW, SQLITE):
             self.username = Tkinter.StringVar(master)
             Tkinter.Label(master, text = 'User Name:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.username).grid(row = row, column = 1)
+            Tkinter.Entry(master, textvariable = self.username).grid(row = row, column = 1, sticky = Tkinter.NSEW)
             row += 1
 
         if self.platform in (EMAIL, ):
             self.password = Tkinter.StringVar(master)
             Tkinter.Label(master, text = 'Password:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.password).grid(row = row, column = 1)
+            Tkinter.Entry(master, textvariable = self.password).grid(row = row, column = 1, sticky = Tkinter.NSEW)
             row += 1
 
         if self.platform in (TWITTER, ):
             self.access_key = Tkinter.StringVar(master)
             Tkinter.Label(master, text = 'Access Key:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.access_key).grid(row = row, column = 1)
+            Tkinter.Entry(master, textvariable = self.access_key).grid(row = row, column = 1, sticky = Tkinter.NSEW)
             row += 1
 
             self.access_secret = Tkinter.StringVar(master)
             Tkinter.Label(master, text = 'Access Secret:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.access_secret).grid(row = row, column = 1)
+            Tkinter.Entry(master, textvariable = self.access_secret).grid(row = row, column = 1, sticky = Tkinter.NSEW)
             row += 1
 
         if self.platform in (RSS, RSS_RW, SQLITE):
             self.url = Tkinter.StringVar(master)
             Tkinter.Label(master, text = 'Url:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.url).grid(row = row, column = 1)
+            Tkinter.Entry(master, textvariable = self.url).grid(row = row, column = 1, sticky = Tkinter.NSEW)
+            row += 1
+
+        if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
+            auth_info = Tkinter.LabelFrame(master, text = 'Auth info')
+
+            self.callback_url = Tkinter.StringVar(auth_info)
+            Tkinter.Label(auth_info, text = 'Callback Url:').grid(row = 0, column = 0, sticky = Tkinter.E)
+            Tkinter.Entry(auth_info, textvariable = self.callback_url).grid(row = 0, column = 1, sticky = Tkinter.NSEW)
+
+            self.cmd_request_url = Tkinter.StringVar(auth_info, '(default)')
+            Tkinter.Label(auth_info, text = 'Cmd Request Url:').grid(row = 1, column = 0, sticky = Tkinter.E)
+            Tkinter.Entry(auth_info, textvariable = self.cmd_request_url).grid(row = 1, column = 1, sticky = Tkinter.NSEW)
+
+            self.cmd_fetch_code = Tkinter.StringVar(auth_info, '(default)')
+            Tkinter.Label(auth_info, text = 'Cmd Fetch Code:').grid(row = 2, column = 0, sticky = Tkinter.E)
+            Tkinter.Entry(auth_info, textvariable = self.cmd_fetch_code).grid(row = 2, column = 1, sticky = Tkinter.NSEW)
+
+            self.save_token_file = Tkinter.StringVar(auth_info, '(default)')
+            Tkinter.Label(auth_info, text = 'Save Token File:').grid(row = 3, column = 0, sticky = Tkinter.E)
+            Tkinter.Entry(auth_info, textvariable = self.save_token_file).grid(row = 3, column = 1, sticky = Tkinter.NSEW)
+
+            auth_info.grid(row = row, column = 0, columnspan = 2)
             row += 1
 
         return channelEntry
@@ -113,6 +134,10 @@ class NewChannel(tkSimpleDialog.Dialog):
 
         if self.platform in (RSS, RSS_RW, SQLITE):
             if not self.url.get():
+                return False
+
+        if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
+            if not self.callback_url.get() or not self.cmd_request_url.get() or not self.cmd_fetch_code.get() or not self.save_token_file.get():
                 return False
 
         return True
@@ -150,6 +175,13 @@ class NewChannel(tkSimpleDialog.Dialog):
         if self.platform in (RSS, RSS_RW, SQLITE):
             channel['url'] = self.url.get()
 
+        # auth_info
+        if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
+            c['auth_info']['callback_url'] = self.callback_url.get()
+            c['auth_info']['cmd_request_url'] = self.cmd_request_url.get()
+            c['auth_info']['cmd_fetch_code'] = self.cmd_fetch_code.get()
+            c['auth_info']['save_token_file'] = self.save_token_file.get()
+
         self.result = channel
 
 
@@ -159,7 +191,8 @@ class StatusList(Tkinter.Text):
         self.allStatus = []
         Tkinter.Text.__init__(self, master, width = 50, height = 27, relief = Tkinter.FLAT)
         self.__misc()
-        self.show_status(5)
+        for s in sp.home_timeline(5):
+            self.insert_status(s)
     def __misc(self):
         # common used tags
         self.tag_config('link', foreground = "blue", underline = 1)
@@ -236,7 +269,7 @@ class StatusList(Tkinter.Text):
 
     def show_status(self, n):
         '''show N status'''
-        for s in sp.home_timeline(n):
+        for s in sp.home_timeline(n, gui.channel):
             self.insert_status(s)
 
     def top_more(self, event):
