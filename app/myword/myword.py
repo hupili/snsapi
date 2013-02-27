@@ -14,7 +14,7 @@ import time
 
 REPLY_GAP = 10 # seconds, 10 seems the minimum
 NEWS_QUERY_COUNT = 5
-MY_NAME = "your_name"
+MY_NAME = "hsama2012"
 
 def can_reply(status):
     """
@@ -62,10 +62,10 @@ def main():
     sys.setdefaultencoding( "utf-8" )
     
 
-    #find one renren account
-    rr = None
+    #find one account
+    rr = SNSPocket()
     for c in channels:
-        rr = SNSPocket()
+        rr.add_channel(c)
 
     if rr is None:
         print "cannot find one renren platform in channel.json"
@@ -88,7 +88,7 @@ def main():
     for s in status_list:
         s.show()
         msg_string = "".join( unicode(x) for x in \
-                [s.parsed.time, s.ID.id, s.parsed.username, \
+                [s.parsed.time, s.ID, s.parsed.username, \
                 s.parsed.userid, s.parsed.text])
         sig = hashlib.sha1(msg_string.encode('utf-8')).hexdigest()
         if not sig in sIDs and can_reply(s):
