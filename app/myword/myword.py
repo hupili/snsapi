@@ -27,39 +27,41 @@ def can_reply(status):
         
         
 def get_word(text):
-	"""
-	To the get word in a message
-	"""
-	text = text.replace("@" + MY_NAME +" ","")
-	return text 
-	
-	
+    """
+    To the get word in a message
+    """
+    text = text.replace("@" + MY_NAME +" ","")
+    return text 
+    
+    
 def translate(word):
     """
-    Translate a word with dic.zhan-hui.com
+    Translate a word with dic.zhan-dui.com
     """
     url = "http://dic.zhan-dui.com/api.php?s=" + word + "&type=json"
     req = urllib2.Request(url, data='')
     req.add_header('User_Agent', 'toolbar')
     results = json.load(urllib2.urlopen(req))
     if "error_code" in results:
-    	return word +" " + " not found"
+        return word +" " + " not found"
     else:
         mean = ""
         for c in results["simple_dic"]:
-        	mean = mean + c
+            mean = mean + c
         return word + " " + mean
     
-	
-	
+    
+    
 
 def main():
     """docstring for main"""
-
-    #load channel configurations
-    channels = json.load(open('conf/channel.json'))
+    #set system default encoding to utf-8 to avoid encoding problems
     reload(sys)
     sys.setdefaultencoding( "utf-8" )
+    
+    #load channel configurations
+    channels = json.load(open('conf/channel.json'))
+    
     
 
     #find one account
@@ -100,7 +102,7 @@ def main():
             time.sleep(REPLY_GAP)
             if ret:
                 sIDs[sig] = msg_string
-        else:	
+        else: 
             print '[no reply]'
 
     #save reply record
