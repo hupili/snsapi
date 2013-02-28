@@ -102,7 +102,7 @@ def main():
             time.sleep(REPLY_GAP)
             if ret:
                 sIDs[sig] = msg_string
-        else:    
+        else: 
             print '[no reply]'
 
     #save reply record
