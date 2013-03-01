@@ -8,6 +8,40 @@
 # Create: 2013-02-11 15:51
 
 
+'''
+# snsgui - a simple gui for snsapi using Tkinter
+
+
+Usage
+-----
+
+* Press '+' button to add a sns channel.
+* Press the Button before '+' to switch channel.
+* Click 'Show More' in gray.
+* Press 'Post' button to post new Status to current channel.
+
+
+Theme Config
+------------
+
+* open conf/snsgui.ini
+* find [theme] section and copy it
+* custom your theme, change the value in the copied section
+* name your theme, change [theme] to [THEME NAME]
+* apply your theme, change 'theme' value in [snsapi] section to your theme name
+
+
+Add Email Provider
+------------------
+
+* open conf/snsgui.ini
+* find [Gmail] section and copy it
+* change the value in the copied section
+* name it, change [Gmail] to [EMAIL_ID]
+* add it, add a 'EMAIL_ID = true' line in [email] section
+'''
+
+
 import Tkinter
 import tkMessageBox
 import tkSimpleDialog
@@ -50,6 +84,7 @@ class SNSGuiConfig(ConfigParser):
         '''get supported email platforms'''
         return self.options('email')
     def getmail(self, option):
+        '''get mail config dict'''
         d = {}
         for key, value in self.items(option):
             d[key] = value
@@ -82,7 +117,6 @@ class NewChannel(tkSimpleDialog.Dialog):
 
         if self.platform == EMAIL:
             items = config.email()
-            print items
             self.email = Tkinter.StringVar(master, items[0])
             Tkinter.Label(master, text = 'Email:').grid(row = row, column = 0, sticky = Tkinter.E)
             Tkinter.OptionMenu(master, self.email, *items).grid(row = row, column = 1, sticky = Tkinter.NSEW)
@@ -220,6 +254,7 @@ class NewChannel(tkSimpleDialog.Dialog):
 
 
 class TextDialog(tkSimpleDialog.Dialog):
+    '''a general text input box'''
     def __init__(self, master, title, init_text = ''):
         self.init_text = init_text
         tkSimpleDialog.Dialog.__init__(self, master, title)
