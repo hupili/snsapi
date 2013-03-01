@@ -41,11 +41,19 @@ config = None
 class SNSGuiConfig(ConfigParser):
     def __init__(self):
         ConfigParser.__init__(self)
+        self.optionxform = str
         self.read(CONFILE)
-        self.theme = self.get('DEFAULT', 'theme')
+        self.theme = self.get('snsgui', 'theme')
     def getcolor(self, option):
         return self.get(self.theme, option)
-        
+    def email(self):
+        '''get supported email platforms'''
+        return self.options('email')
+    def getmail(self, option):
+        d = {}
+        for key, value in self.items(option):
+            d[key] = value
+        return d
 
 
 class NewChannel(tkSimpleDialog.Dialog):
@@ -70,6 +78,14 @@ class NewChannel(tkSimpleDialog.Dialog):
             self.app_secret = Tkinter.StringVar(master)
             Tkinter.Label(master, text = 'App Secret:').grid(row = row, column = 0, sticky = Tkinter.E)
             Tkinter.Entry(master, textvariable = self.app_secret).grid(row = row, column = 1, sticky = Tkinter.NSEW)
+            row += 1
+
+        if self.platform == EMAIL:
+            items = config.email()
+            print items
+            self.email = Tkinter.StringVar(master, items[0])
+            Tkinter.Label(master, text = 'Email:').grid(row = row, column = 0, sticky = Tkinter.E)
+            Tkinter.OptionMenu(master, self.email, *items).grid(row = row, column = 1, sticky = Tkinter.NSEW)
             row += 1
 
         if self.platform in (EMAIL, RSS_RW, SQLITE):
@@ -173,7 +189,12 @@ class NewChannel(tkSimpleDialog.Dialog):
 
         if self.platform == EMAIL:
             channel['username'] = self.username.get()
-            channel['address'] = '%s@gmail.com' % self.username.get()
+            mail = config.getmail(self.email.get())
+            channel['imap_host'] = mail['imap_host']
+            channel['imap_port'] = int(mail['imap_port'])
+            channel['smtp_host'] = mail['smtp_host']
+            channel['smtp_port'] = int(mail['smtp_port'])
+            channel['address'] = '%s@%s' % (self.username.get(), mail['domain'])
 
         # password
         if self.platform in (EMAIL, ):
