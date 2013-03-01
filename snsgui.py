@@ -12,6 +12,7 @@ import Tkinter
 import tkMessageBox
 import tkSimpleDialog
 import webbrowser
+from ConfigParser import ConfigParser
 from snsapi.snspocket import SNSPocket
 from snsapi.utils import utc2str
 
@@ -29,10 +30,22 @@ TWITTER = 'TwitterStatus'
 
 
 TITLE = 'snsapi'
+CONFILE = 'conf/snsgui.ini'
 
 
 sp = SNSPocket()
 gui = None
+config = None
+
+
+class SNSGuiConfig(ConfigParser):
+    def __init__(self):
+        ConfigParser.__init__(self)
+        self.read(CONFILE)
+        self.theme = self.get('DEFAULT', 'theme')
+    def getcolor(self, option):
+        return self.get(self.theme, option)
+        
 
 
 class NewChannel(tkSimpleDialog.Dialog):
@@ -235,18 +248,18 @@ class StatusList(Tkinter.Text):
 
     def __misc(self):
         # common used tags
-        self.tag_config('link', foreground = "blue", underline = 1)
+        self.tag_config('link', foreground = config.getcolor('link'), underline = 1)
         self.tag_config('text', justify = Tkinter.LEFT)
-        self.tag_config('username', foreground = '#885a62')
-        self.tag_config('time', foreground = '#cf9e8b')
-        self.tag_config('other', foreground = '#808080')
+        self.tag_config('username', foreground = config.getcolor('username'))
+        self.tag_config('time', foreground = config.getcolor('time'))
+        self.tag_config('other', foreground = config.getcolor('other'))
         self.tag_config('right', justify = Tkinter.RIGHT)
 
         # `Show More button'
         self.tag_config('center', justify = Tkinter.CENTER)
-        self.tag_config('top', foreground = 'gray', spacing1 = 5, spacing3 = 5)
+        self.tag_config('top', foreground = config.getcolor('more'), spacing1 = 5, spacing3 = 5)
         self.tag_bind('top', '<Button-1>', self.top_more)
-        self.tag_config('bottom', foreground = 'gray', spacing1 = 5, spacing3 = 5)
+        self.tag_config('bottom', foreground = config.getcolor('more'), spacing1 = 5, spacing3 = 5)
         self.tag_bind('bottom', '<Button-1>', self.bottom_more)
 
         self.mark_set('start', '1.0')
@@ -276,8 +289,8 @@ class StatusList(Tkinter.Text):
         tag_text = mark + '.text'
         tag_forward = mark + '.forward'
         tag_reply = mark + '.reply'
-        self.tag_config(tag_forward, foreground = '#dec1b6')
-        self.tag_config(tag_reply, foreground = '#dec1b6')
+        self.tag_config(tag_forward, foreground = config.getcolor('button'))
+        self.tag_config(tag_reply, foreground = config.getcolor('button'))
         self.tag_config(tag_text, borderwidth = 0)
         if index == 0:
             anchor = 'head'
@@ -467,7 +480,8 @@ by Alex.wang(iptux7#gmail.com)''')
 
 
 def main():
-    global gui
+    global gui, config
+    config = SNSGuiConfig()
     root = Tkinter.Tk()
     gui = SNSGui(root)
     gui.pack(expand = True, fill = Tkinter.BOTH)
