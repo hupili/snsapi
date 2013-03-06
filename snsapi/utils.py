@@ -130,34 +130,38 @@ def console_output(string):
 #       * The string SHOULD CONTAIN time zone either in 
 #       text or number format. It is parse-able. Using local 
 #       time zone is favoured but not mandatory. 
-import calendar
-import time
-import datetime
-from dateutil import parser as dtparser, tz
-from third.PyRSS2Gen import _format_date
+import times
+from datetime import datetime
+from pytz import timezone
 
-def str2utc(s, tc = None):
-    if tc:
-        s += tc
-
+def str2utc(s):
+    '''
+    Convert time string to unix timestamp
+    The time string SHOULD contain timezone info either in number format or in text format
+    '''
     try:
-        d = dtparser.parse(s)
-        #print d 
-        #print d.utctimetuple()
-        return calendar.timegm(d.utctimetuple())
+	dt = times.to_universal(s)
+	ts = times.to_unix(dt)
+	return ts
     except ValueError, e:
-        if e.message == "unknown string format":
-            # We want to always return something valid for 
-            # the convenience of other modules. 
-            logger.warning("unkown time string: %s", s)
-            return 0
-        else:
-            raise e
+	logger.warning("Unknown time string: %s", s)
 
-def utc2str(u):
-    #return str(datetime.datetime.fromtimestamp(u))
-    #return _format_date(datetime.datetime.utcfromtimestamp(u))
-    return _format_date(datetime.datetime.fromtimestamp(u, tz.tzlocal()))
+def utc2str(u, tz):
+    '''
+    Convert unix timestamp to RFC822 time string
+    Explicit timezone required to convert
+    '''
+    d = datetime.fromtimestamp(u)
+    try:
+	z = timezone(tz)
+    except: 
+	z = timezone('GMT')
+	logger.warning('Unknown timezone, using GMT')
+    try:
+	s = z.localize(d).strftime('%a, %d %b %Y %H:%M:%S %Z')
+	return s
+    except ValueError, e:
+	logger.warning('Convert Error: %s', e.message)
 
 import pickle
 
