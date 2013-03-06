@@ -64,6 +64,9 @@ class JsonDict(JsonObject):
         :attr:
             A str or a list of str. 
 
+        :return: 
+            The value corresponding to the (first) key, or default val.
+
         If attr is a list, we will try all the candidates until 
         one 'get' is successful. If none of the candidates succeed,
         we will return a "(null)"
@@ -71,10 +74,12 @@ class JsonDict(JsonObject):
         e.g. RSS format is very diverse. 
         To my current knowledge, some formats have 'author' fields, 
         but others do not:
+
            * rss : no
            * rss2 : yes
            * atom : yes
            * rdf : yes
+
         This function will return a string "(null)" by default if the 
         field does not exist. The purpose is to expose unified interface
         to upper layers. seeing "(null)" is better than catching an error. 
