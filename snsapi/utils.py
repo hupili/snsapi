@@ -125,38 +125,35 @@ def console_output(string):
 #       * The string SHOULD CONTAIN time zone either in 
 #       text or number format. It is parse-able. Using local 
 #       time zone is favoured but not mandatory. 
-import times
 from datetime import datetime
 from pytz import timezone
+import times
 
 def str2utc(s):
     '''
     Convert time string to unix timestamp
-    The time string SHOULD contain timezone info either in number format or in text format
+    The time string SHOULD contain timezone info either in number format or
+    in text format
     '''
     try:
-	dt = times.to_universal(s)
-	ts = times.to_unix(dt)
-	return ts
+        dt = times.to_universal(s)
+        ts = times.to_unix(dt)
+        return ts
     except ValueError, e:
-	logger.warning("Unknown time string: %s", s)
+        logger.warning('Unknown time string: %s', s)
 
-def utc2str(u, tz):
-    '''
-    Convert unix timestamp to RFC822 time string
-    Explicit timezone required to convert
-    '''
+def utc2str(u, tz = 'GMT'):
     d = datetime.fromtimestamp(u)
     try:
-	z = timezone(tz)
-    except: 
-	z = timezone('GMT')
-	logger.warning('Unknown timezone, using GMT')
+        z = timezone(tz)
+    except:
+        z = timezone('GMT')
+        logger.warning('Unknown timezone, using GMT')
     try:
-	s = z.localize(d).strftime('%a, %d %b %Y %H:%M:%S %Z')
-	return s
+        s = z.localize(d).strftime('%a, %d %b %Y %H:%M:%S %Z')
+        return s
     except ValueError, e:
-	logger.warning('Convert Error: %s', e.message)
+        logger.warning('Convert error: %s', e.message)
 
 import pickle
 
