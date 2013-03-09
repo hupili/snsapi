@@ -42,6 +42,15 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         self.parsed.time = dct['time']
         self.parsed.username = dct['author']
         self.parsed.text = dct['text']
+        self.parsed.comments_count = dct['comments_count']
+        self.parsed.reposts_count = dct['reposts_count']
+        if 'orig' in dct:
+            self.parsed.has_orig = True
+            self.parsed.orig_text = dct['orig']['text']
+            self.parsed.orig_comments_count = dct['orig']['comments_count']
+            self.parsed.orig_reposts_count = dct['orig']['reposts_count']
+        else:
+            self.parsed.has_orig = False
         self.ID.id = dct['id']
 
 
@@ -98,7 +107,7 @@ class SinaWeiboWapStatus(SNSBase):
 
     @require_authed
     def _get_weibo(self, page = 1):
-        #FIXME: 1. 转发的微博未获取转发理由  2. 转发、评论人数
+        #FIXME: 获取转发和评论数应该修改为分析DOM而不是正则表达式（以免与内容重复）
         req = urllib2.Request('http://weibo.cn/?gsid=' + self.gsid + '&page=%d' % (page))
         req = self._process_req(req)
         m = urllib2.urlopen(req, timeout = 10).read()
@@ -106,18 +115,48 @@ class SinaWeiboWapStatus(SNSBase):
         weibos = []
         for i in h.find_class('c'):
             if i.get('id') and i.get('id')[0:2] == 'M_':
-                weibo = {'author' : i.find_class('nk')[0].text.encode('utf-8'), 
-                        'text': i.find_class('ctt')[0].text_content().encode('utf-8'),
-                        'id': i.get('id')[2:],
-                        'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1]
-                        }
+                weibo = None
+                if i.find_class('cmt'): # 转发微博
+                    weibo = {
+                            'author' : i.find_class('nk')[0].text.encode('utf-8'), 
+                            'id': i.get('id')[2:],
+                            'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1],
+                            'text' : None,
+                            'orig' : {
+                                'text': i.find_class('ctt')[0].text_content().encode('utf-8'),
+                                'comments_count' : 0,
+                                'reposts_count' : 0
+                                },
+                            'comments_count' : 0,
+                            'reposts_count' : 0
+                            }
+                    parent = i.find_class('cmt')[-1].getparent()
+                    retweet_reason = re.sub(r'转发理由:(.*)赞\[[0-9]*\] 转发\[[0-9]*\] 评论\[[0-9]*\] 收藏.*$', r'\1', parent.text_content().encode('utf-8'))
+                    weibo['text'] = retweet_reason
+                    zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', parent.text_content().encode('utf-8'))
+                    if zf:
+                        weibo['comments_count'] = int(zf.group(2))
+                        weibo['reposts_count'] = int(zf.group(3))
+                    zf = re.search(r'赞\[([0-9]*)\] 原文转发\[([0-9]*)\] 原文评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
+                    if zf:
+                        weibo['orig']['comments_count'] = int(zf.group(2))
+                        weibo['orig']['reposts_count'] = int(zf.group(3))
+                else:
+                    weibo = {'author' : i.find_class('nk')[0].text.encode('utf-8'), 
+                            'text': i.find_class('ctt')[0].text_content().encode('utf-8'),
+                            'id': i.get('id')[2:],
+                            'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1]
+                            }
+                    zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
+                    if zf:
+                        weibo['comments_count'] = int(zf.group(2))
+                        weibo['reposts_count'] = int(zf.group(3))
                 weibos.append(weibo)
         statuslist = snstype.MessageList()
         for i in weibos:
             statuslist.append(self.Message(i, platform = self.jsonconf['platform'],
                 channel = self.jsonconf['channel_name']))
         return statuslist
-
 
 
     @require_authed
@@ -179,4 +218,8 @@ if __name__ == '__main__':
     c = 0
     for i in ht:
         c += 1
-        print c, i.ID.id, i.parsed.username, i.parsed.time, i.parsed.text
+        print c, i.ID.id, i.parsed.username, i.parsed.time, i.parsed.text, i.parsed.comments_count, i.parsed.reposts_count,
+        if i.parsed.has_orig:
+            print i.parsed.orig_text, i.parsed.orig_comments_count, i.parsed.orig_reposts_count
+        else:
+            print ''
