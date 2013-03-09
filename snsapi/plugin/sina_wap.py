@@ -9,6 +9,7 @@ if __name__ == '__main__':
     import urllib2
     import urllib
     import re
+    import lxml.html
     sys.path.append('..')
     from snslog import SNSLog as logger
     from snsbase import SNSBase, require_authed
@@ -20,6 +21,7 @@ else:
     import urllib2
     import urllib
     import re
+    import lxml.html
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
@@ -30,10 +32,27 @@ else:
 logger.debug("%s plugged!", __file__)
 
 
-class SinaWeiboWapStatus:
-    def __init__(self, conf):
-        assert conf['auth_by'] in ['userpass', 'gsid']
-        self.conf = conf
+class SinaWeiboWapStatusMessage(snstype.Message):
+    platform = 'SinaWeiboWapStatus'
+    def parse(self):
+        self.ID.platform = self.platform
+        self._parse(self.raw)
+
+    def _parse(self, dct):
+        self.parsed.time = dct['time']
+        self.parsed.username = dct['author']
+        self.parsed.text = dct['text']
+        self.ID.id = dct['id']
+
+
+class SinaWeiboWapStatus(SNSBase):
+    Message = SinaWeiboWapStatusMessage
+
+    def __init__(self, channel = None):
+        super(SinaWeiboWapStatus, self).__init__(channel)
+        assert channel['auth_by'] in ['userpass', 'gsid']
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
 
 
     @staticmethod
@@ -57,12 +76,12 @@ class SinaWeiboWapStatus:
         return m
 
     def auth(self):
-        if self.conf['auth_by'] == 'gsid':
-            self.gsid = self.conf['gsid']
-        elif self.conf['auth_by'] == 'userpass':
+        if self.jsonconf['auth_by'] == 'gsid':
+            self.gsid = self.jsonconf['gsid']
+        elif self.jsonconf['auth_by'] == 'userpass':
             req = urllib2.Request('http://weibo.cn/dpool/ttt/login.php')
             req = self._process_req(req)
-            data = {'uname' : self.conf['username'], 'pwd': self.conf['password'],
+            data = {'uname' : self.jsonconf['username'], 'pwd': self.jsonconf['password'],
                     'l' : '', 'scookie' : 'on', 'submit' : '登录'}
             data = urllib.urlencode(data)
             response = urllib2.urlopen(req, data, timeout = 10)
@@ -76,9 +95,40 @@ class SinaWeiboWapStatus:
     def is_authed(self):
         return '<input type="submit" value="发布" />' in self._get_weibo_homepage()
 
+
+    @require_authed
+    def _get_weibo(self, page = 1):
+        #FIXME: 1. 转发的微博未获取转发理由  2. 转发、评论人数
+        req = urllib2.Request('http://weibo.cn/?gsid=' + self.gsid + '&page=%d' % (page))
+        req = self._process_req(req)
+        m = urllib2.urlopen(req, timeout = 10).read()
+        h = lxml.html.fromstring(m)
+        weibos = []
+        for i in h.find_class('c'):
+            if i.get('id') and i.get('id')[0:2] == 'M_':
+                weibo = {'author' : i.find_class('nk')[0].text.encode('utf-8'), 
+                        'text': i.find_class('ctt')[0].text_content().encode('utf-8'),
+                        'id': i.get('id')[2:],
+                        'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1]
+                        }
+                weibos.append(weibo)
+        statuslist = snstype.MessageList()
+        for i in weibos:
+            statuslist.append(self.Message(i, platform = self.jsonconf['platform'],
+                channel = self.jsonconf['channel_name']))
+        return statuslist
+
+
+
     @require_authed
     def home_timeline(self, number):
-        pass
+        all_weibo = []
+        page = 1
+        while len(all_weibo) < number:
+            weibos = self._get_weibo(page)
+            all_weibo += weibos[0:min(len(weibos), number - len(all_weibo))]
+            page += 1
+        return all_weibo
 
     @require_authed
     def update(self, text):
@@ -119,8 +169,14 @@ if __name__ == '__main__':
     import getpass
     sina_conf = SinaWeiboWapStatus.new_channel()
     sina_conf['auth_by'] = 'userpass'
+    sina_conf['channel_name'] = 'demo_channel'
     print 'Username:' ,
     sina_conf['username'] = raw_input().strip()
     sina_conf['password'] = getpass.getpass()
     sina = SinaWeiboWapStatus(sina_conf)
     print sina.auth()
+    ht = sina.home_timeline(13)
+    c = 0
+    for i in ht:
+        c += 1
+        print c, i.ID.id, i.parsed.username, i.parsed.time, i.parsed.text
