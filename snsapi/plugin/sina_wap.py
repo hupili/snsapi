@@ -118,12 +118,12 @@ class SinaWeiboWapStatus(SNSBase):
                 weibo = None
                 if i.find_class('cmt'): # 转发微博
                     weibo = {
-                            'author' : i.find_class('nk')[0].text.encode('utf-8'), 
+                            'author' : i.find_class('nk')[0].text,
                             'id': i.get('id')[2:],
-                            'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1],
+                            'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1].decode('utf-8'),
                             'text' : None,
                             'orig' : {
-                                'text': i.find_class('ctt')[0].text_content().encode('utf-8'),
+                                'text': i.find_class('ctt')[0].text_content(),
                                 'comments_count' : 0,
                                 'reposts_count' : 0
                                 },
@@ -132,7 +132,7 @@ class SinaWeiboWapStatus(SNSBase):
                             }
                     parent = i.find_class('cmt')[-1].getparent()
                     retweet_reason = re.sub(r'转发理由:(.*)赞\[[0-9]*\] 转发\[[0-9]*\] 评论\[[0-9]*\] 收藏.*$', r'\1', parent.text_content().encode('utf-8'))
-                    weibo['text'] = retweet_reason
+                    weibo['text'] = retweet_reason.decode('utf-8')
                     zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', parent.text_content().encode('utf-8'))
                     if zf:
                         weibo['comments_count'] = int(zf.group(2))
@@ -142,8 +142,8 @@ class SinaWeiboWapStatus(SNSBase):
                         weibo['orig']['comments_count'] = int(zf.group(2))
                         weibo['orig']['reposts_count'] = int(zf.group(3))
                 else:
-                    weibo = {'author' : i.find_class('nk')[0].text.encode('utf-8'), 
-                            'text': i.find_class('ctt')[0].text_content().encode('utf-8'),
+                    weibo = {'author' : i.find_class('nk')[0].text, 
+                            'text': i.find_class('ctt')[0].text_content(),
                             'id': i.get('id')[2:],
                             'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1]
                             }
@@ -173,7 +173,7 @@ class SinaWeiboWapStatus(SNSBase):
     def update(self, text):
         homepage = self._get_weibo_homepage()
         m = re.search('<form action="(/mblog/sendmblog?[^"]*)" accept-charset="UTF-8" method="post">', homepage).group(1)
-        data = {'rl' : '0', 'content' : text}
+        data = {'rl' : '0', 'content' : self._unicode_encode(text)}
         data = urllib.urlencode(data)
         req = urllib2.Request('http://weibo.cn' + m.replace('&amp;', '&'))
         req = self._process_req(req)
@@ -198,7 +198,7 @@ class SinaWeiboWapStatus(SNSBase):
         req = self._process_req(urllib2.Request(addcomment_url))
         opener = urllib2.build_opener()
         data = urllib.urlencode(
-                {'rl' : rl, 'srcuid' : srcuid, 'id': id, 'content' : text}
+                {'rl' : rl, 'srcuid' : srcuid, 'id': id, 'content' : self._unicode_encode(text)}
                 )
         response = opener.open(req, data, timeout = 10)
         t = response.read()
