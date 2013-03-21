@@ -44,6 +44,7 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         self.parsed.text = dct['text']
         self.parsed.comments_count = dct['comments_count']
         self.parsed.reposts_count = dct['reposts_count']
+        self.parsed.uid = dct['uid']
         if 'orig' in dct:
             self.parsed.has_orig = True
             self.parsed.orig_text = dct['orig']['text']
@@ -106,8 +107,18 @@ class SinaWeiboWapStatus(SNSBase):
 
 
     @require_authed
+    def _get_uid_by_pageurl(self, url):
+        if re.search('\/u\/[0-9]*', url):
+            return re.search('\/u\/([0-9]*)', url).group(1)
+        req = urllib2.Request('http://weibo.cn' + url)
+        req = self._process_req(req)
+        m = urllib2.urlopen(req, timeout = 10).read()
+        return re.search(r'\/([0-9]*)\/info', m).group(1)
+
+    @require_authed
     def _get_weibo(self, page = 1):
         #FIXME: 获取转发和评论数应该修改为分析DOM而不是正则表达式（以免与内容重复）
+        #FIXME: 对于转发的微博，原微博信息不足
         req = urllib2.Request('http://weibo.cn/?gsid=' + self.gsid + '&page=%d' % (page))
         req = self._process_req(req)
         m = urllib2.urlopen(req, timeout = 10).read()
@@ -118,6 +129,7 @@ class SinaWeiboWapStatus(SNSBase):
                 weibo = None
                 if i.find_class('cmt'): # 转发微博
                     weibo = {
+                            'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href']),
                             'author' : i.find_class('nk')[0].text,
                             'id': i.get('id')[2:],
                             'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1].decode('utf-8'),
@@ -143,6 +155,7 @@ class SinaWeiboWapStatus(SNSBase):
                         weibo['orig']['reposts_count'] = int(zf.group(3))
                 else:
                     weibo = {'author' : i.find_class('nk')[0].text, 
+                            'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href']),
                             'text': i.find_class('ctt')[0].text_content(),
                             'id': i.get('id')[2:],
                             'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1]
