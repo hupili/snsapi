@@ -72,6 +72,7 @@ class SinaWeiboWapStatus(SNSBase):
         c['auth_by'] = 'userpass'
         c['username'] = 'root'
         c['password'] = 'password'
+        c['uidtype'] = 'path'
         return c
 
     def _process_req(self, req):
@@ -107,13 +108,18 @@ class SinaWeiboWapStatus(SNSBase):
 
 
     @require_authed
-    def _get_uid_by_pageurl(self, url):
-        if re.search('\/u\/[0-9]*', url):
-            return re.search('\/u\/([0-9]*)', url).group(1)
-        req = urllib2.Request('http://weibo.cn' + url)
-        req = self._process_req(req)
-        m = urllib2.urlopen(req, timeout = 10).read()
-        return re.search(r'\/([0-9]*)\/info', m).group(1)
+    def _get_uid_by_pageurl(self, url, type='num'):
+        if url[0:len('http://weibo.cn')] == 'http://weibo.cn':
+            url = url[len('http://weibo.cn'):]
+        if type == 'num':
+            if re.search('\/u\/[0-9]*', url):
+                return re.search('\/u\/([0-9]*)', url).group(1)
+            req = urllib2.Request('http://weibo.cn' + url)
+            req = self._process_req(req)
+            m = urllib2.urlopen(req, timeout = 10).read()
+            return re.search(r'\/([0-9]*)\/info', m).group(1)
+        elif type == 'path':
+            return re.search(r'\/([^?]*)\?', url).group(1)
 
     @require_authed
     def _get_weibo(self, page = 1):
@@ -129,7 +135,7 @@ class SinaWeiboWapStatus(SNSBase):
                 weibo = None
                 if i.find_class('cmt'): # 转发微博
                     weibo = {
-                            'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href']),
+                            'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
                             'author' : i.find_class('nk')[0].text,
                             'id': i.get('id')[2:],
                             'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1].decode('utf-8'),
@@ -155,7 +161,7 @@ class SinaWeiboWapStatus(SNSBase):
                         weibo['orig']['reposts_count'] = int(zf.group(3))
                 else:
                     weibo = {'author' : i.find_class('nk')[0].text, 
-                            'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href']),
+                            'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
                             'text': i.find_class('ctt')[0].text_content(),
                             'id': i.get('id')[2:],
                             'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1]
@@ -231,7 +237,7 @@ if __name__ == '__main__':
     c = 0
     for i in ht:
         c += 1
-        print c, i.ID.id, i.parsed.username, i.parsed.time, i.parsed.text, i.parsed.comments_count, i.parsed.reposts_count,
+        print c, i.ID.id, i.parsed.username, i.parsed.userid, i.parsed.time, i.parsed.text, i.parsed.comments_count, i.parsed.reposts_count,
         if i.parsed.has_orig:
             print i.parsed.orig_text, i.parsed.orig_comments_count, i.parsed.orig_reposts_count
         else:
