@@ -110,10 +110,13 @@ class Forwarder(object):
         return self.sp_out.update(*args, **kargs)
 
     def format_msg(self, msg):
-        return "[%s] at %s \n %s (fwd at:%s)"  % (msg['username'], msg['time'], msg['text'], time.time())
+        return "%s (fwd from: %s at %s)"  % (msg['text'], msg['username'], snsapi_utils.utc2str(msg['time']), )
+        #return "[%s] at %s \n %s (fwd at:%s)"  % (msg['username'], msg['time'], msg['text'], time.time())
 
-    def forward(self):
+    def forward(self, forward_predicate):
         sl = self.home_timeline()
+        if forward_predicate:
+            sl = filter(forward_predicate, sl)
         for s in sl:
             self.db_add(s)
         for (cn, msg) in self.db_get_message():
@@ -123,11 +126,16 @@ class Forwarder(object):
             logger.info("forward '%s' -- %s", text, r)
                 
 if __name__ == "__main__":
-    fwd = Forwarder()
-    fwd.auth()
-    #print fwd.home_timeline()
-    #print fwd.update('hello')
-    #print fwd.sp_out.home_timeline()
-    #print fwd.jsonconf
-    fwd.forward()
-    fwd.db_save()
+    import time
+    while True:
+        print "start to forwad"
+        fwd = Forwarder()
+        fwd.auth()
+        #print fwd.home_timeline()
+        #print fwd.update('hello')
+        #print fwd.sp_out.home_timeline()
+        #print fwd.jsonconf
+        fwd.forward(lambda s: s.parsed.username=="hpl")
+        fwd.db_save()
+        time.sleep(300)
+        del fwd
