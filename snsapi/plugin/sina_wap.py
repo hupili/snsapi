@@ -44,7 +44,7 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         self.parsed.text = dct['text']
         self.parsed.comments_count = dct['comments_count']
         self.parsed.reposts_count = dct['reposts_count']
-        self.parsed.uid = dct['uid']
+        self.parsed.userid = dct['uid']
         if 'orig' in dct:
             self.parsed.has_orig = True
             self.parsed.orig_text = dct['orig']['text']
@@ -80,7 +80,7 @@ class SinaWeiboWapStatus(SNSBase):
 
 
     def _get_weibo_homepage(self):
-        req = urllib2.Request('http://weibo.cn/?gsid=' + self.token['gsid')
+        req = urllib2.Request('http://weibo.cn/?gsid=' + self.token['gsid'])
         req = self._process_req(req)
         m = urllib2.urlopen(req, timeout = 10).read()
         return m
@@ -97,7 +97,7 @@ class SinaWeiboWapStatus(SNSBase):
             response = urllib2.urlopen(req, data, timeout = 10)
             p = response.read()
             final_url = response.geturl()
-            self.token['gsid'] = final_url[final_url.find('=') + 1:]
+            self.token = {'gsid' :  final_url[final_url.find('=') + 1:]}
         else:
             return False
         return self.is_authed()
