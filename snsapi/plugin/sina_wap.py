@@ -80,14 +80,14 @@ class SinaWeiboWapStatus(SNSBase):
 
 
     def _get_weibo_homepage(self):
-        req = urllib2.Request('http://weibo.cn/?gsid=' + self.gsid)
+        req = urllib2.Request('http://weibo.cn/?gsid=' + self.token['gsid')
         req = self._process_req(req)
         m = urllib2.urlopen(req, timeout = 10).read()
         return m
 
     def auth(self):
         if self.jsonconf['auth_by'] == 'gsid':
-            self.gsid = self.jsonconf['gsid']
+            self.token['gsid'] = self.jsonconf['gsid']
         elif self.jsonconf['auth_by'] == 'userpass':
             req = urllib2.Request('http://weibo.cn/dpool/ttt/login.php')
             req = self._process_req(req)
@@ -97,7 +97,7 @@ class SinaWeiboWapStatus(SNSBase):
             response = urllib2.urlopen(req, data, timeout = 10)
             p = response.read()
             final_url = response.geturl()
-            self.gsid = final_url[final_url.find('=') + 1:]
+            self.token['gsid'] = final_url[final_url.find('=') + 1:]
         else:
             return False
         return self.is_authed()
@@ -119,7 +119,7 @@ class SinaWeiboWapStatus(SNSBase):
     def _get_weibo(self, page = 1):
         #FIXME: 获取转发和评论数应该修改为分析DOM而不是正则表达式（以免与内容重复）
         #FIXME: 对于转发的微博，原微博信息不足
-        req = urllib2.Request('http://weibo.cn/?gsid=' + self.gsid + '&page=%d' % (page))
+        req = urllib2.Request('http://weibo.cn/?gsid=' + self.token['gsid'] + '&page=%d' % (page))
         req = self._process_req(req)
         m = urllib2.urlopen(req, timeout = 10).read()
         h = lxml.html.fromstring(m)
@@ -201,7 +201,7 @@ class SinaWeiboWapStatus(SNSBase):
     @require_authed
     def reply(self, statusID, text):
         id = statusID.id
-        url = 'http://weibo.cn/comment/%s?gsid=%s' % (id, self.gsid)
+        url = 'http://weibo.cn/comment/%s?gsid=%s' % (id, self.token['gsid'])
         req = self._process_req(urllib2.Request(url))
         res = urllib2.build_opener().open(req, timeout = 10).read()
         addcomment_url = 'http://weibo.cn' +  \
