@@ -1,7 +1,7 @@
 #!/bin/bash
 
 nohup python forwarder.py &
-PID=$$
+PID=$!
 echo $PID > mypid
 
 exit 0
