@@ -39,6 +39,9 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         self._parse(self.raw)
 
     def _parse(self, dct):
+        #TODO:
+        #    Check whether the fields conform to snsapi convention.
+        #    http://snsapi.ie.cuhk.edu.hk/doc/snsapi.html#module-snsapi.snstype
         self.parsed.time = dct['time']
         self.parsed.username = dct['author']
         self.parsed.text = dct['text']
@@ -103,9 +106,16 @@ class SinaWeiboWapStatus(SNSBase):
             return False
         return self.is_authed()
 
-    def is_authed(self):
-        return '<input type="submit" value="发布" />' in self._get_weibo_homepage()
+    #def is_authed(self):
+    #    return '<input type="submit" value="发布" />' in self._get_weibo_homepage()
 
+    def expire_after(self, token = None):
+        if '<input type="submit" value="发布" />' in self._get_weibo_homepage():
+            # No expiration issue
+            return -1
+        else:
+            # Already expired
+            return 0
 
     @require_authed
     def _get_uid_by_pageurl(self, url, type='num'):
@@ -179,12 +189,12 @@ class SinaWeiboWapStatus(SNSBase):
 
 
     @require_authed
-    def home_timeline(self, number):
-        all_weibo = []
+    def home_timeline(self, count = 20):
+        all_weibo = snstype.MessageList()
         page = 1
-        while len(all_weibo) < number:
+        while len(all_weibo) < count:
             weibos = self._get_weibo(page)
-            all_weibo += weibos[0:min(len(weibos), number - len(all_weibo))]
+            all_weibo += weibos[0:min(len(weibos), count - len(all_weibo))]
             page += 1
         return all_weibo
 
@@ -224,16 +234,28 @@ class SinaWeiboWapStatus(SNSBase):
         return '<div class="ps">评论成功!</div>' in t
 
 if __name__ == '__main__':
-    import getpass
-    sina_conf = SinaWeiboWapStatus.new_channel()
-    sina_conf['auth_by'] = 'userpass'
-    sina_conf['channel_name'] = 'demo_channel'
-    print 'Username:' ,
-    sina_conf['username'] = raw_input().strip()
-    sina_conf['password'] = getpass.getpass()
+    try:
+        # Write a 'channel.json' file in SNSAPI format with required information
+        # OR, (see 'except' section)
+        import json
+        sina_conf = json.load(open('channel.json'))[0]
+        print sina_conf
+    except IOError:
+        # Else, we let you input from console
+        import getpass
+        sina_conf = SinaWeiboWapStatus.new_channel()
+        sina_conf['auth_by'] = 'userpass'
+        sina_conf['channel_name'] = 'demo_channel'
+        print 'Username:' ,
+        sina_conf['username'] = raw_input().strip()
+        sina_conf['password'] = getpass.getpass()
+        print sina_conf
+
     sina = SinaWeiboWapStatus(sina_conf)
     print sina.auth()
-    ht = sina.home_timeline(13)
+    # Too slow.. change the demo to 2 msgs
+    ht = sina.home_timeline(2)
+    #print ht
     c = 0
     for i in ht:
         c += 1
