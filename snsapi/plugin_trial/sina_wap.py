@@ -138,7 +138,7 @@ class SinaWeiboWapStatus(SNSBase):
                             'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
                             'author' : i.find_class('nk')[0].text,
                             'id': i.get('id')[2:],
-                            'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1].decode('utf-8'),
+                            'time': i.find_class('ct')[0].text.encode('utf-8').strip(' ').split(' ')[0].decode('utf-8'),
                             'text' : None,
                             'orig' : {
                                 'text': i.find_class('ctt')[0].text_content(),
@@ -164,7 +164,7 @@ class SinaWeiboWapStatus(SNSBase):
                             'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
                             'text': i.find_class('ctt')[0].text_content(),
                             'id': i.get('id')[2:],
-                            'time': i.find_class('ct')[0].text.encode('utf-8').split(' ')[1]
+                            'time': i.find_class('ct')[0].text.encode('utf-8').strip(' ').split(' ')[0].decode('utf-8')
                             }
                     zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
                     if zf:
