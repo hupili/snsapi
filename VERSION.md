@@ -1,5 +1,5 @@
 SNSAPI 0.4.1
-====
+============
 
 Version string convention: `x.y.z`
 
@@ -7,8 +7,20 @@ Version string convention: `x.y.z`
    * `y`: Minor version with functional extension. 
    * `z`: Micro version with small fix. 
 
+0.4.2
+-----
+
+   * Two new methods for auto authorization prototyped for SinaWeiboStatus:
+   1) Use remote Autoproxy (see https://github.com/xuanqinanhai/weibo-simulator );
+   2) Use local username/password. 
+   * Upgrades for Sphinx autodoc:
+   1) improve decorator `require_authed` to retain docstring; 
+   2) make apps autodoc-able;
+   3) docstring upgrade to conform to Sphinx style;
+   * More UTs for snsbase methods: `_parse_code`; expiration check. 
+
 0.4.1
-----
+-----
 
    * Fix `load_config` in `app/hellosns/`
    * Email platform: check expire;
@@ -35,7 +47,7 @@ Version string convention: `x.y.z`
    * Change to nosetests. 
 
 0.3
-----
+---
 
    * Restructure nested Message class, allowing them to be pickled. 
    * Fault tolerant auth flow. 
@@ -49,7 +61,7 @@ Version string convention: `x.y.z`
    The texts in Message object is unified to have html entities unescaped. 
 
 0.2
-----
+---
 
    * New platform reference mechanism. 
    Support trial platforms. 
@@ -62,7 +74,7 @@ Version string convention: `x.y.z`
    * Add Twitter platform. 
 
 0.1
-----
+---
 
    * Initial framework. 
    * Setup website. 
