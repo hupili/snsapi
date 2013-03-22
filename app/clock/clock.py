@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+'''
+clock (SNSAPI Sample Apps)
+
+docstring placeholder
+'''
 
 from snsapi.snspocket import SNSPocket
 from datetime import datetime
