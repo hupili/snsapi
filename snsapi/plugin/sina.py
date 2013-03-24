@@ -222,7 +222,19 @@ class SinaWeiboStatus(SNSBase):
 
     @require_authed
     def _replace_with_short_url(self, text):
+        #TODO:
+        #    This implementation has problem with unicode characters in URLs. 
+        #    Do urlencoding before shortening or expanding. 
+        #    A trigger case: (in snscli, with SinaWeiboStatus platform)
+        #        up('线性回归解幼儿园数圈圈的问题。。 http://yongsun.me/2012/06/线性回归求解幼儿园数学题/ ')
         import re
+        #TODO:
+        #    1) This regex needs upgrade.
+        #       Is it better to match only http(s):// prefix? 
+        #    2) A better place to locate the pattern is the upper level dir,
+        #       e.g. snstype.py. URL matching pattern is universal for all 
+        #       platforms. Placing it at a common area and making the pattern
+        #       testable is favourable.
         p = re.compile("[a-zA-z]+://[^\s]*")
         lst = p.findall(text)
         result = text
@@ -239,7 +251,9 @@ class SinaWeiboStatus(SNSBase):
            * parameter text: the update message
            * return: success or not
         '''
-        self._replace_with_short_url(text)
+        #TODO:
+        #    Uncomment when the URL expanding and shortening services are fixed.
+        #self._replace_with_short_url(text)
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
         url = "https://api.weibo.com/2/statuses/update.json"

@@ -456,7 +456,7 @@ class SNSBase(object):
         '''
         expand a shorten url
         
-        :param url
+        :param url:
             The url will be expanded if it is a short url, or it will
             return the origin url string. url should contain the protocol
             like "http://"

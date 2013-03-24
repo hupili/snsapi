@@ -167,11 +167,16 @@ class TencentWeiboStatus(SNSBase):
         params["content"] = text
         self._attach_authinfo(params)
         
-        ret = self._http_post(url, params)
-        if(ret['msg'] == "ok"):
-            logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
-            return True
-        return ret
+        try:
+            ret = self._http_post(url, params)
+            if(ret['msg'] == "ok"):
+                logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
+                return True
+            else:
+                return ret
+        except Exception, e:
+            logger.warning("Catch Exception: %s", e)
+            return False
         
     @require_authed
     def reply(self, statusID, text):
