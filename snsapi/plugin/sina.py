@@ -22,76 +22,10 @@ else:
 
 logger.debug("%s plugged!", __file__)
 
-class SinaWeiboStatusMessage(snstype.Message):
-    platform = "SinaWeiboStatus"
-    def parse(self):
-        self.ID.platform = self.platform
-        self._parse(self.raw)
-
-    def _parse(self, dct):
-        #print dct 
-        #logger.debug("%s", dct)
-
-        if 'deleted' in dct and dct['deleted']:
-            logger.debug("This is a deleted message %s of SinaWeiboStatusMessage", dct["id"])
-            self.parsed.time = "unknown"
-            self.parsed.username = "unknown"
-            self.parsed.userid = "unknown"
-            self.parsed.text = "unknown"
-            self.deleted = True
-            return 
-            #return snstype.DeletedMessage(dct)
-
-        self.ID.id = dct["id"]
-
-        self.parsed.time = utils.str2utc(dct["created_at"])
-        self.parsed.username = dct['user']['name']
-        self.parsed.userid = dct['user']['id']
-        #if 'user' in dct:
-        #    self.parsed.username = dct['user']['name']
-        #    self.parsed.userid = dct['user']['id']
-        #    logger.warning("Parsed one message with unknown 'user' for SinaWeiboStatusMessage")
-        #else:
-        #    self.parsed.username = "unknown"
-        #    self.parsed.userid = "unknown"
-
-        self.parsed.reposts_count = dct['reposts_count']
-        self.parsed.comments_count = dct['comments_count']
-        
-        if 'retweeted_status' in dct:
-            self.parsed.username_orig = "unknown"
-            try:
-                self.parsed.username_orig = dct['retweeted_status']['user']['name']
-            except KeyError:
-                logger.warning('KeyError when parsing SinaWeiboStatus. May be deleted original message')
-            self.parsed.text_orig = dct['retweeted_status']['text']
-            self.parsed.text_trace = dct['text']
-            self.parsed.text = self.parsed.text_trace \
-                    + " || " + "@" + self.parsed.username_orig \
-                    + " : " + self.parsed.text_orig
-        else:
-            self.parsed.text_orig = dct['text'] 
-            self.parsed.text_trace = None
-            self.parsed.text = self.parsed.text_orig
-
-        #TODO: clean past fields
-        #self.parsed.id = dct["id"]
-        #self.parsed.created_at = dct["created_at"]
-        #self.parsed.text = dct['text']
-        #self.parsed.reposts_count = dct['reposts_count']
-        #self.parsed.comments_count = dct['comments_count']
-        #self.parsed.username = dct['user']['name']
-        #self.parsed.usernick = ""
-
-class SinaWeiboStatus(SNSBase):
-    
-    Message = SinaWeiboStatusMessage
+class SinaWeiboBase(SNSBase):
 
     def __init__(self, channel = None):
-        super(SinaWeiboStatus, self).__init__(channel)
-        
-        self.platform = self.__class__.__name__
-        self.Message.platform = self.platform
+        super(SinaWeiboBase, self).__init__(channel)
 
     @staticmethod
     def new_channel(full = False):
@@ -110,7 +44,7 @@ class SinaWeiboStatus(SNSBase):
         return c
 
     def read_channel(self, channel):
-        super(SinaWeiboStatus, self).read_channel(channel) 
+        super(SinaWeiboBase, self).read_channel(channel) 
 
         if not "auth_url" in self.auth_info:
             self.auth_info.auth_url = "https://api.weibo.com/oauth2/"
@@ -178,6 +112,78 @@ class SinaWeiboStatus(SNSBase):
             return resp_url
         except Exception, e:
             logger.warning("Catch exception: %s", e)
+        
+
+class SinaWeiboStatusMessage(snstype.Message):
+    platform = "SinaWeiboStatus"
+    def parse(self):
+        self.ID.platform = self.platform
+        self._parse(self.raw)
+
+    def _parse(self, dct):
+        #print dct 
+        #logger.debug("%s", dct)
+
+        if 'deleted' in dct and dct['deleted']:
+            logger.debug("This is a deleted message %s of SinaWeiboStatusMessage", dct["id"])
+            self.parsed.time = "unknown"
+            self.parsed.username = "unknown"
+            self.parsed.userid = "unknown"
+            self.parsed.text = "unknown"
+            self.deleted = True
+            return 
+            #return snstype.DeletedMessage(dct)
+
+        self.ID.id = dct["id"]
+
+        self.parsed.time = utils.str2utc(dct["created_at"])
+        self.parsed.username = dct['user']['name']
+        self.parsed.userid = dct['user']['id']
+        #if 'user' in dct:
+        #    self.parsed.username = dct['user']['name']
+        #    self.parsed.userid = dct['user']['id']
+        #    logger.warning("Parsed one message with unknown 'user' for SinaWeiboStatusMessage")
+        #else:
+        #    self.parsed.username = "unknown"
+        #    self.parsed.userid = "unknown"
+
+        self.parsed.reposts_count = dct['reposts_count']
+        self.parsed.comments_count = dct['comments_count']
+        
+        if 'retweeted_status' in dct:
+            self.parsed.username_orig = "unknown"
+            try:
+                self.parsed.username_orig = dct['retweeted_status']['user']['name']
+            except KeyError:
+                logger.warning('KeyError when parsing SinaWeiboStatus. May be deleted original message')
+            self.parsed.text_orig = dct['retweeted_status']['text']
+            self.parsed.text_trace = dct['text']
+            self.parsed.text = self.parsed.text_trace \
+                    + " || " + "@" + self.parsed.username_orig \
+                    + " : " + self.parsed.text_orig
+        else:
+            self.parsed.text_orig = dct['text'] 
+            self.parsed.text_trace = None
+            self.parsed.text = self.parsed.text_orig
+
+        #TODO: clean past fields
+        #self.parsed.id = dct["id"]
+        #self.parsed.created_at = dct["created_at"]
+        #self.parsed.text = dct['text']
+        #self.parsed.reposts_count = dct['reposts_count']
+        #self.parsed.comments_count = dct['comments_count']
+        #self.parsed.username = dct['user']['name']
+        #self.parsed.usernick = ""
+
+class SinaWeiboStatus(SinaWeiboBase):
+    
+    Message = SinaWeiboStatusMessage
+
+    def __init__(self, channel = None):
+        super(SinaWeiboStatus, self).__init__(channel)
+        
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
         
     @require_authed
     def home_timeline(self, count=20):
