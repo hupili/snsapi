@@ -274,8 +274,34 @@ class SinaWeiboStatus(SinaWeiboBase):
             ret['id']
             return True
         except Exception as e:
-            logger.info("Reply '%s' to status '%s' fail: %s", text, self.jsonconf.channel_name, ret)
+            logger.info("Reply '%s' to status '%s' fail: %s", text, self.jsonconf.channel_name, e)
             return False
+
+    @require_authed
+    def forward(self, mID, text):
+        '''forward a status on SinaWeibo. 
+
+        :param mID: 
+            A MessageID object to idenfity a Weibo status
+
+        :param text: 
+            Append comment text
+
+        :return: Success or not
+        '''
+        try:
+            ret = self.weibo_request('statuses/repost',
+                    'POST',
+                    {'id': mID.id, 'status': text })
+            logger.debug("Response: %s", ret)
+            ret['id']
+            return True
+        except Exception as e:
+            logger.info("'%s' forward status '%s' with comment '%s' fail: %s", 
+                    self.jsonconf.channel_name, mID, text, e)
+            return False
+
+         
 
 if __name__ == '__main__':
     print '\n\n\n'
