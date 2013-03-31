@@ -113,6 +113,38 @@ class SinaWeiboBase(SNSBase):
         except Exception, e:
             logger.warning("Catch exception: %s", e)
         
+    @require_authed
+    def weibo_request(self, name, method, params):
+        '''
+        General request method for Weibo V2 Api via OAuth. 
+
+        :param name: 
+            The Api name shown on main page
+            (http://open.weibo.com/wiki/API%E6%96%87%E6%A1%A3_V2).
+            e.g. ``friendships/create`` (no "2/" prefix)
+
+        :param method:
+            HTTP request method: 'GET' or 'POST'
+
+        :param params:
+            Parameters from Api doc. 
+            No need to manually put ``access_token`` in. 
+
+        :return:
+            The http response from SinaWeibo (a JSON compatible structure).
+        '''
+
+        base_url = "https://api.weibo.com/2"
+        full_url = "%s/%s.json" % (base_url, name)
+
+        if not 'access_token' in params:
+            params['access_token'] = self.token.access_token
+
+        http_request_funcs = {
+                'GET': self._http_get,
+                'POST': self._http_post
+                }
+        return http_request_funcs[method](full_url, params)
 
 class SinaWeiboStatusMessage(snstype.Message):
     platform = "SinaWeiboStatus"
@@ -188,18 +220,14 @@ class SinaWeiboStatus(SinaWeiboBase):
     @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
-        get statuses of yours and your friends'
-        @param count: number of statuses
+        :param count: number of statuses
         '''
-        url = "https://api.weibo.com/2/statuses/home_timeline.json"
-        params = {}
-        params['count'] = count
-        params['access_token'] = self.token.access_token
-        
-        jsonobj = self._http_get(url, params)
         
         statuslist = snstype.MessageList()
         try:
+            jsonobj = self.weibo_request('statuses/home_timeline',
+                    'GET',
+                    {'count': count})
             if("error" in  jsonobj):
                 logger.warning("error json object returned: %s", jsonobj)
                 return []
@@ -222,13 +250,10 @@ class SinaWeiboStatus(SinaWeiboBase):
 
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
-        url = "https://api.weibo.com/2/statuses/update.json"
-        params = {}
-        params['status'] = text
-        params['access_token'] = self.token.access_token
-        
-        ret = self._http_post(url, params)
         try:
+            ret = self.weibo_request('statuses/update',
+                    'POST',
+                    {'status': text})
             status = self.Message(ret)
             logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
             return True
@@ -242,14 +267,10 @@ class SinaWeiboStatus(SinaWeiboBase):
         @param text: the comment text
         @return: success or not
         '''
-        url = "https://api.weibo.com/2/comments/create.json"
-        params = {}
-        params['id'] = statusID.id
-        params['comment'] = text
-        params['access_token'] = self.token.access_token
-        
-        ret = self._http_post(url, params)
         try:
+            ret = self.weibo_request('comments/create',
+                    'POST',
+                    {'id': statusID.id, 'comment': text })
             ret['id']
             return True
         except Exception as e:
