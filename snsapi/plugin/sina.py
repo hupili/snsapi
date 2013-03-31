@@ -278,30 +278,37 @@ class SinaWeiboStatus(SinaWeiboBase):
             return False
 
     @require_authed
-    def forward(self, mID, text):
-        '''forward a status on SinaWeibo. 
+    def forward(self, message, text):
+        '''Forward a status on SinaWeibo. 
+        If message is from the same platform, forward it 
+        using special interface. Else, route the request
+        to a general forward method of ``SNSBase``.
 
-        :param mID: 
-            A MessageID object to idenfity a Weibo status
+        :param message: 
+            An ``snstype.Message`` object to forward
 
         :param text: 
             Append comment text
 
         :return: Success or not
+
         '''
+        if not message.platform == self.platform:
+            return super(SinaWeiboStatus, self).forward(message, text)
+        else:
+            mID = message.ID
+
         try:
             ret = self.weibo_request('statuses/repost',
                     'POST',
                     {'id': mID.id, 'status': text })
-            logger.debug("Response: %s", ret)
+            #logger.debug("Response: %s", ret)
             ret['id']
             return True
         except Exception as e:
             logger.info("'%s' forward status '%s' with comment '%s' fail: %s", 
                     self.jsonconf.channel_name, mID, text, e)
             return False
-
-         
 
 if __name__ == '__main__':
     print '\n\n\n'
