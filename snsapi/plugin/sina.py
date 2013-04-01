@@ -194,9 +194,6 @@ class SinaWeiboStatusMessage(snstype.Message):
         self._parse(self.raw)
 
     def _parse(self, dct):
-        #print dct 
-        #logger.debug("%s", dct)
-
         if 'deleted' in dct and dct['deleted']:
             logger.debug("This is a deleted message %s of SinaWeiboStatusMessage", dct["id"])
             self.parsed.time = "unknown"
@@ -205,21 +202,12 @@ class SinaWeiboStatusMessage(snstype.Message):
             self.parsed.text = "unknown"
             self.deleted = True
             return 
-            #return snstype.DeletedMessage(dct)
 
         self.ID.id = dct["id"]
 
         self.parsed.time = utils.str2utc(dct["created_at"])
         self.parsed.username = dct['user']['name']
         self.parsed.userid = dct['user']['id']
-        #if 'user' in dct:
-        #    self.parsed.username = dct['user']['name']
-        #    self.parsed.userid = dct['user']['id']
-        #    logger.warning("Parsed one message with unknown 'user' for SinaWeiboStatusMessage")
-        #else:
-        #    self.parsed.username = "unknown"
-        #    self.parsed.userid = "unknown"
-
         self.parsed.reposts_count = dct['reposts_count']
         self.parsed.comments_count = dct['comments_count']
         
@@ -238,15 +226,6 @@ class SinaWeiboStatusMessage(snstype.Message):
             self.parsed.text_orig = dct['text'] 
             self.parsed.text_trace = None
             self.parsed.text = self.parsed.text_orig
-
-        #TODO: clean past fields
-        #self.parsed.id = dct["id"]
-        #self.parsed.created_at = dct["created_at"]
-        #self.parsed.text = dct['text']
-        #self.parsed.reposts_count = dct['reposts_count']
-        #self.parsed.comments_count = dct['comments_count']
-        #self.parsed.username = dct['user']['name']
-        #self.parsed.usernick = ""
 
 class SinaWeiboStatus(SinaWeiboBase):
     
@@ -290,8 +269,9 @@ class SinaWeiboStatus(SinaWeiboBase):
            * parameter text: the update message
            * return: success or not
         '''
-        #TODO:
-        #    Uncomment when the URL expanding and shortening services are fixed.
+        # NOTE:
+        #     * With this pre-shortening, we can post potentially longer messages. 
+        #     * It consumes one more API quota. 
         text = self._replace_with_short_url(text)
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
@@ -348,7 +328,6 @@ class SinaWeiboStatus(SinaWeiboBase):
             ret = self.weibo_request('statuses/repost',
                     'POST',
                     {'id': mID.id, 'status': text })
-            #logger.debug("Response: %s", ret)
             ret['id']
             return True
         except Exception as e:
