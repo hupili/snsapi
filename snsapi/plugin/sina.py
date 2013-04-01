@@ -146,6 +146,40 @@ class SinaWeiboBase(SNSBase):
                 }
         return http_request_funcs[method](full_url, params)
 
+    @require_authed
+    def _short_url_weibo(self, url):
+        import urllib2
+        import urllib
+        import json
+        gurl = 'https://api.weibo.com/2/short_url/shorten.json?url_long=%s' % urllib.quote(url)
+        gurl = gurl + "&access_token=" + self.token.access_token
+        req = urllib2.Request(gurl, data='')
+        req.add_header('User_Agent', 'toolbar')
+        results = json.load(urllib2.urlopen(req))
+        return results["urls"][0]["url_short"]
+
+    @require_authed
+    def _replace_with_short_url(self, text):
+        import re
+        #TODO:
+        #    1) This regex needs upgrade.
+        #       Is it better to match only http(s):// prefix? 
+        #    2) A better place to locate the pattern is the upper level dir,
+        #       e.g. snstype.py. URL matching pattern is universal for all 
+        #       platforms. Placing it at a common area and making the pattern
+        #       testable is favourable.
+        p = re.compile("[a-zA-z]+://[^\s]*")
+        if isinstance(text, unicode):
+            text = text.encode('utf-8')
+        lst = p.findall(text)
+        result = text
+        for c in lst:
+            ex_c = self._expand_url(c);
+            surl = self._short_url_weibo(ex_c).encode('utf-8')
+            logger.debug("url='%s', short_url='%s'", c, surl)
+            result = result.replace(c,surl)
+        return result.decode('utf-8')
+
 class SinaWeiboStatusMessage(snstype.Message):
     platform = "SinaWeiboStatus"
     def parse(self):
@@ -241,40 +275,6 @@ class SinaWeiboStatus(SinaWeiboBase):
             logger.warning("Catch exception: %s", e)
 
         return statuslist
-
-    @require_authed
-    def _short_url_weibo(self, url):
-        import urllib2
-        import urllib
-        import json
-        gurl = 'https://api.weibo.com/2/short_url/shorten.json?url_long=%s' % urllib.quote(url)
-        gurl = gurl + "&access_token=" + self.token.access_token
-        req = urllib2.Request(gurl, data='')
-        req.add_header('User_Agent', 'toolbar')
-        results = json.load(urllib2.urlopen(req))
-        return results["urls"][0]["url_short"]
-
-    @require_authed
-    def _replace_with_short_url(self, text):
-        import re
-        #TODO:
-        #    1) This regex needs upgrade.
-        #       Is it better to match only http(s):// prefix? 
-        #    2) A better place to locate the pattern is the upper level dir,
-        #       e.g. snstype.py. URL matching pattern is universal for all 
-        #       platforms. Placing it at a common area and making the pattern
-        #       testable is favourable.
-        p = re.compile("[a-zA-z]+://[^\s]*")
-        if isinstance(text, unicode):
-            text = text.encode('utf-8')
-        lst = p.findall(text)
-        result = text
-        for c in lst:
-            ex_c = self._expand_url(c);
-            surl = self._short_url_weibo(ex_c).encode('utf-8')
-            #logger.debug("url='%s', short_url='%s'", c, surl)
-            result = result.replace(c,surl)
-        return result.decode('utf-8')
 
     @require_authed
     def update(self, text):
