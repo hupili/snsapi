@@ -148,15 +148,22 @@ class SinaWeiboBase(SNSBase):
 
     @require_authed
     def _short_url_weibo(self, url):
-        import urllib2
-        import urllib
-        import json
-        gurl = 'https://api.weibo.com/2/short_url/shorten.json?url_long=%s' % urllib.quote(url)
-        gurl = gurl + "&access_token=" + self.token.access_token
-        req = urllib2.Request(gurl, data='')
-        req.add_header('User_Agent', 'toolbar')
-        results = json.load(urllib2.urlopen(req))
-        return results["urls"][0]["url_short"]
+        try:
+            results = self.weibo_request('short_url/shorten', 
+                    'GET', 
+                    {'url_long': url})
+            logger.debug("URL shortening response: %s", results)
+            u = results["urls"][0]
+            return u["url_short"]
+            # Even for usable URL, it returns False?
+            #if u['result'] == 'true':
+            #    return u["url_short"]
+            #else:
+            #    logger.warning("Response short URL is not usable ('%s'). Fallback to original URL", u["url_short"])
+            #    return url
+        except Exception as e:
+            logger.warning("Catch exception when shortening URL on SinaWeibo: '%s'", e)
+            return url
 
     @require_authed
     def _replace_with_short_url(self, text):

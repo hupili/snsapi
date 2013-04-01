@@ -415,6 +415,17 @@ class SNSBase(object):
         self.jsonconf.app_secret = app_secret
 
     def _http_get(self, baseurl, params):
+        '''Use HTTP GET to request a JSON interface
+
+        :param baseurl: Base URL before parameters
+
+        :param params: a dict of params (can be unicode)
+
+        :return: 
+        
+           * Success: A JSON compatible structure
+           * Failure: A {}. Warning is logged. 
+        '''
         # Support unicode parameters. 
         # We should encode them as exchanging stream (e.g. utf-8)
         # before URL encoding and issue HTTP requests. 
@@ -432,6 +443,10 @@ class SNSBase(object):
             return {}
     
     def _http_post(self, baseurl, params):
+        '''Use HTTP POST to request a JSON interface. 
+
+        See ``_http_get`` for more info.
+        '''
         try:
             for p in params:
                 params[p] = self._unicode_encode(params[p])
