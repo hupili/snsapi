@@ -256,11 +256,6 @@ class SinaWeiboStatus(SinaWeiboBase):
 
     @require_authed
     def _replace_with_short_url(self, text):
-        #TODO:
-        #    This implementation has problem with unicode characters in URLs. 
-        #    Do urlencoding before shortening or expanding. 
-        #    A trigger case: (in snscli, with SinaWeiboStatus platform)
-        #        up('线性回归解幼儿园数圈圈的问题。。 http://yongsun.me/2012/06/线性回归求解幼儿园数学题/ ')
         import re
         #TODO:
         #    1) This regex needs upgrade.
@@ -270,13 +265,16 @@ class SinaWeiboStatus(SinaWeiboBase):
         #       platforms. Placing it at a common area and making the pattern
         #       testable is favourable.
         p = re.compile("[a-zA-z]+://[^\s]*")
+        if isinstance(text, unicode):
+            text = text.encode('utf-8')
         lst = p.findall(text)
         result = text
         for c in lst:
             ex_c = self._expand_url(c);
-            surl = self._short_url_weibo(ex_c)
+            surl = self._short_url_weibo(ex_c).encode('utf-8')
+            #logger.debug("url='%s', short_url='%s'", c, surl)
             result = result.replace(c,surl)
-        return result
+        return result.decode('utf-8')
 
     @require_authed
     def update(self, text):
@@ -287,7 +285,7 @@ class SinaWeiboStatus(SinaWeiboBase):
         '''
         #TODO:
         #    Uncomment when the URL expanding and shortening services are fixed.
-        #self._replace_with_short_url(text)
+        text = self._replace_with_short_url(text)
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
         try:
