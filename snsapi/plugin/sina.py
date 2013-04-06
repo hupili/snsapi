@@ -273,7 +273,7 @@ class SinaWeiboStatus(SinaWeiboBase):
         #     * With this pre-shortening, we can post potentially longer messages. 
         #     * It consumes one more API quota. 
         text = self._replace_with_short_url(text)
-        text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
+        text = self._cat(self.jsonconf['text_length_limit'], [(text,1)], delim='//')
 
         try:
             ret = self.weibo_request('statuses/update',
@@ -305,10 +305,14 @@ class SinaWeiboStatus(SinaWeiboBase):
 
     @require_authed
     def forward(self, message, text):
-        '''Forward a status on SinaWeibo. 
-        If message is from the same platform, forward it 
-        using special interface. Else, route the request
-        to a general forward method of ``SNSBase``.
+        '''
+        Forward a status on SinaWeibo: 
+
+           * If message is from the same platform, forward it 
+             using special interface. 
+           * Else, route the request
+             to a general forward method of ``SNSBase``.
+           * Decorate the text with previous comment sequence.
 
         :param message: 
             An ``snstype.Message`` object to forward
@@ -323,7 +327,24 @@ class SinaWeiboStatus(SinaWeiboBase):
             return super(SinaWeiboStatus, self).forward(message, text)
         else:
             mID = message.ID
+            if not message.parsed['text_trace'] is None:
+                #origin_sequence = u'@' + m.raw['user']['name'] + u'：' + m.raw['text'])
+                origin_sequence = u'@' + message.parsed['username'] + u'：' + message.parsed['text_trace']
+                decorated_text = self._cat(self.jsonconf['text_length_limit'], 
+                        [(text,2), (origin_sequence, 1)], 
+                        delim='//')
+            else:
+                decorated_text = text
+            return self._forward(mID, decorated_text)
 
+    @require_authed
+    def _forward(self, mID, text):
+        '''
+        Raw forward method
+
+           * Only support Sina message
+           * Use 'text' as exact comment sequence
+        '''
         try:
             ret = self.weibo_request('statuses/repost',
                     'POST',

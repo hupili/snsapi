@@ -255,8 +255,10 @@ class MessageList(list):
     """
     A list of Message object 
     """
-    def __init__(self):
+    def __init__(self, init_list=None):
         super(MessageList, self).__init__()
+        if init_list:
+            self.extend(init_list)
 
     def append(self, e):
         if isinstance(e, Message):

@@ -487,7 +487,7 @@ class SNSBase(object):
             logger.warning('Error when expanding URL. Maybe invalid URL: %s', e)
             return url
 
-    def _cat(self, length, text_list):
+    def _cat(self, length, text_list, delim = "||"):
         '''
         Concatenate strings. 
 
@@ -496,14 +496,12 @@ class SNSBase(object):
 
         :param text_list:
             A list of text pieces. Each element is a tuple (text, priority). 
-            The _cat function will concatenate the texts using the oder in 
+            The _cat function will concatenate the texts using the order in 
             text_list. If the output exceeds length, (part of) some texts 
             will be cut according to the priority. The lower priority one 
-            text is assigned, the earlier it will be cut. 
+            tuple is assigned, the earlier it will be cut. 
+
         '''
-        
-        delim = "||"
-        
         if length:
             order_list = zip(range(0, len(text_list)), text_list)
             order_list.sort(key = lambda tup: tup[1][1])
