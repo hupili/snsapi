@@ -349,10 +349,14 @@ class SinaWeiboStatus(SinaWeiboBase):
             ret = self.weibo_request('statuses/repost',
                     'POST',
                     {'id': mID.id, 'status': text })
-            ret['id']
-            return True
+            if 'id' in ret:
+                return True
+            else:
+                logger.warning("'%s' forward status '%s' with comment '%s' fail. ret: %s",
+                        self.jsonconf.channel_name, mID, text, ret)
+                return False
         except Exception as e:
-            logger.info("'%s' forward status '%s' with comment '%s' fail: %s", 
+            logger.warning("'%s' forward status '%s' with comment '%s' fail: %s", 
                     self.jsonconf.channel_name, mID, text, e)
             return False
 
