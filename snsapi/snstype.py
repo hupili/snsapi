@@ -13,19 +13,19 @@ from snslog import SNSLog as logger
 
 class MessageID(utils.JsonDict):
     """
-    All information to locate one status is here. 
+    All information to locate one status is here.
 
     It shuold be complete so that:
 
        * one can invoke reply() function of plugin on this object. 
-       * Or one can invoke reply() function of container on this object. 
+       * Or one can invoke reply() function of container on this object.
 
     There are two mandatory fields:
 
        * platform: Name of the platform (e.g. RenrenStatus)
-       * channel: Name of the instantiated channel \
-       (e.g. 'renren_account_1'). \
-       Same as a channel's ``.jsonconf['channel_name']``.
+       * channel: Name of the instantiated channel
+         (e.g. 'renren_account_1').
+         Same as a channel's ``.jsonconf['channel_name']``.
 
     In order to reply one status, here's the information 
     required by each platforms:
@@ -33,6 +33,11 @@ class MessageID(utils.JsonDict):
        * Renren: the status_id and source_user_id
        * Sina: status_id
        * QQ: status_id
+
+    **NOTE**: This object is mainly for SNSAPI to identify a Message. 
+    Upper layer had better not to reference fields of this object directly.
+    If you must reference this object, please do not touch those 
+    non-mandatory fields.
 
     """
     #def __init__(self, platform = None, status_id = None, source_user_id = None):
