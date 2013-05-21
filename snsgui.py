@@ -96,24 +96,18 @@ class NewChannel(tkSimpleDialog.Dialog):
     def __init__(self, master, platform):
         self.platform = platform
         tkSimpleDialog.Dialog.__init__(self, master, 'Add %s Channel' % platform)
+    def textField(self, master, row, label, id, init = ''):
+        var = Tkinter.StringVar(master, init)
+        setattr(self, id, var)
+        Tkinter.Label(master, text = label).grid(row = row, column = 0, sticky = Tkinter.E)
+        Tkinter.Entry(master, textvariable = var).grid(row = row, column = 1, sticky = Tkinter.NSEW)
+        return row + 1
     def body(self, master):
-        row = 0
-
-        self.channel_name = Tkinter.StringVar(master)
-        Tkinter.Label(master, text = 'Channel Name:').grid(row = row, column = 0, sticky = Tkinter.E)
-        channelEntry = Tkinter.Entry(master, textvariable = self.channel_name).grid(row = row, column = 1, sticky = Tkinter.NSEW)
-        row += 1
+        row = self.textField(master, 0, 'Channel Name:', 'channel_name')
 
         if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO, TWITTER):
-            self.app_key = Tkinter.StringVar(master)
-            Tkinter.Label(master, text = 'App Key:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.app_key).grid(row = row, column = 1, sticky = Tkinter.NSEW)
-            row += 1
-
-            self.app_secret = Tkinter.StringVar(master)
-            Tkinter.Label(master, text = 'App Secret:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.app_secret).grid(row = row, column = 1, sticky = Tkinter.NSEW)
-            row += 1
+            row = self.textField(master, row, 'App Key:', 'app_key')
+            row = self.textField(master, row, 'App Secret:', 'app_secret')
 
         if self.platform == EMAIL:
             items = config.email()
@@ -123,57 +117,28 @@ class NewChannel(tkSimpleDialog.Dialog):
             row += 1
 
         if self.platform in (EMAIL, RSS_RW, SQLITE):
-            self.username = Tkinter.StringVar(master)
-            Tkinter.Label(master, text = 'User Name:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.username).grid(row = row, column = 1, sticky = Tkinter.NSEW)
-            row += 1
+            row = self.textField(master, row, 'User Name:', 'username')
 
         if self.platform in (EMAIL, ):
-            self.password = Tkinter.StringVar(master)
-            Tkinter.Label(master, text = 'Password:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.password).grid(row = row, column = 1, sticky = Tkinter.NSEW)
-            row += 1
+            row = self.textField(master, row, 'Password:', 'password')
 
         if self.platform in (TWITTER, ):
-            self.access_key = Tkinter.StringVar(master)
-            Tkinter.Label(master, text = 'Access Key:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.access_key).grid(row = row, column = 1, sticky = Tkinter.NSEW)
-            row += 1
-
-            self.access_secret = Tkinter.StringVar(master)
-            Tkinter.Label(master, text = 'Access Secret:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.access_secret).grid(row = row, column = 1, sticky = Tkinter.NSEW)
-            row += 1
+            row = self.textField(master, row, 'Access Key:', 'access_key')
+            row = self.textField(master, row, 'Access Secret:', 'access_secret')
 
         if self.platform in (RSS, RSS_RW, SQLITE):
-            self.url = Tkinter.StringVar(master)
-            Tkinter.Label(master, text = 'Url:').grid(row = row, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(master, textvariable = self.url).grid(row = row, column = 1, sticky = Tkinter.NSEW)
-            row += 1
+            row = self.textField(master, row, 'Url:', 'url')
 
         if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
             auth_info = Tkinter.LabelFrame(master, text = 'Auth info')
 
-            self.callback_url = Tkinter.StringVar(auth_info)
-            Tkinter.Label(auth_info, text = 'Callback Url:').grid(row = 0, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(auth_info, textvariable = self.callback_url).grid(row = 0, column = 1, sticky = Tkinter.NSEW)
-
-            self.cmd_request_url = Tkinter.StringVar(auth_info, '(default)')
-            Tkinter.Label(auth_info, text = 'Cmd Request Url:').grid(row = 1, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(auth_info, textvariable = self.cmd_request_url).grid(row = 1, column = 1, sticky = Tkinter.NSEW)
-
-            self.cmd_fetch_code = Tkinter.StringVar(auth_info, '(default)')
-            Tkinter.Label(auth_info, text = 'Cmd Fetch Code:').grid(row = 2, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(auth_info, textvariable = self.cmd_fetch_code).grid(row = 2, column = 1, sticky = Tkinter.NSEW)
-
-            self.save_token_file = Tkinter.StringVar(auth_info, '(default)')
-            Tkinter.Label(auth_info, text = 'Save Token File:').grid(row = 3, column = 0, sticky = Tkinter.E)
-            Tkinter.Entry(auth_info, textvariable = self.save_token_file).grid(row = 3, column = 1, sticky = Tkinter.NSEW)
+            self.textField(auth_info, 0, 'Callback Url:', 'callback_url')
+            self.textField(auth_info, 1, 'Cmd Request Url:', 'cmd_request_url', '(default)')
+            self.textField(auth_info, 2, 'Cmd Fetch Code:', 'cmd_fetch_code', '(default)')
+            self.textField(auth_info, 3, 'Save Token File:', 'save_token_file', '(default)')
 
             auth_info.grid(row = row, column = 0, columnspan = 2)
             row += 1
-
-        return channelEntry
 
     def validate(self):
         if not self.channel_name.get():
