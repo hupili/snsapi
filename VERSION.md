@@ -1,4 +1,4 @@
-SNSAPI 0.4.1
+SNSAPI 0.4.3
 ============
 
 Version string convention: `x.y.z`
@@ -6,6 +6,15 @@ Version string convention: `x.y.z`
    * `x`: Major version with architectural upgrades. 
    * `y`: Minor version with functional extension. 
    * `z`: Micro version with small fix. 
+
+0.4.3
+-----
+
+   * URL expanding service (recursive) in SNSBase.
+   * URL shortening service for SinaWeibo.
+   * docstring upgrade for some platforms. 
+   * A word translation demo. 
+   * snsgui, GUI of SNSAPI built on Tkinter.
 
 0.4.2
 -----
