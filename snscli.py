@@ -8,21 +8,35 @@ from snsapi.snslog import SNSLog as logger
 
 sp = SNSPocket()
 
-def update_from_console(t, *al, **ad):
-    '''
-    A wrapper function to deal with user input from console. 
+import functools
 
-    String input from console is in console encoding. We must 
-    first cast it to unicode, which is the standard across 
-    SNSAPI. 
-
+def convert_parameter_to_unicode(func):
     '''
-    if isinstance(t, str):
-        return sp.update(console_input(t), *al, **ad)
-    elif isinstance(t, snstype.Message):
-        return sp.update(t, *al, **ad)
-    else:
-        logger.warning("unknown type: %s", type(t))
+    Decorator to convert parameters to unicode if they are str
+
+       * We use unicode inside SNSAPI. 
+       * If one str argument is found, we assume it is from console
+         and convert it to unicode. 
+
+    This can solve for example:
+
+       * The 'text' arg you give to ``update`` is not unicode. 
+       * You channel name contains non-ascii character, and you 
+         use ``ht(channel='xxx')`` to get the timeline. 
+    '''
+    def to_unicode(s):
+        if isinstance(s, str):
+            return console_input(s)
+        else:
+            return s
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        new_args = map(lambda x: to_unicode(x), args)
+        new_kwargs = dict(map(lambda x: (x[0], to_unicode(x[1])), kwargs.items()))
+        return func(*new_args, **new_kwargs)
+    return wrapper
+
+# Shortcuts for you to operate in Python interactive shell
 
 lc = load_config = sp.load_config
 sc = save_config =  sp.save_config
@@ -32,10 +46,10 @@ newc = new_channel = sp.new_channel
 addc = add_channel = sp.add_channel
 clc = clear_channel = sp.clear_channel
 auth = sp.auth
-ht = home_timeline = sp.home_timeline
-up = update = lambda t, *al, **ad : update_from_console(t, *al, **ad)
-re = reply = lambda m, t, *al, **ad : sp.reply(m, console_input(t), *al, **ad)
-fwd = forward = lambda m, t, *al, **ad : sp.forward(m, console_input(t), *al, **ad)
+ht = home_timeline = convert_parameter_to_unicode(sp.home_timeline)
+up = update = convert_parameter_to_unicode(sp.update)
+re = reply = convert_parameter_to_unicode(sp.reply)
+fwd = forward = convert_parameter_to_unicode(sp.forward)
 
 #==== documentation ====
 
