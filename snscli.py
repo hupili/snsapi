@@ -24,18 +24,18 @@ def update_from_console(t, *al, **ad):
     else:
         logger.warning("unknown type: %s", type(t))
 
-lc = load_config = lambda *al, **ad : sp.load_config(*al, **ad)
-sc = save_config = lambda *al, **ad  : sp.save_config(*al, **ad)
-lsc = list_channel = lambda  *al, **ad : sp.list_channel(*al, **ad)
-lsp = list_platform = lambda  *al, **ad : sp.list_platform(*al, **ad)
-newc = new_channel = lambda *al, **ad : sp.new_channel(*al, **ad)
-addc = add_channel = lambda *al, **ad : sp.add_channel(*al, **ad)
-clc = clear_channel = lambda *al, **ad : sp.clear_channel(*al, **ad)
-auth = lambda  *al, **ad : sp.auth(*al, **ad)
-ht = home_timeline = lambda *al, **ad : sp.home_timeline(*al, **ad)
-up = update = lambda  t, *al, **ad : update_from_console(t, *al, **ad)
-re = reply = lambda  m, t, *al, **ad : sp.reply(m, console_input(t), *al, **ad)
-fwd = forward = lambda  m, t, *al, **ad : sp.forward(m, console_input(t), *al, **ad)
+lc = load_config = sp.load_config
+sc = save_config =  sp.save_config
+lsc = list_channel =  sp.list_channel
+lsp = list_platform =  sp.list_platform
+newc = new_channel = sp.new_channel
+addc = add_channel = sp.add_channel
+clc = clear_channel = sp.clear_channel
+auth = sp.auth
+ht = home_timeline = sp.home_timeline
+up = update = lambda t, *al, **ad : update_from_console(t, *al, **ad)
+re = reply = lambda m, t, *al, **ad : sp.reply(m, console_input(t), *al, **ad)
+fwd = forward = lambda m, t, *al, **ad : sp.forward(m, console_input(t), *al, **ad)
 
 #==== documentation ====
 
