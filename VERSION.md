@@ -7,6 +7,13 @@ Version string convention: `x.y.z`
    * `y`: Minor version with functional extension. 
    * `z`: Micro version with small fix. 
 
+0.4.4
+-----
+
+   * Unify the Sina API request to `weibo_request()` method. 
+   * SinaWeibo support specialized forwarding. 
+   * Code clean for `snsgui.py`. 
+
 0.4.3
 -----
 
