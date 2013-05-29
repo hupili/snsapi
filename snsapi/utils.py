@@ -159,6 +159,13 @@ def utc2str(u):
     #return _format_date(datetime.datetime.utcfromtimestamp(u))
     return _format_date(datetime.datetime.fromtimestamp(u, tz.tzlocal()))
 
+import re
+_PATTERN_HTML_TAG = re.compile('<[^<]+?>')
+def strip_html(text):
+    # Ref:
+    #    * http://stackoverflow.com/questions/753052/strip-html-from-strings-in-python
+    return re.sub(_PATTERN_HTML_TAG, '', text)
+
 import pickle
 
 class Serialize(object):

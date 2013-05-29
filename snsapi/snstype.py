@@ -160,7 +160,18 @@ class Message(utils.JsonDict):
         See dump()
 
         '''
-        return self.dump()
+        # NOTE:
+        #
+        #     dump() method remains stable because the downstream is
+        #     digest methods. The __str__ and __unicode__ are only
+        #     for console interaction. Normal apps should refer to
+        #     those fields in 'parsed' themselves.
+        #
+        #     We limit the output to 500 characters to make the console 
+        #     output uncluttered.
+        return unicode("[%s] at %s \n  %s") % (self.parsed.username, 
+                utils.utc2str(self.parsed.time), 
+                self.parsed.text[0:500])
 
     def dump(self):
         '''

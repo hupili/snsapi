@@ -46,6 +46,14 @@ class RSSMessage(snstype.Message):
         self.parsed.title = self.raw.get('title')
         self.parsed.link = self.raw.get('link')
 
+        try:
+            _body = '\n'.join(map(lambda x: x['value'], self.raw['content']))
+        except Exception:
+            _body = None
+        self.parsed.body = _body
+
+        self.parsed.description = self.raw.get('summary', None)
+
         # Other plugins' statuses have 'text' field
         # The RSS channel is supposed to read contents from
         # different places with different formats. 
@@ -235,16 +243,13 @@ class RSSSummaryMessage(RSSMessage):
         #      Each element is a dict. and the 'value' field is the text (maybe in HTML).
 
         _summary = None
-        try:
-            _summary = '\n'.join(map(lambda x: x['value'], self.raw['content']))
-        except Exception:
-            _summary = self.raw.get('summary', None)
+        if self.parsed.body != None:
+            _summary = self.parsed.body
+        elif self.parsed.description != None:
+            _summary = self.parsed.description
         if _summary:
-            self.parsed.text = _summary
-
-        #TODO:
-        #    The summary field potentially contains HTML. 
-        #    Provide a utility (and or config) to strip insecure tags. 
+            _summary = utils.strip_html(_summary).replace('\n', '')
+            self.parsed.text = '"%s" -- %s' % (self.parsed.title, _summary)
 
 class RSSSummary(RSS):
     '''
