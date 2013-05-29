@@ -17,6 +17,7 @@ import base64
 import urlparse
 import datetime
 import subprocess
+import functools
 
 # === snsapi modules ===
 import snstype
@@ -32,6 +33,7 @@ def require_authed(func):
     A decorator to require auth before an operation
 
     '''
+    @functools.wraps(func)
     def wrapper_require_authed(self, *al, **ad):
         if self.is_authed():
             return func(self, *al, **ad)
