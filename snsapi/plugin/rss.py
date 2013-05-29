@@ -6,6 +6,7 @@ RSS Feed
 Contains:
    * RSS Read-only feed platform. 
    * RSS Read/Write platform.
+   * RSS Summary platform.
 
 '''
 
@@ -69,6 +70,7 @@ class RSS(SNSBase):
     def __init__(self, channel = None):
         super(RSS, self).__init__(channel)
         self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
 
     @staticmethod
     def new_channel(full = False):
@@ -140,8 +142,8 @@ class RSS2RW(RSS):
 
     def __init__(self, channel = None):
         super(RSS2RW, self).__init__(channel)
-
         self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
 
         # default parameter for writing RSS2 feeds
         self.author = "snsapi"
@@ -219,3 +221,49 @@ class RSS2RW(RSS):
             raise snserror.op.write(e.message)
 
         return True
+
+class RSSSummaryMessage(RSSMessage):
+    platform = "RSSSummary"
+    def parse(self):
+        super(RSSSummaryMessage, self).parse()
+        self.ID.platform = self.platform
+
+        # The format of feedparser's returning object
+        #
+        #    * o['summary'] : the summary
+        #    * o['content'] : an array of contents. 
+        #      Each element is a dict. and the 'value' field is the text (maybe in HTML).
+
+        _summary = None
+        try:
+            _summary = '\n'.join(map(lambda x: x['value'], self.raw['content']))
+        except Exception:
+            _summary = self.raw.get('summary', None)
+        if _summary:
+            self.parsed.text = _summary
+
+        #TODO:
+        #    The summary field potentially contains HTML. 
+        #    Provide a utility (and or config) to strip insecure tags. 
+
+class RSSSummary(RSS):
+    '''
+    Summary Channel for RSS
+
+    It provides more meaningful 'text' field. 
+
+    '''
+
+    Message = RSSSummaryMessage
+
+    def __init__(self, channel = None):
+        super(RSSSummary, self).__init__(channel)
+
+        self.platform = self.__class__.__name__
+        self.Message.platform = self.platform
+
+    @staticmethod
+    def new_channel(full = False):
+        c = RSS.new_channel(full)
+        c['platform'] = 'RSSSummary'
+        return c
