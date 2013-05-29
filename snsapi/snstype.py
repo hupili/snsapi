@@ -64,49 +64,51 @@ class Message(utils.JsonDict):
 
     Data Fields:
 
-       * 'platform': a string describing the platform\
-       where this message come from. See 'snsapi/platform.py'\
-       for more details.
-       * 'raw': the raw json or XML object returned from\
-       the platform spefiic API. This member is here to give\
-       upper layer developers the last chance of manipulating\
-       any available information. Having an understanding of\
-       the platform-specific returning format is esential.
-       * 'parsed': this member abstracts some common fields\
-       that all messages are supposed to have. e.g. 'username',\
-       'time', 'text', etc.
-       * 'ID': a MessageID object. This ID should be enough\
-       to indentify a message across all different platforms.
+       * ``platform``: a string describing the platform
+         where this message come from. See 'snsapi/platform.py'
+         for more details.
+       * ``raw``: the raw json or XML object returned from
+         the platform spefiic API. This member is here to give
+         upper layer developers the last chance of manipulating
+         any available information. Having an understanding of
+         the platform-specific returning format is esential.
+       * ``parsed``: this member abstracts some common fields
+         that all messages are supposed to have. e.g. 'username',
+         'time', 'text', etc.
+       * ``ID``: a ``MessageID`` object. This ID should be enough
+         to indentify a message across all different platforms.
 
-    For details of 'ID', please see the docstring of MessageID().
+    For details of ``ID``, please see the docstring of ``MessageID``.
 
-    Mandatory fields of 'parsed' are:
+    Mandatory fields of ``parsed`` are:
 
-       * time: a utc integer. (some platform returns parsed string)
-       * userid: a string. (called as "username" at some platform)
-       * username: a string. (called as "usernick" as some platform)
-       * text: a string. (can be 'text' in the returning json object,\
-       or parsed from other fields.)
+       * ``time:`` a utc integer. (some platform returns parsed string)
+       * ``userid:`` a string. (called as "username" at some platform)
+       * ``username:`` a string. (called as "usernick" as some platform)
+       * ``text:`` a string. (can be 'text' in the returning json object,
+         or parsed from other fields.)
 
     Optional fields of 'parsed' are:
 
        * reposts_count: an integer. For some OSN.
        * comments_count: an integer. For some OSN.
-       * link: a string. For RSS; Parsed from microblog message;\
-       Parsed from email message; etc.
+       * link: a string. For RSS; Parsed from microblog message;
+         Parsed from email message; etc.
        * title: a string. For RSS; Blog channel of some OSN.
-       * description: a string. For RSS digest text;\
-       Sharing channel of some OSN; etc.
-       * text_orig: a string. The original text, also known as\
-       "root message" in some context. e.g. the earliest status\
-       in one thread.
-       * text_last: a string. The latest text, also known as\
-       "message" in some context. e.g. the reply or forwarding\
-       comments made by the last user.
-       * text_trace: a string. Using any (can be platform-specific)\
-       method to construt the trace of this message. e.g.\
-       the forwarding / retweeting / reposting sequence.\
-       There is no unified format yet.
+       * description: a string. For RSS digest text;
+         Sharing channel of some OSN; etc.
+       * body: a string. The 'content' of RSS, the 'body' of HTML, 
+         or whatever sematically meaning the body of a document.
+       * text_orig: a string. The original text, also known as
+         "root message" in some context. e.g. the earliest status
+         in one thread.
+       * text_last: a string. The latest text, also known as
+         "message" in some context. e.g. the reply or forwarding
+         comments made by the last user.
+       * text_trace: a string. Using any (can be platform-specific)
+         method to construt the trace of this message. e.g.
+         the forwarding / retweeting / reposting sequence.
+         There is no unified format yet.
        * username_origin: a string. The username who posts 'text_orig'.
 
     '''
