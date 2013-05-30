@@ -28,7 +28,7 @@ class RSSMessage(snstype.Message):
     def parse(self):
         self.ID.platform = self.platform
 
-        self.parsed.username = self.raw.get('author')
+        self.parsed.username = self.raw.get('author', self.ID.channel)
         #TODO:
         #    According to the notion of ID, it should identify 
         #    a single user in a cross platform fashion. From the 
@@ -40,11 +40,13 @@ class RSSMessage(snstype.Message):
         #    framework change in SNSAPI, allowing putting this 
         #    prefix information to Message class (not Message 
         #    instance). 
-        self.parsed.userid = self.raw.get('author')
+        self.parsed.userid = self.parsed.username
         self.parsed.time = utils.str2utc(self.raw.get(['updated', 'published']))
 
         self.parsed.title = self.raw.get('title')
         self.parsed.link = self.raw.get('link')
+
+        self.ID.link = self.parsed.link
 
         try:
             _body = '\n'.join(map(lambda x: x['value'], self.raw['content']))
@@ -59,7 +61,7 @@ class RSSMessage(snstype.Message):
         # different places with different formats. 
         # The entries are usually page update notifications. 
         # We format them in a unified way and use this as 'text'. 
-        self.parsed.text = "Article \"%s\" is updated(published)! (%s)" % (self.parsed.title, self.parsed.link)
+        self.parsed.text = 'Article "%s" is published! ( %s )' % (self.parsed.title, self.parsed.link)
 
 class RSS(SNSBase):
     '''
