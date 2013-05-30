@@ -62,7 +62,7 @@ class RSSMessage(snstype.Message):
         # different places with different formats. 
         # The entries are usually page update notifications. 
         # We format them in a unified way and use this as 'text'. 
-        self.parsed.text = 'Article "%s" is published! ( %s )' % (self.parsed.title, self.parsed.link)
+        self.parsed.text = '"%s" ( %s )' % (self.parsed.title, self.parsed.link)
 
 class RSS(SNSBase):
     '''
@@ -258,7 +258,9 @@ class RSSSummaryMessage(RSSMessage):
             _summary = self.parsed.description
         if _summary:
             _summary = utils.strip_html(_summary).replace('\n', '')
-            self.parsed.text = '"%s" -- %s' % (self.parsed.title, _summary)
+        else:
+            _summary = ""
+        self.parsed.text = '"%s" ( %s ) %s' % (self.parsed.title, self.parsed.link, _summary)
 
 class RSSSummary(RSS):
     '''
