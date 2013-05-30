@@ -41,7 +41,8 @@ class RSSMessage(snstype.Message):
         #    prefix information to Message class (not Message 
         #    instance). 
         self.parsed.userid = self.parsed.username
-        self.parsed.time = utils.str2utc(self.raw.get(['updated', 'published']))
+        self.parsed.time = utils.str2utc(self.raw.get(['updated', 'published']), 
+                self.conf.get('timezone_correction', None))
 
         self.parsed.title = self.raw.get('title')
         self.parsed.link = self.raw.get('link')
@@ -79,6 +80,7 @@ class RSS(SNSBase):
 
     def __init__(self, channel = None):
         super(RSS, self).__init__(channel)
+
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
@@ -87,6 +89,9 @@ class RSS(SNSBase):
         c = SNSBase.new_channel(full)
         c['platform'] = 'RSS'
         c['url'] = 'https://github.com/hupili/snsapi/commits/master.atom'
+
+        if full:
+            c['message'] = {'timezone_correction': None}
 
         return c
         
@@ -110,15 +115,16 @@ class RSS(SNSBase):
         '''
 
         d = feedparser.parse(self.jsonconf.url)
+        conf = self.jsonconf.get('message', {})
         
         statuslist = snstype.MessageList()
         for j in d['items']:
             if len(statuslist) >= count:
                 break
-            s = self.Message(j,\
-                    platform = self.jsonconf['platform'],\
-                    channel = self.jsonconf['channel_name']\
-                    )
+            s = self.Message(j, 
+                    platform=self.jsonconf['platform'], 
+                    channel=self.jsonconf['channel_name'],
+                    conf=conf)
             #print s.dump_parsed()
             #print s.dump_full()
             #TODO:
@@ -152,6 +158,7 @@ class RSS2RW(RSS):
 
     def __init__(self, channel = None):
         super(RSS2RW, self).__init__(channel)
+
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 

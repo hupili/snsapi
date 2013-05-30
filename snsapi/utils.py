@@ -143,7 +143,12 @@ from dateutil import parser as dtparser, tz
 from third.PyRSS2Gen import _format_date
 
 def str2utc(s, tc = None):
-    if tc:
+    '''
+    :param tc: 
+        Timezone Correction. An timezone suffix string. 
+        e.g. ``" +08:00"``, `` HKT``, etc.
+    '''
+    if tc and tc.strip() != '':
         s += tc
 
     try:

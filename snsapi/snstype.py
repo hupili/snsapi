@@ -113,8 +113,9 @@ class Message(utils.JsonDict):
 
     platform = "SNSAPI"
 
-    def __init__(self, dct = None, platform = None, channel = None):
+    def __init__(self, dct = None, platform = None, channel = None, conf = {}):
         
+        self.conf = conf
         self['deleted'] = False
         self['ID'] = MessageID(platform, channel)
 

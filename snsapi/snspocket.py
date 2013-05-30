@@ -108,10 +108,13 @@ class SNSPocket(dict):
 
         try:
             p = getattr(platform, jsonconf['platform'])
+        except AttributeError:
+            p = None
+            logger.warning("No such platform '%s'. Nothing happens to it. ", jsonconf['platform'])
+            return False
+        if p:
             self[cname] = p(jsonconf)
             self.__method_routing(cname, SNSPocket.__default_mapping) 
-        except AttributeError:
-            logger.warning("No such platform '%s'. Nothing happens to it. ", jsonconf['platform'])
 
         return True
 
