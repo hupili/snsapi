@@ -138,7 +138,7 @@ class SNSBase(object):
             logger.debug("fetch_code command is: %s", cmd) 
             ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
             tries = 1 
-            while ret == "(null)" :
+            while str(ret) == "null" :
                 tries += 1
                 if tries > self.__fetch_code_max_try :
                     break
@@ -212,7 +212,7 @@ class SNSBase(object):
             self.__init_oauth2_client() 
             url = self.fetch_code() 
             logger.debug("get url: %s", url)
-            if url == "(null)" :
+            if str(url) == "null" :
                 raise snserror.auth
             self.token = self._parse_code(url)
             self.token.update(self.auth_client.request_access_token(self.token.code))
@@ -278,7 +278,7 @@ class SNSBase(object):
         if fname == "(default)" :
             fname = self.jsonconf.channel_name+".token.save"
         # Do not save expired token (or None type token)
-        if fname != "(null)" and not self.is_expired():
+        if not fname is None and not self.is_expired():
             #TODO: encrypt access token
             token = utils.JsonObject(self.token)
             with open(fname,"w") as fp:
@@ -291,7 +291,7 @@ class SNSBase(object):
             fname = self.auth_info.save_token_file
             if fname == "(default)" :
                 fname = self.jsonconf.channel_name+".token.save"
-            if fname != "(null)" :
+            if not fname is None:
                 with open(fname, "r") as fp:
                     token = utils.JsonObject(json.load(fp))
                     # check expire time

@@ -57,7 +57,7 @@ class JsonDict(JsonObject):
     def _dumps_pretty(self):
         return json.dumps(self, indent=2)
 
-    def get(self, attr, default_value = "(null)"):
+    def get(self, attr, default_value = None):
         '''
         dict entry reading with fault tolerance. 
 
@@ -69,7 +69,7 @@ class JsonDict(JsonObject):
 
         If attr is a list, we will try all the candidates until 
         one 'get' is successful. If none of the candidates succeed,
-        we will return a "(null)"
+        return a the ``default_value``. 
 
         e.g. RSS format is very diverse. 
         To my current knowledge, some formats have 'author' fields, 
@@ -80,11 +80,17 @@ class JsonDict(JsonObject):
            * atom : yes
            * rdf : yes
 
-        This function will return a string "(null)" by default if the 
-        field does not exist. The purpose is to expose unified interface
-        to upper layers. seeing "(null)" is better than catching an error. 
+        NOTE: 
+
+           * The original ``default_value`` is "(null)". Now we change
+           to ``None``. ``None`` is more standard in Python and it does
+           not have problem to convert to ``str`` (the usual way of 
+           using our data fields). It has the JSON counterpart: ``null``.
 
         '''
+        #TODO:
+        #    Check if other parts are broken due to this change from 
+        #    "(null)" to None. 
         if isinstance(attr, str):
             return dict.get(self, attr, default_value)
         elif isinstance(attr, list):
