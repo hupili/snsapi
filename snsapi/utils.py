@@ -156,14 +156,9 @@ def str2utc(s, tc = None):
         #print d 
         #print d.utctimetuple()
         return calendar.timegm(d.utctimetuple())
-    except ValueError, e:
-        if e.message == "unknown string format":
-            # We want to always return something valid for 
-            # the convenience of other modules. 
-            logger.warning("unkown time string: %s", s)
-            return 0
-        else:
-            raise e
+    except Exception, e:
+        logger.warning("unkown time string: %s", s)
+        return 0
 
 def utc2str(u):
     #return str(datetime.datetime.fromtimestamp(u))
