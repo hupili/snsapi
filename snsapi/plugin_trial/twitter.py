@@ -68,7 +68,7 @@ class TwitterStatus(SNSBase):
     def home_timeline(self, count = 20):
         status_list = snstype.MessageList()
         try:
-            statuses = self.api.GetFriendsTimeline(count = count)
+            statuses = self.api.GetHomeTimeline(count = count)
             for s in statuses:
                 status_list.append(self.Message(s.AsDict(),\
                         self.jsonconf['platform'],\
