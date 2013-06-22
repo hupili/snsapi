@@ -234,8 +234,8 @@ class RSS2RW(RSS):
 
         try:
             rss.write_xml(open(self.jsonconf.url, "w"))
-        except Exception, e:
-            raise snserror.op.write(e.message)
+        except Exception as e:
+            raise snserror.op.write(str(e))
 
         return True
 

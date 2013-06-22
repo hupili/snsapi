@@ -217,7 +217,7 @@ class RenrenShareMessage(snstype.Message):
         self.ID.status_id = dct["source_id"]
         self.ID.source_user_id = dct["actor_id"]
 
-        self.parsed.userid = dct['actor_id']
+        self.parsed.userid = str(dct['actor_id'])
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
 
@@ -378,7 +378,7 @@ class RenrenStatusMessage(snstype.Message):
         self.ID.status_id = dct["source_id"]
         self.ID.source_user_id = dct["actor_id"]
 
-        self.parsed.userid = dct['actor_id']
+        self.parsed.userid = str(dct['actor_id'])
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
         self.parsed.text = dct['message']
@@ -444,17 +444,21 @@ class RenrenStatus(RenrenBase):
         '''
 
         api_params = dict(method = "feed.get", type = 10, page = 1, count = count)
-        
-        statuslist = snstype.MessageList()
         try:
             jsonlist = self.renren_request(api_params)
-            for j in jsonlist:
+        except Exception as e:
+            logger.warning("catch expection: %s", e)
+            jsonlist = []
+        
+        statuslist = snstype.MessageList()
+        for j in jsonlist:
+            try:
                 statuslist.append(self.Message(j,\
                         platform = self.jsonconf['platform'],\
                         channel = self.jsonconf['channel_name']\
                         ))
-        except Exception, e:
-            logger.warning("catch expection:%s", e.message)
+            except Exception as e:
+                logger.warning("catch expection '%s' in parsing '%s'", e, j)
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
@@ -523,7 +527,7 @@ class RenrenBlogMessage(snstype.Message):
         else:  #page
             self.ID.source_page_id = dct["actor_id"]
 
-        self.parsed.userid = dct['actor_id']
+        self.parsed.userid = str(dct['actor_id'])
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
         # This is the news feed of blogs, so you can not get the body

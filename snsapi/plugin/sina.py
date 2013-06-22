@@ -282,8 +282,8 @@ class SinaWeiboStatus(SinaWeiboBase):
             status = self.Message(ret)
             logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
             return True
-        except Exception, e:
-            logger.warning("Update status fail. Message: %s", e.message)
+        except Exception as e:
+            logger.warning("Update status fail. Message: %s", e)
             return False
         
     @require_authed

@@ -137,8 +137,8 @@ class SNSPocket(dict):
         except IOError:
             #raise snserror.config.nofile(fn_channel)
             logger.warning("'%s' does not exist. Use default", fn_channel)
-        except ValueError, e:
-            raise snserror.config.load("file: %s; message: %s" % (fn_channel, e.message))
+        except ValueError as e:
+            raise snserror.config.load("file: %s; message: %s" % (fn_channel, e))
 
         try:
             with open(abspath(fn_pocket), "r") as fp:
@@ -147,8 +147,8 @@ class SNSPocket(dict):
         except IOError:
             #raise snserror.config.nofile(fn_pocket)
             logger.warning("'%s' does not exist. Use default", fn_pocket)
-        except ValueError, e:
-            raise snserror.config.load("file: %s; message:%s" % (fn_channel, e.message))
+        except ValueError as e:
+            raise snserror.config.load("file: %s; message:%s" % (fn_channel, e))
 
         logger.info("Read configs done. Add %d channels" % count_add_channel)
 
