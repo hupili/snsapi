@@ -1,0 +1,3 @@
+[submodule "snsapi/third/socialas"]
+	path = snsapi/third/socialas
+	url = git://github.com/Xsns/social-auth-simulator.git

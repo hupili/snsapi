@@ -15,6 +15,7 @@ if __name__ == '__main__':
     import snstype
     from utils import console_output
     import utils
+    from third.socialas.Renren.local import renren as sasrenren
 else:
     import sys
     from ..snslog import SNSLog as logger
@@ -22,6 +23,7 @@ else:
     from .. import snstype
     from ..utils import console_output
     from .. import utils
+    from ..third.socialas.Renren.local import renren as sasrenren
 
 
 logger.debug("%s plugged!", __file__)
@@ -205,6 +207,14 @@ class RenrenBase(SNSBase):
         hasher = hashlib.md5(hashstring)
         return hasher.hexdigest()
         
+    def _fetch_code_local_username_password(self):
+        sas = sasrenren.RenrenAutoAuth( 0, #TODO: remove dummy app_id in sas
+                self.jsonconf.app_key,
+                self.jsonconf.app_secret,
+                self.auth_info.callback_url,
+                self.auth_info.login_username,
+                self.auth_info.login_password)
+        return 'http://test/?code=%s' % sas.get_code()
 
 class RenrenShareMessage(snstype.Message):
     platform = "RenrenShare"

@@ -131,6 +131,7 @@ class SNSBase(object):
             try:
                 return self._fetch_code_local_username_password()
             except Exception, e:
+                raise e
                 logger.warning("Catch exception: %s", e)
                 raise snserror.auth.fetchcode
         else:  # Execute arbitrary command to fetch code
