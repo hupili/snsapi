@@ -453,8 +453,8 @@ class RenrenStatus(RenrenBase):
                         platform = self.jsonconf['platform'],\
                         channel = self.jsonconf['channel_name']\
                         ))
-        except Exception, e:
-            logger.warning("catch expection:%s", e.message)
+        except Exception as e:
+            logger.warning("catch expection: %s", e)
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist

@@ -128,8 +128,8 @@ class Message(utils.JsonDict):
             self['raw'] = utils.JsonDict(dct)
             try:
                 self.parse()
-            except KeyError, e:
-                raise snserror.type.parse(e.message)
+            except KeyError as e:
+                raise snserror.type.parse(str(e))
         
     def parse(self):
         '''
