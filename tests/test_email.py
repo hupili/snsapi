@@ -16,7 +16,7 @@ from snsapi.plugin_trial.emails import Email
 
 sys.path = [DIR_TEST] + sys.path
 
-class TestSNSBase(TestBase):
+class TestEmail(TestBase):
 
     def setup(self):
         self.channel = Email(get_data('email-channel-conf.json.test'))
