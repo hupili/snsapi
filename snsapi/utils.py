@@ -145,8 +145,10 @@ from third.PyRSS2Gen import _format_date
 def str2utc(s, tc = None):
     '''
     :param tc: 
-        Timezone Correction. An timezone suffix string. 
+        Timezone Correction (TC). A timezone suffix string. 
         e.g. ``" +08:00"``, `` HKT``, etc.
+        Some platforms are know to return time string without TZ 
+        (e.g. Renren). Manually do the correction.
     '''
     if tc and tc.strip() != '':
         s += tc
@@ -161,6 +163,7 @@ def str2utc(s, tc = None):
         return 0
 
 def utc2str(u):
+    # Format to RFC822 time string in current timezone
     #return str(datetime.datetime.fromtimestamp(u))
     #return _format_date(datetime.datetime.utcfromtimestamp(u))
     return _format_date(datetime.datetime.fromtimestamp(u, tz.tzlocal()))
