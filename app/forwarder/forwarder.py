@@ -110,7 +110,8 @@ class Forwarder(object):
         return self.sp_out.update(*args, **kargs)
 
     def format_msg(self, msg):
-        return "%s (fwd from: %s at %s)"  % (msg['text'], msg['username'], snsapi_utils.utc2str(msg['time']), )
+        return "%s (fwd from: %s)"  % (msg['text'], msg['username'])
+        #return "%s (fwd from: %s at %s)"  % (msg['text'], msg['username'], snsapi_utils.utc2str(msg['time']), )
         #return "[%s] at %s \n %s (fwd at:%s)"  % (msg['username'], msg['time'], msg['text'], time.time())
 
     def forward(self, forward_predicate):
