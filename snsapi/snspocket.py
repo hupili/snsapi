@@ -108,10 +108,13 @@ class SNSPocket(dict):
 
         try:
             p = getattr(platform, jsonconf['platform'])
+        except AttributeError:
+            p = None
+            logger.warning("No such platform '%s'. Nothing happens to it. ", jsonconf['platform'])
+            return False
+        if p:
             self[cname] = p(jsonconf)
             self.__method_routing(cname, SNSPocket.__default_mapping) 
-        except AttributeError:
-            logger.warning("No such platform '%s'. Nothing happens to it. ", jsonconf['platform'])
 
         return True
 
@@ -134,8 +137,8 @@ class SNSPocket(dict):
         except IOError:
             #raise snserror.config.nofile(fn_channel)
             logger.warning("'%s' does not exist. Use default", fn_channel)
-        except ValueError, e:
-            raise snserror.config.load("file: %s; message: %s" % (fn_channel, e.message))
+        except ValueError as e:
+            raise snserror.config.load("file: %s; message: %s" % (fn_channel, e))
 
         try:
             with open(abspath(fn_pocket), "r") as fp:
@@ -144,8 +147,8 @@ class SNSPocket(dict):
         except IOError:
             #raise snserror.config.nofile(fn_pocket)
             logger.warning("'%s' does not exist. Use default", fn_pocket)
-        except ValueError, e:
-            raise snserror.config.load("file: %s; message:%s" % (fn_channel, e.message))
+        except ValueError as e:
+            raise snserror.config.load("file: %s; message:%s" % (fn_channel, e))
 
         logger.info("Read configs done. Add %d channels" % count_add_channel)
 
@@ -213,7 +216,7 @@ class SNSPocket(dict):
     def auth(self, channel = None):
         """docstring for auth"""
         if channel:
-            self[c].auth()
+            self[channel].auth()
         else:
             for c in self.itervalues():
                 if self.__check_method(c, ''):

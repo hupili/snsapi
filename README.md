@@ -124,6 +124,9 @@ SNSAPI_CONSOLE_STDOUT_ENCODING = 'gbk'
    [https://github.com/hupili/snsapi/tree/master/app/hellosns](https://github.com/hupili/snsapi/tree/master/app/hellosns).
    hello SNS将向你展示怎样用10行代码完成与SNS交互的基本功能，
    它就是利用SNSAPI开发app的hello world啦。
+   * clock: 
+   [https://github.com/hupili/snsapi/tree/master/app/clock](https://github.com/hupili/snsapi/tree/master/app/clock).
+   clock是一口SNS平台上的钟，你可以很方便的用它来定时发布消息。
    * forwarder: 
    [https://github.com/hupili/snsapi/tree/master/app/forwarder](https://github.com/hupili/snsapi/tree/master/app/forwarder).
    forwarder可以把一个平台的信息自动地发送到其他
@@ -175,6 +178,9 @@ git submodule update
    也欢迎直接发patch到[repo](https://github.com/hupili/snsapi-website)。
    * [SNSAPI中文网](http://snsapi.sinaapp.com/)。
    目前由xuanqinanhai维护。
+   * [SNSAPI文档](https://snsapi.ie.cuhk.edu.hk/doc/)。
+   用Sphinx从Python代码直接生成的Doc。
+   也可以在使用SNSAPI的过程中，通过`help(XXX)`唤出。
    * [SNSAPI Github Wiki](https://github.com/hupili/snsapi/wiki)，
    所有github用户均可进行编辑，欢迎分享你的经验！
    * [SNSAPI Google Group](https://groups.google.com/forum/?fromgroups#!forum/snsapi)
