@@ -482,6 +482,7 @@ class RenrenStatus(RenrenBase):
                 return True
         except Exception, e:
             logger.warning("Catch Exception %s", e)
+            return False
 
         logger.info("Update status '%s' on '%s' fail", text, self.jsonconf.channel_name)
         return False
@@ -507,6 +508,7 @@ class RenrenStatus(RenrenBase):
                 return True
         except Exception, e:
             logger.warning("Catch Exception %s", e)
+            return False
 
         logger.info("Reply '%s' to status '%s' fail", text, statusID)
         return False
@@ -514,7 +516,7 @@ class RenrenStatus(RenrenBase):
     @require_authed
     def forward(self, message, text):
         '''
-        Forward a status on SinaWeibo: 
+        Forward a status on Renren: 
 
            * If message is from the same platform, forward it 
              using special interface. 
