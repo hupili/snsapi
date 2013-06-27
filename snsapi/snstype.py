@@ -5,8 +5,10 @@ SNS type: status, user, comment
 '''
 
 import hashlib
+import base64
 
 import utils
+from utils import Serialize
 from errors import snserror
 from snsconf import SNSConf
 from snslog import SNSLog as logger
@@ -253,6 +255,15 @@ class Message(utils.JsonDict):
 
         '''
         return hashlib.sha1(self.dump_full().encode('utf-8')).hexdigest()
+
+    @staticmethod
+    def msg2str(message):
+        return base64.encodestring(Serialize.dumps(message))
+
+    @staticmethod
+    def str2msg(string):
+        return Serialize.loads(base64.decodestring(string))
+
 
 
 class MessageList(list):
