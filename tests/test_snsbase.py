@@ -12,6 +12,8 @@ from nose.tools import ok_
 from nose.tools import eq_
 from test_config import *
 from test_utils import *
+
+import snsapi
 from snsapi.snsbase import SNSBase
 
 sys.path = [DIR_TEST] + sys.path
