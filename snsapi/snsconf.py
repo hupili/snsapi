@@ -44,6 +44,7 @@ layer configure it. Put the confs in the \
 
 from snslog import SNSLog
 
+
 class SNSConf(object):
     """
     Hardcode Confs for SNSAPI
@@ -104,8 +105,8 @@ class SNSConf(object):
        * {Filename}: Log to {Filename}. Good for Relase version. 
     '''
 
-    def __init__(self, arg):
-        raise
+    def __init__(self):
+        raise SNSConfNoInstantiation()
         
 
 class SNSConfNoInstantiation(Exception):
@@ -118,7 +119,7 @@ class SNSConfNoInstantiation(Exception):
 
     def __str__(self):
         return "You can not instantiate SNSConf. "\
-                "Call its static methods directly!"
+                "Access its static members directly!"
 
 # ========== Init Operations  =================
 

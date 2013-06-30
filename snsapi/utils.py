@@ -138,9 +138,56 @@ def console_output(string):
 #       time zone is favoured but not mandatory. 
 import calendar
 import time
-import datetime
+from datetime import tzinfo, timedelta, datetime
 from dateutil import parser as dtparser, tz
 from third.PyRSS2Gen import _format_date
+
+ZERO = timedelta(0)
+
+class FixedOffsetTimeZone(tzinfo):
+    """
+    Fixed offset in minutes east from UTC.
+
+    See ``third/timezone_sample.py`` for more samples.
+
+    """
+    def __init__(self, offset, name):
+        '''
+        Build a fixed offset ``tzinfo`` object.  No DST support. 
+
+        :type offset: int
+        :param offset:
+            Offset of your timezone in **MINUTES**
+        :type name: str
+        :param name:
+            The name string of your timezone
+        '''
+        self.__offset = timedelta(minutes = offset)
+        self.__name = name
+
+    def utcoffset(self, dt):
+        return self.__offset
+
+    def tzname(self, dt):
+        return self.__name
+
+    def dst(self, dt):
+        return ZERO
+
+SNSAPI_TIMEZONE = FixedOffsetTimeZone(0, 'GMT')
+
+try:
+    SNSAPI_TIMEZONE = tz.tzlocal()
+    logger.info("get local timezone OK")
+except Exception as e:
+    # Silently ignore it and degrades to default TZ (GMT).
+    # Logger has not been set at the moment.
+    # 
+    # In case other methods refer to tzlocal(), 
+    # we fix it by the default TZ configured here.
+    # (The ``dtparser`` will refer to ``tz.tzlocal``)
+    logger.warning("Get local timezone failed. Use default GMT")
+    tz.tzlocal = lambda : SNSAPI_TIMEZONE
 
 def str2utc(s, tc = None):
     '''
@@ -159,14 +206,12 @@ def str2utc(s, tc = None):
         #print d.utctimetuple()
         return calendar.timegm(d.utctimetuple())
     except Exception, e:
-        logger.warning("unkown time string: %s", s)
+        logger.warning("error parsing time str '%s': %s", s, e)
         return 0
 
 def utc2str(u):
     # Format to RFC822 time string in current timezone
-    #return str(datetime.datetime.fromtimestamp(u))
-    #return _format_date(datetime.datetime.utcfromtimestamp(u))
-    return _format_date(datetime.datetime.fromtimestamp(u, tz.tzlocal()))
+    return _format_date(datetime.fromtimestamp(u, SNSAPI_TIMEZONE))
 
 import re
 _PATTERN_HTML_TAG = re.compile('<[^<]+?>')
