@@ -34,11 +34,13 @@ class TestSNSBase(TestBase):
 
     def test_snsbase_new_channel_full(self):
         nc = SNSBase.new_channel(full=True)
-        eq_(4, len(nc), WRONG_RESULT_ERROR)
+        eq_(6, len(nc), WRONG_RESULT_ERROR)
         in_('channel_name', nc)
         in_('open', nc)
         in_('description', nc)
         in_('methods', nc)
+        in_('user_name', nc)
+        in_('user_id', nc)
 
     def _build_sns_with_token(self, seconds_after_current_time):
         from snsapi.utils import JsonDict

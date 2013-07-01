@@ -388,9 +388,16 @@ class SNSBase(object):
         c['open'] = 'yes'
 
         if full:
-            c['description'] = "a string for you to memorize"
-            # Defaultly enabled methods in SNSPocket batch operation
+            c['description'] = "A string for you to memorize this channel"
+            # Comma separated lists of method names. 
+            # Enabled those methods in SNSPocket batch operation by default.
+            # If all methods are enabled, remove this entry from your jsonconf.
             c['methods'] = "" 
+            # User identification may not be available on all platforms.
+            # The following two optional fields can be used by Apps, 
+            # e.g. filtering out all the messages "I" posted.
+            c['user_name'] = "Your Name on this channel (optional)"
+            c['user_id'] = "Your ID on this channel (optional)"
 
         return c
     
