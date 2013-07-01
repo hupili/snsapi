@@ -7,6 +7,36 @@ Version string convention: `x.y.z`
    * `y`: Minor version with functional extension. 
    * `z`: Micro version with small fix. 
 
+0.5.0
+-----
+
+Main changes that may influence current running instances:
+
+   * Change default saved token path to `.save`
+   * Change old `(null)` notation. 
+   All are unified to `None` internal SNSApi.
+   Use `null` in JSON.
+   * Change default `RSS` message str style.
+
+Main functional upgrades:
+
+   * Google Reader takeout format to SNSApi channel conf converter
+   * New platform: `RSSSummary`. 
+   This can be used to format the RSS feeds with full-texts.
+   * Upgrade Twitter Api from 1.0 to 1.1.
+   * `RenrenStatus` specific forwarding is enabled.
+
+Important fixes:
+
+   * Fix bad TZ object problem on some platforms.
+
+Miscellaneous:
+
+   * Upgrade main readme.
+   * A lot more wiki pages.
+   * SNSCLI code clean.
+   * Auto-doc upgrades.
+
 0.4.4
 -----
 
