@@ -1,4 +1,4 @@
-SNSAPI 0.4.3
+SNSAPI 0.5.0
 ============
 
 Version string convention: `x.y.z`
