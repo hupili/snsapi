@@ -162,26 +162,39 @@ class RSS2RW(RSS):
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
-        # default parameter for writing RSS2 feeds
-        self.author = "snsapi"
-        self.entry_timeout = 3600 #in seconds, default 1 hour
-
     @staticmethod
     def new_channel(full = False):
         c = RSS.new_channel(full)
         c['platform'] = 'RSS2RW'
+        if full:
+            c['author'] = 'snsapi'
+            c['entry_timeout'] = 3600
+
         return c
 
     def read_channel(self, channel):
         super(RSS2RW, self).read_channel(channel)
+
         if 'author' in channel:
             self.author = channel['author']
+        else:
+            self.author = "snsapi"
         if 'entry_timeout' in channel:
             self.entry_timeout = channel['entry_timeout']
+        else:
+            self.entry_timeout = 3600 #in seconds, default 1 hour
 
-    def update(self, text):
+    def update(self, message):
+        if isinstance(message, snstype.Message):
+            text = '@%s: %s' % (message.parsed.username, message.parsed.text)
+        else:
+            text = message
+        return self._update(text)
+
+    def _update(self, text):
         '''
         Update the RSS2 feeds. 
+        This is the raw update method.
         The file pointed to by self.jsonconf.url should be writable.
         Remember to set 'author' and 'entry_timeout' in configurations. 
         Or the default values are used. 
@@ -200,20 +213,23 @@ class RSS2RW(RSS):
         # Old entries are disgarded to keep the file short and clean.
         d = feedparser.parse(self.jsonconf.url)
         for j in d['items']:
-            s = self.Message(j)
-            #print s
-            #entry_time = dtparser.parse(s.parsed.time)
-            #entry_time = datetime.datetime.utcfromtimestamp(s.parsed.time)
-            entry_time = s.parsed.time
-            if cur_time - entry_time < self.entry_timeout:
-                items.append( 
-                    PyRSS2Gen.RSSItem(
-                        author = s.parsed.username, 
-                        title = s.parsed.title, 
-                        description = "snsapi RSS2RW update",
-                        pubDate = utils.utc2str(entry_time)
+            try:
+                s = self.Message(j)
+                #print s
+                #entry_time = dtparser.parse(s.parsed.time)
+                #entry_time = datetime.datetime.utcfromtimestamp(s.parsed.time)
+                entry_time = s.parsed.time
+                if cur_time - entry_time < self.entry_timeout:
+                    items.append( 
+                        PyRSS2Gen.RSSItem(
+                            author = s.parsed.username, 
+                            title = s.parsed.title, 
+                            description = "snsapi RSS2RW update",
+                            pubDate = utils.utc2str(entry_time)
+                            )
                         )
-                    )
+            except Exception as e:
+                logger.warning("can not parse RSS entry: %s", e)
 
         items.insert(0, 
             PyRSS2Gen.RSSItem(
