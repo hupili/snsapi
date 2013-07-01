@@ -269,14 +269,25 @@ class SNSBase(object):
         '''
         return utils.JsonDict(urlparse.parse_qsl(urlparse.urlparse(url).query))
 
+    def _token_filename(self):
+        fname = self.auth_info.save_token_file
+        import os
+        if not os.path.isdir('.save'):
+            try: 
+                os.mkdir('.save')
+            except Exception as e:
+                logger.warning("Create token save dir '.save' failed. Do not use token save function. %s", e)
+                return None
+        if fname == "(default)":
+            fname = ".save/" + self.jsonconf.channel_name+".token.json"
+        return fname
+
     def save_token(self):
         '''
         access token can be saved, it stays valid for a couple of days
         if successfully saved, invoke get_saved_token() to get it back
         '''
-        fname = self.auth_info.save_token_file
-        if fname == "(default)" :
-            fname = self.jsonconf.channel_name+".token.save"
+        fname = self._token_filename()
         # Do not save expired token (or None type token)
         if not fname is None and not self.is_expired():
             #TODO: encrypt access token
@@ -288,9 +299,7 @@ class SNSBase(object):
             
     def get_saved_token(self):
         try:
-            fname = self.auth_info.save_token_file
-            if fname == "(default)" :
-                fname = self.jsonconf.channel_name+".token.save"
+            fname = self._token_filename()
             if not fname is None:
                 with open(fname, "r") as fp:
                     token = utils.JsonObject(json.load(fp))
