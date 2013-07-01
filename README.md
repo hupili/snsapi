@@ -11,7 +11,7 @@ Register user and developer on Twitter.
 
 ### Step 2.
 
-Save this file to `mytest.py` in the root dir of this project:
+Save the following codes to `mytest.py` in the root dir of this project:
 
 ```python
 from snscli import *
@@ -40,8 +40,9 @@ You will see your home timeline from twitter.
 SNSApi **unifies the interfaces** of all SNS
 such that retrieving new messages from all other platforms are the same:
 
-   * Create new channel configurations and use `add_channel` them.
-   * Use a single `home_timeline()` to obtain an aggregated timeline in a batch.
+   * Create a new channel configuration and `add_channel` it.
+   * Invoke a single `home_timeline()` to obtain an aggregated timeline 
+   from all channels in a batch.
 
 ## Lightning Demo 2 -- Backup Your Data
 
@@ -55,11 +56,12 @@ with two channels:
    * The other is called "mysqlite" and it 
    interfaces with a SQLite3 DB.
 
-See [one example](https://github.com/hupili/snsapi/tree/master/app/backup-renren/conf/channel.json.example).
+See [one example](https://github.com/hupili/snsapi/tree/master/app/backup-renren/conf/channel.json.example)
+`channel.json` configuration.
 
 ### Step 2.
 
-Save this file to `backup.py` in the root dir of this project:
+Save the following codes to `backup.py` in the root dir of this project:
 
 ```python
 from snsapi.snspocket import SNSPocket
@@ -88,12 +90,13 @@ so as to enable flexible/ programmable inter-operation between those services:
    * In order to read those messages, 
    just invoke `home_timeline` of your SQLite channel.
    * The data in SQLite DB are ready for further analysis.
-   For example, I remember some said that "snsapi is awesome" but can not recall the person.
-   Enter sqlite and one line of command will answer my question:
+   For example, I remember someone said that "snsapi is awesome".
+   Who posted it? I can not recall.
+   Now, enter sqlite and use one line of command to get the answer:
    `select * from message where text like '%snsapi%';`.
    * You can also use EMail or RSS to distribute your statuses 
-   follow the updates of your friends.
-   * When there are new platforms, it just one configuration away to use them. 
+   and follow the updates of your friends.
+   * When there are new platforms, it's just one configuration away to use them. 
    The intervention from app developer is not needed.
 
 ## Lightning Demo 3 -- An Ad-Hoc DSN
