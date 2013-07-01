@@ -5,6 +5,11 @@ forwarder (SNSAPI Sample Application)
 introduction placeholder
 '''
 
+import sys
+from os.path import dirname, abspath
+sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
+
+
 import time
 from os.path import abspath
 
