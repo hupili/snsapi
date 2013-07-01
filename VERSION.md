@@ -25,6 +25,7 @@ Main functional upgrades:
    This can be used to format the RSS feeds with full-texts.
    * Upgrade Twitter Api from 1.0 to 1.1.
    * `RenrenStatus` specific forwarding is enabled.
+   * `forwarder` app is not more generic and flexible.
 
 Important fixes:
 
