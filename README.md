@@ -4,11 +4,13 @@ A cross-platform middleware for Social Networking Services (SNS).
 
 ## Lightning Demo 1 -- Read Twitter Timeline
 
-**Step 1.**
+### Step 1.
+
 Register user and developer on Twitter. 
 [Apply for application keys and access tokens](https://github.com/hupili/snsapi/wiki/Apply-for-app-key).
 
-**Step 2.** 
+### Step 2.
+
 Save this file to `mytest.py` in the root dir of this project:
 
 ```python
@@ -28,11 +30,13 @@ Filling your app credentials in the above script:
 `access_key`,
 `access_key`.
 
-**Step 3.**
+### Step 3.
+
 Try it by `python mytest.py`.
 You will see your home timeline from twitter.
 
-**Remarks**:
+### Remarks
+
 SNSApi **unifies the interfaces** of all SNS
 such that retrieving new messages from all other platforms are the same:
 
@@ -41,7 +45,8 @@ such that retrieving new messages from all other platforms are the same:
 
 ## Lightning Demo 2 -- Backup Your Data
 
-**Step 1.**
+### Step 1.
+
 [Configure a channel.json](https://github.com/hupili/snsapi/wiki/Configurations) file
 with two channels:
 
@@ -52,7 +57,7 @@ with two channels:
 
 See [one example](https://github.com/hupili/snsapi/tree/master/app/backup-renren/conf/channel.json.example).
 
-**Step 2.**
+### Step 2.
 
 Save this file to `backup.py` in the root dir of this project:
 
@@ -67,13 +72,15 @@ for m in ml:
     sp['mysqlite'].update(m)
 ```
 
-**Step 3.**
+### Step 3.
+
 Try it by `python backup.py`.
 Now your timeline of Renren (latest 20 messages by default)
 is backed up to the SQLite DB.
 You can run this script on a regular basis to backup data from all kinds of SNS. 
 
-**Remarks**
+### Remarks
+
 SNSApi unifies the **data structures** of all SNS 
 so as to enable flexible/ programmable inter-operation between those services:
 
@@ -89,7 +96,12 @@ so as to enable flexible/ programmable inter-operation between those services:
    * When there are new platforms, it just one configuration away to use them. 
    The intervention from app developer is not needed.
 
-## Lightning Demo 3 -- An Ad-Hoc Decentralized Social Network
+## Lightning Demo 3 -- An Ad-Hoc DSN
+   
+[Decentralized Social Network](https://github.com/hupili/snsapi/wiki/Taxonomy) (DSN)
+is the next paradigm of social networking.
+Current centralized services have a lot of problems, 
+e.g. [Spying for free](http://en.wikipedia.org/wiki/PRISM_%28surveillance_program%29).
 
 SNSApi is just a middleware to offload your burden in interfacing with different platforms.
 Now, try to build something without worrying about the interfacing detials.
