@@ -7,7 +7,7 @@ snspocket: the container class for snsapi's
 
 # === system imports ===
 from utils import json
-from os.path import abspath
+from os.path import abspath,dirname,join
 
 # === snsapi modules ===
 import snstype
@@ -18,7 +18,7 @@ from snslog import SNSLog as logger
 import platform
 
 # === 3rd party modules ===
-
+#conf_path = join(dirname(dirname(abspath(__file__))),"conf","init-channel.json.example")
 class SNSPocket(dict):
     """The container class for snsapi's"""
 
@@ -29,6 +29,8 @@ class SNSPocket(dict):
         "read" : "home_timeline", 
         "write" : "update", 
         "writeto" : "reply"}
+
+    __conf_path = join(dirname(dirname(abspath(__file__))),"conf")
 
     def __init__(self):
         super(SNSPocket, self).__init__()
@@ -115,9 +117,11 @@ class SNSPocket(dict):
 
         return True
 
+
+
     def load_config(self, \
-            fn_channel = 'conf/channel.json',\
-            fn_pocket = 'conf/pocket.json'):
+            fn_channel = join(__conf_path,"channel_json"),\
+            fn_pocket = join(__conf_path,"pocket_json")):
         """
         Read configs:
         * channel.conf
@@ -150,8 +154,8 @@ class SNSPocket(dict):
         logger.info("Read configs done. Add %d channels" % count_add_channel)
 
     def save_config(self, \
-            fn_channel = 'conf/channel.json',\
-            fn_pocket = 'conf/pocket.json'):
+            fn_channel = join(__conf_path,"channel_json"),\
+            fn_pocket = join(__conf_path,"pocket_json")):
         """
         Save configs: reverse of load_config
 
@@ -183,7 +187,12 @@ class SNSPocket(dict):
                 logger.warning("can not find platform '%s'", pl)
                 return utils.JsonDict()
         else:
-            return utils.JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))   
+
+            # conf_path = join(dirname(dirname(abspath(__file__))),"conf","init-channel.json.example")
+            # print conf_path
+            conf_path = join(self.__conf_path,"init-channel.json.example")
+            #print conf_path 修改了一下，原来采用的相对路径会出现判断路径判断错误，而且会导致无法使用python -m 的方法测试tests文件夹
+            return utils.JsonDict(json.load(open(conf_path,'r')))   
 
     def list_platform(self):
         console_output("")
