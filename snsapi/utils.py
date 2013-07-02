@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import base64
+
 try:
     import json
 except ImportError:
@@ -102,6 +104,27 @@ class JsonDict(JsonObject):
         else:
             logger.warning("Unkown type: %s", type(attr))
             return default_value
+
+
+def obj2str(obj):
+    '''
+    Convert Python object to string using SNSApi convention.
+
+    :param obj:
+        A Python object that is "serializable".
+        Check ``Serialize`` to what backend we use for serialization.
+    '''
+    return base64.encodestring(Serialize.dumps(obj))
+
+def str2obj(string):
+    '''
+    Convert string to Python object using SNSApi convention.
+
+    :param obj:
+        A string constructed by ``obj2str``.
+        Do not call this method on a string coming from an unkown source.
+    '''
+    return Serialize.loads(base64.decodestring(string))
 
         
 def console_input(string = None):
