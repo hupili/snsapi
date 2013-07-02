@@ -53,7 +53,7 @@ The current new one simply restructure the code to make it much much simpler.
 You can preview the effect from the screenshots. 
 
 Configure Sina Weibo to be one in channel, 
-and QQ Microblog to be one out channel. 
+and Tencent Weibo to be one out channel. 
 Invoke `python forwarder.py` and pass all the authorization. 
 It forwards the first message:
 
@@ -69,7 +69,7 @@ It forwards the newly published status on Sina:
 
 ![cli 2](https://raw.github.com/hupili/snsapi/master/app/forwarder/old/screenshots/forwarder4.jpg)
 
-This is what we see on QQ microblog:
+This is what we see on Tencent Weibo:
 
 ![qq web](https://raw.github.com/hupili/snsapi/master/app/forwarder/old/screenshots/forwarder2.jpg)
 
