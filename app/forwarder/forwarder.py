@@ -16,7 +16,7 @@ from os.path import abspath
 import snsapi
 from snsapi import errors 
 from snsapi import utils as snsapi_utils
-from snsapi.utils import json
+from snsapi.utils import json, obj2str, str2obj
 from snsapi.snspocket import SNSPocket
 from snsapi.snslog import SNSLog as logger
 from snsapi.snstype import Message
@@ -62,7 +62,7 @@ class Forwarder(object):
                 'username': msg.parsed.username,
                 'text': msg.parsed.text,
                 'success': {"__null": "yes"},
-                'obj': Message.msg2str(msg)
+                'obj': obj2str(msg)
             }
 
     def db_get_message(self):
@@ -135,7 +135,7 @@ class Forwarder(object):
         for (cn, msg) in self.db_get_message():
             text = self.format_msg(msg) 
             #r = self.sp_out[cn].update(text)
-            r = self.sp_out[cn].forward(Message.str2msg(msg['obj']), u'')
+            r = self.sp_out[cn].forward(str2obj(msg['obj']), u'')
             msg['success'][cn] = "yes" if r else "no"
             logger.info("forward '%s' -- %s", text, r)
 
