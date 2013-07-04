@@ -64,6 +64,26 @@ class RSSMessage(snstype.Message):
         # We format them in a unified way and use this as 'text'. 
         self.parsed.text = '"%s" ( %s )' % (self.parsed.title, self.parsed.link)
 
+    def dump_full(self):
+        '''
+        Override ``Message.dump_full`` because default ``.raw``
+        attribute of RSSMessage object is not JSON serializable.
+
+        Note: dumpped messages are meant for the consumption of other
+        languages. We do not concern how to convert back. If you do 
+        that, make sure call ``str2obj`` on ``.raw`` yourself. Besides,
+        make sure the source of the string is trustful. 
+
+        For the use in Python, directly serialize the message for 
+        persistent storage. Do not recommend you use any of the three
+        level of ``dump_xxx`` functions. Use of ``digest_xxx`` is OK.
+        '''
+        _raw = self.raw
+        self.raw = utils.obj2str(self.raw)
+        _str = self._dumps()
+        self.raw = _raw
+        return _str
+
 class RSS(SNSBase):
     '''
     Supported Methods
