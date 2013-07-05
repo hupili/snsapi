@@ -145,8 +145,6 @@ class RSS(SNSBase):
                     platform=self.jsonconf['platform'], 
                     channel=self.jsonconf['channel_name'],
                     conf=conf)
-            #print s.dump_parsed()
-            #print s.dump_full()
             #TODO:
             #     RSS parsed result is not json serializable. 
             #     Try to find other ways of serialization. 
@@ -198,7 +196,7 @@ class RSS2RW(RSS):
         if not 'author' in self.jsonconf:
             self.jsonconf['author'] = 'snsapi'
         if not 'entry_timeout' in self.jsonconf:
-            #Default entry timeout in seconds (1 hour)
+            # Default entry timeout in seconds (1 hour)
             self.jsonconf['entry_timeout'] = 3600 
 
     def update(self, message):
@@ -237,7 +235,6 @@ class RSS2RW(RSS):
 
         from dateutil import parser as dtparser, tz
 
-        #cur_time = datetime.datetime.now(tz.tzlocal())
         cur_time = self.time()
 
         items = []
@@ -248,9 +245,6 @@ class RSS2RW(RSS):
         for j in d['items']:
             try:
                 s = self.Message(j)
-                #print s
-                #entry_time = dtparser.parse(s.parsed.time)
-                #entry_time = datetime.datetime.utcfromtimestamp(s.parsed.time)
                 entry_time = s.parsed.time
                 if cur_time - entry_time < self.jsonconf.entry_timeout:
                     _link = self._make_link(s)
