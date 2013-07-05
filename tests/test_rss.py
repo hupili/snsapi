@@ -84,7 +84,9 @@ class TestRSS2RW(TestBase):
         # Use the generic Message instead of RSS2RW.Message
         msg = snstype.Message()
         msg.parsed.username = "test_username"
-        msg.parsed.userid = "test_userid"
+        # Current RSS feeds do not distinguish userid and username
+        # In the future, userid may be coded into our special structure
+        msg.parsed.userid = "test_username"
         msg.parsed.time = int(time.time())
         msg.parsed.text = "test status"
         self.rss.update(msg)

@@ -200,11 +200,24 @@ class RSS2RW(RSS):
             self.jsonconf['entry_timeout'] = 3600 
 
     def update(self, message):
-        if isinstance(message, snstype.Message):
-            text = '@%s: %s' % (message.parsed.username, message.parsed.text)
+        '''
+        :type message: ``Message`` or ``str``
+        :param message:
+            For ``Message`` update it directly. RSS2RW guarantee the 
+            message can be read back with the same values in standard
+            fields of ``Message.parsed``.
+            For ``str``, we compose the virtual ``Message`` first
+            using current time and configured author information.
+        '''
+        if isinstance(message, str):
+            msg = snstype.Message()
+            msg.parsed.text = message
+            msg.parsed.username = self.jsonconf.author
+            msg.parsed.userid = self.jsonconf.author
+            msg.parsed.time = self.time()
         else:
-            text = message
-        return self._update(text)
+            msg = message
+        return self._update(msg)
 
     def _make_link(self, msg):
         '''
@@ -222,7 +235,7 @@ class RSS2RW(RSS):
             _link = 'http://goo.gl/7aokV#' + msg.digest()
         return _link
 
-    def _update(self, text):
+    def _update(self, message):
         '''
         Update the RSS2 feeds. 
         This is the raw update method.
@@ -247,13 +260,12 @@ class RSS2RW(RSS):
                 s = self.Message(j)
                 entry_time = s.parsed.time
                 if cur_time - entry_time < self.jsonconf.entry_timeout:
-                    _link = self._make_link(s)
                     items.append( 
                         PyRSS2Gen.RSSItem(
                             author = s.parsed.username, 
                             title = s.parsed.title, 
                             description = "snsapi RSS2RW update",
-                            link = _link,
+                            link = self._make_link(s),
                             pubDate = utils.utc2str(entry_time)
                             )
                         )
@@ -262,11 +274,11 @@ class RSS2RW(RSS):
 
         items.insert(0, 
             PyRSS2Gen.RSSItem(
-                author = self.jsonconf.author, 
-                title = text, 
+                author = message.parsed.username,
+                title = message.parsed.text, 
                 description = "snsapi RSS2RW update",
-                link = "http://goo.gl/7aokV",
-                pubDate = utils.utc2str(cur_time)
+                link = self._make_link(message),
+                pubDate = utils.utc2str(message.parsed.time)
                 )
             )
 
