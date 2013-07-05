@@ -246,8 +246,7 @@ class RSS2RW(RSS):
            * parameter text: messages to update in a feeds
         '''
 
-        from dateutil import parser as dtparser, tz
-
+        _entry_timeout = self.jsonconf.entry_timeout
         cur_time = self.time()
 
         items = []
@@ -259,7 +258,7 @@ class RSS2RW(RSS):
             try:
                 s = self.Message(j)
                 entry_time = s.parsed.time
-                if cur_time - entry_time < self.jsonconf.entry_timeout:
+                if _entry_timeout is None or cur_time - entry_time < _entry_timeout:
                     items.append( 
                         PyRSS2Gen.RSSItem(
                             author = s.parsed.username, 
@@ -272,7 +271,7 @@ class RSS2RW(RSS):
             except Exception as e:
                 logger.warning("can not parse RSS entry: %s", e)
 
-        if cur_time - message.parsed.time < self.jsonconf.entry_timeout:
+        if _entry_timeout is None or cur_time - message.parsed.time < _entry_timeout:
             items.insert(0, 
                 PyRSS2Gen.RSSItem(
                     author = message.parsed.username,

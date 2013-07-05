@@ -119,14 +119,12 @@ class TestRSS2RW(TestBase):
         # 1 second before timeout
         msg.parsed.time -= self.rss.jsonconf.entry_timeout - 1
         self.rss.update(msg)
-        print self.rss.home_timeline()
         eq_(len(self.rss.home_timeline()), 4)
 
         # 1 second after timeout
         # Should reject this entry
         msg.parsed.time -= 2
         self.rss.update(msg)
-        print self.rss.home_timeline()
         eq_(len(self.rss.home_timeline()), 4)
 
     def test_rss2rw_update_message_timeout_simulate(self):
@@ -151,3 +149,17 @@ class TestRSS2RW(TestBase):
         self.rss.update(msg)
         # The previous message is kicked out
         eq_(len(self.rss.home_timeline()), 1)
+
+    def test_rss2rw_update_message_make_link(self):
+        # Check the link is correctly generated
+        # See ``_make_link`` for more info.
+        # None: no timeout; keep all entries permanently
+        self.rss.jsonconf.entry_timeout = None
+        msg = snstype.Message()
+        msg.parsed.username = "test_username"
+        msg.parsed.userid = "test_username"
+        msg.parsed.text = "test status"
+        msg.parsed.time = 1234567890
+        self.rss.update(msg)
+        msg2 = self.rss.home_timeline()[0]
+        eq_(msg2.parsed.link, 'http://goo.gl/7aokV#a8667fa46fb30dc4229c6a62f8c6ba2da3045457')
