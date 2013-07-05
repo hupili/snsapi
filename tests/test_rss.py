@@ -96,3 +96,58 @@ class TestRSS2RW(TestBase):
         eq_(msg.parsed.userid, msg2.parsed.userid)
         eq_(msg.parsed.text, msg2.parsed.text)
 
+    def test_rss2rw_update_message_timeout_append(self):
+        # We can not make the RSS feed go arbitrary long.
+        # Timeout-ed entried will be deleted upon every update operation.
+        # This UT tests the behaviour when appending a timeout-ed item.
+        import time
+        _cur_time = int(time.time())
+        # Use the generic Message instead of RSS2RW.Message
+        msg = snstype.Message()
+        msg.parsed.username = "test_username"
+        msg.parsed.userid = "test_username"
+        msg.parsed.time = _cur_time
+        msg.parsed.text = "test status"
+
+        self.rss.update(msg)
+        self.rss.update(msg)
+        eq_(len(self.rss.home_timeline()), 2)
+
+        self.rss.update(msg)
+        eq_(len(self.rss.home_timeline()), 3)
+
+        # 1 second before timeout
+        msg.parsed.time -= self.rss.jsonconf.entry_timeout - 1
+        self.rss.update(msg)
+        print self.rss.home_timeline()
+        eq_(len(self.rss.home_timeline()), 4)
+
+        # 1 second after timeout
+        # Should reject this entry
+        msg.parsed.time -= 2
+        self.rss.update(msg)
+        print self.rss.home_timeline()
+        eq_(len(self.rss.home_timeline()), 4)
+
+    def test_rss2rw_update_message_timeout_simulate(self):
+        # This UT simulates a timeout scenario
+        import time
+        _cur_time = int(time.time())
+        # Use the generic Message instead of RSS2RW.Message
+        msg = snstype.Message()
+        msg.parsed.username = "test_username"
+        msg.parsed.userid = "test_username"
+        msg.parsed.time = _cur_time
+        msg.parsed.text = "test status"
+
+        # Normal update
+        self.rss.update(msg)
+        eq_(len(self.rss.home_timeline()), 1)
+
+        # Change our timer
+        _new_time = _cur_time + self.rss.jsonconf.entry_timeout + 1
+        time.time = lambda : _new_time
+        msg.parsed.time = int(time.time())
+        self.rss.update(msg)
+        # The previous message is kicked out
+        eq_(len(self.rss.home_timeline()), 1)

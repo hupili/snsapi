@@ -272,15 +272,16 @@ class RSS2RW(RSS):
             except Exception as e:
                 logger.warning("can not parse RSS entry: %s", e)
 
-        items.insert(0, 
-            PyRSS2Gen.RSSItem(
-                author = message.parsed.username,
-                title = message.parsed.text, 
-                description = "snsapi RSS2RW update",
-                link = self._make_link(message),
-                pubDate = utils.utc2str(message.parsed.time)
+        if cur_time - message.parsed.time < self.jsonconf.entry_timeout:
+            items.insert(0, 
+                PyRSS2Gen.RSSItem(
+                    author = message.parsed.username,
+                    title = message.parsed.text, 
+                    description = "snsapi RSS2RW update",
+                    link = self._make_link(message),
+                    pubDate = utils.utc2str(message.parsed.time)
+                    )
                 )
-            )
 
         rss = PyRSS2Gen.RSS2(
             title = "snsapi, RSS2 R/W Channel",
