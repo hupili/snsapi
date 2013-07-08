@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
+'''
+mysofa (SNSAPI Sample Application)
 
-from snsapi.plugin.renren import RenrenAPI
+introduction placeholder
+
+**Warning: The code is under reconstruction using new SNSAPI interface. 
+Do not use this app until it is done.**
+'''
+
+#from snsapi.plugin.renren import RenrenAPI
 import json
 import hashlib
 import time
@@ -65,7 +73,6 @@ def main():
 
     #save reply record
     json.dump(sIDs, open('statusID.json', 'w'))
-
 
 if __name__ == '__main__':
     main()

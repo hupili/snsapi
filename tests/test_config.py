@@ -12,15 +12,13 @@ import glob
 import sys
 import json
 
-import snsapi
-from snsapi import snstype
-
 DIR_TEST = os.path.abspath(os.path.dirname(__file__))
 DIR_TEST_DATA = os.path.join(DIR_TEST, "data")
 DIR_ROOT = os.path.dirname(DIR_TEST)
 DIR_CONF = os.path.join(DIR_ROOT, "conf")
 DIR_SNSAPI = os.path.join(DIR_ROOT, "snsapi")
 DIR_PLUGIN = os.path.join(DIR_SNSAPI, "plugin")
+sys.path.append(DIR_ROOT)
 
 WRONG_RESULT_ERROR = "wrong result"
 NO_SUCH_KEY_ERROR_TEMPLATE = "no such key: %s"

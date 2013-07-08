@@ -5,19 +5,19 @@ Errors or Exceptions for SNSAPI
 
 How to add an error type?
 
-   * Check out "Mark1". 
-   Inherit your error type from a right class. 
-   The "#>>" comment denotes the level an error type is in. 
-   
-   * Check out "Makr2". 
-   Add your new error type to the corresponding tree. 
+   * Check out ``Mark1`` (in ``errors.py``). 
+     Inherit your error type from a right class. 
+     The ``#>>`` comment denotes the level an error type is in. 
+   * Check out ``Makr2`` (in ``errors.py``). 
+     Add your new error type to the corresponding tree. 
 
 How to reference an error type?
 
    * By convention, others should only import "snserror". 
-   e.g. "from errors import snserror". 
+     e.g. ``from errors import snserror``, or 
+     ``from snsapi import snserror``.
    * Use dot expression to enter the exact type. 
-   e.g. "snserror.config.nofile". 
+     e.g. ``snserror.config.nofile``. 
 
 '''
 

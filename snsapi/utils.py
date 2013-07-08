@@ -57,29 +57,40 @@ class JsonDict(JsonObject):
     def _dumps_pretty(self):
         return json.dumps(self, indent=2)
 
-    def get(self, attr, default_value = "(null)"):
+    def get(self, attr, default_value = None):
         '''
         dict entry reading with fault tolerance. 
 
         :attr:
             A str or a list of str. 
 
+        :return: 
+            The value corresponding to the (first) key, or default val.
+
         If attr is a list, we will try all the candidates until 
         one 'get' is successful. If none of the candidates succeed,
-        we will return a "(null)"
+        return a the ``default_value``. 
 
         e.g. RSS format is very diverse. 
         To my current knowledge, some formats have 'author' fields, 
         but others do not:
+
            * rss : no
            * rss2 : yes
            * atom : yes
            * rdf : yes
-        This function will return a string "(null)" by default if the 
-        field does not exist. The purpose is to expose unified interface
-        to upper layers. seeing "(null)" is better than catching an error. 
+
+        NOTE: 
+
+           * The original ``default_value`` is "(null)". Now we change
+           to ``None``. ``None`` is more standard in Python and it does
+           not have problem to convert to ``str`` (the usual way of 
+           using our data fields). It has the JSON counterpart: ``null``.
 
         '''
+        #TODO:
+        #    Check if other parts are broken due to this change from 
+        #    "(null)" to None. 
         if isinstance(attr, str):
             return dict.get(self, attr, default_value)
         elif isinstance(attr, list):
@@ -127,12 +138,66 @@ def console_output(string):
 #       time zone is favoured but not mandatory. 
 import calendar
 import time
-import datetime
+from datetime import tzinfo, timedelta, datetime
 from dateutil import parser as dtparser, tz
 from third.PyRSS2Gen import _format_date
 
+ZERO = timedelta(0)
+
+class FixedOffsetTimeZone(tzinfo):
+    """
+    Fixed offset in minutes east from UTC.
+
+    See ``third/timezone_sample.py`` for more samples.
+
+    """
+    def __init__(self, offset, name):
+        '''
+        Build a fixed offset ``tzinfo`` object.  No DST support. 
+
+        :type offset: int
+        :param offset:
+            Offset of your timezone in **MINUTES**
+        :type name: str
+        :param name:
+            The name string of your timezone
+        '''
+        self.__offset = timedelta(minutes = offset)
+        self.__name = name
+
+    def utcoffset(self, dt):
+        return self.__offset
+
+    def tzname(self, dt):
+        return self.__name
+
+    def dst(self, dt):
+        return ZERO
+
+SNSAPI_TIMEZONE = FixedOffsetTimeZone(0, 'GMT')
+
+try:
+    SNSAPI_TIMEZONE = tz.tzlocal()
+    logger.info("get local timezone OK")
+except Exception as e:
+    # Silently ignore it and degrades to default TZ (GMT).
+    # Logger has not been set at the moment.
+    # 
+    # In case other methods refer to tzlocal(), 
+    # we fix it by the default TZ configured here.
+    # (The ``dtparser`` will refer to ``tz.tzlocal``)
+    logger.warning("Get local timezone failed. Use default GMT")
+    tz.tzlocal = lambda : SNSAPI_TIMEZONE
+
 def str2utc(s, tc = None):
-    if tc:
+    '''
+    :param tc: 
+        Timezone Correction (TC). A timezone suffix string. 
+        e.g. ``" +08:00"``, `` HKT``, etc.
+        Some platforms are know to return time string without TZ 
+        (e.g. Renren). Manually do the correction.
+    '''
+    if tc and tc.strip() != '':
         s += tc
 
     try:
@@ -140,19 +205,20 @@ def str2utc(s, tc = None):
         #print d 
         #print d.utctimetuple()
         return calendar.timegm(d.utctimetuple())
-    except ValueError, e:
-        if e.message == "unknown string format":
-            # We want to always return something valid for 
-            # the convenience of other modules. 
-            logger.warning("unkown time string: %s", s)
-            return 0
-        else:
-            raise e
+    except Exception, e:
+        logger.warning("error parsing time str '%s': %s", s, e)
+        return 0
 
 def utc2str(u):
-    #return str(datetime.datetime.fromtimestamp(u))
-    #return _format_date(datetime.datetime.utcfromtimestamp(u))
-    return _format_date(datetime.datetime.fromtimestamp(u, tz.tzlocal()))
+    # Format to RFC822 time string in current timezone
+    return _format_date(datetime.fromtimestamp(u, SNSAPI_TIMEZONE))
+
+import re
+_PATTERN_HTML_TAG = re.compile('<[^<]+?>')
+def strip_html(text):
+    # Ref:
+    #    * http://stackoverflow.com/questions/753052/strip-html-from-strings-in-python
+    return re.sub(_PATTERN_HTML_TAG, '', text)
 
 import pickle
 

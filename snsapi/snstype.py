@@ -5,25 +5,29 @@ SNS type: status, user, comment
 '''
 
 import hashlib
+import base64
 
 import utils
+from utils import Serialize
 from errors import snserror
 from snsconf import SNSConf
 from snslog import SNSLog as logger
 
 class MessageID(utils.JsonDict):
     """
-    All information to locate one status is here. 
+    All information to locate one status is here.
 
     It shuold be complete so that:
 
        * one can invoke reply() function of plugin on this object. 
-       * Or one can invoke reply() function of container on this object. 
+       * Or one can invoke reply() function of container on this object.
 
-    There is only one mandatory field:
+    There are two mandatory fields:
 
-       * platform: SNSPocket uses this field to determine 
-       which 
+       * platform: Name of the platform (e.g. RenrenStatus)
+       * channel: Name of the instantiated channel
+         (e.g. 'renren_account_1').
+         Same as a channel's ``.jsonconf['channel_name']``.
 
     In order to reply one status, here's the information 
     required by each platforms:
@@ -32,15 +36,17 @@ class MessageID(utils.JsonDict):
        * Sina: status_id
        * QQ: status_id
 
+    **NOTE**: This object is mainly for SNSAPI to identify a Message. 
+    Upper layer had better not to reference fields of this object directly.
+    If you must reference this object, please do not touch those 
+    non-mandatory fields.
+
     """
-    #def __init__(self, platform = None, status_id = None, source_user_id = None):
     def __init__(self, platform = None, channel = None):
         super(MessageID, self).__init__()
 
         self.platform = platform
         self.channel = channel
-        #self.status_id = status_id
-        #self.source_user_id = source_user_id
 
     #def __str__(self):
     #    """docstring for __str__"""
@@ -57,63 +63,63 @@ class Message(utils.JsonDict):
 
     Data Fields:
 
-       * 'platform': a string describing the platform
-       where this message come from. See 'snsapi/platform.py'
-       for more details. 
-       * 'raw': the raw json or XML object returned from 
-       the platform spefiic API. This member is here to give 
-       upper layer developers the last chance of manipulating
-       any available information. Having an understanding of 
-       the platform-specific returning format is esential. 
-       * 'parsed': this member abstracts some common fields
-       that all messages are supposed to have. e.g. 'username', 
-       'time', 'text', etc. 
-       * 'ID': a MessageID object. This ID should be enough 
-       to indentify a message across all different platforms. 
+       * ``platform``: a string describing the platform
+         where this message come from. See 'snsapi/platform.py'
+         for more details.
+       * ``raw``: the raw json or XML object returned from
+         the platform spefiic API. This member is here to give
+         upper layer developers the last chance of manipulating
+         any available information. Having an understanding of
+         the platform-specific returning format is esential.
+       * ``parsed``: this member abstracts some common fields
+         that all messages are supposed to have. e.g. 'username',
+         'time', 'text', etc.
+       * ``ID``: a ``MessageID`` object. This ID should be enough
+         to indentify a message across all different platforms.
 
-    For details of 'ID', please see the docstring of MessageID(). 
+    For details of ``ID``, please see the docstring of ``MessageID``.
 
-    Mandatory fields of 'parsed' are:
+    Mandatory fields of ``parsed`` are:
 
-       * time: a utc integer. (some platform returns parsed string)
-       * userid: a string. (called as "username" at some platform)
-       * username: a string. (called as "usernick" as some platform)
-       * text: a string. (can be 'text' in the returning json object, 
-       or parsed from other fields.)
+       * ``time:`` a utc integer. (some platform returns parsed string)
+       * ``userid:`` a string. (called as "username" at some platform)
+       * ``username:`` a string. (called as "usernick" as some platform)
+       * ``text:`` a string. (can be 'text' in the returning json object,
+         or parsed from other fields.)
 
     Optional fields of 'parsed' are:
 
-       * reposts_count: an integer. For some OSN. 
-       * comments_count: an integer. For some OSN. 
-       * link: a string. For RSS; Parsed from microblog message;
-       Parsed from email message; etc. 
-       * title: a string. For RSS; Blog channel of some OSN. 
-       * description: a string. For RSS digest text; 
-       Sharing channel of some OSN; etc. 
-       * text_orig: a string. The original text, also known as 
-       "root message" in some context. e.g. the earliest status 
-       in one thread. 
-       * text_last: a string. The latest text, also known as 
-       "message" in some context. e.g. the reply or forwarding 
-       comments made by the last user. 
-       * text_trace: a string. Using any (can be platform-specific)
-       method to construt the trace of this message. e.g. 
-       the forwarding / retweeting / reposting sequence.
-       There is no unified format yet. 
-       * username_origin: a string. The username who posts 'text_orig'. 
+       * ``deleted``: Bool. For some OSN.
+       * ``reposts_count``: an integer. For some OSN.
+       * ``comments_count``: an integer. For some OSN.
+       * ``link``: a string. For RSS; Parsed from microblog message;
+         Parsed from email message; etc.
+       * ``title``: a string. For RSS; Blog channel of some OSN.
+       * ``description``: a string. For RSS digest text;
+         Sharing channel of some OSN; etc.
+       * ``body``: a string. The 'content' of RSS, the 'body' of HTML, 
+         or whatever sematically meaning the body of a document.
+       * ``text_orig``: a string. The original text, also known as
+         "root message" in some context. e.g. the earliest status
+         in one thread.
+       * ``text_last``: a string. The latest text, also known as
+         "message" in some context. e.g. the reply or forwarding
+         comments made by the last user.
+       * ``text_trace``: a string. Using any (can be platform-specific)
+         method to construt the trace of this message. e.g.
+         the forwarding / retweeting / reposting sequence.
+         There is no unified format yet.
+       * ``username_origin``: a string. The username who posts 'text_orig'.
 
     '''
 
     platform = "SNSAPI"
 
-    def __init__(self, dct = None, platform = None, channel = None):
+    def __init__(self, dct = None, platform = None, channel = None, conf = {}):
         
+        self.conf = conf
         self['deleted'] = False
         self['ID'] = MessageID(platform, channel)
-        #if platform:
-        #    self['ID']['platform'] = platform
-        #if channel:
-        #    self['ID']['channel'] = channel
 
         self['raw'] = utils.JsonDict({})
         self['parsed'] = utils.JsonDict({})
@@ -121,15 +127,16 @@ class Message(utils.JsonDict):
             self['raw'] = utils.JsonDict(dct)
             try:
                 self.parse()
-            except KeyError, e:
-                raise snserror.type.parse(e.message)
+            except KeyError as e:
+                raise snserror.type.parse(str(e))
         
     def parse(self):
         '''
         Parse self.raw and store result in self.parsed
 
         '''
-        pass
+        # Default action: copy all fields in 'raw' to 'parsed'. 
+        self.parsed.update(self.raw)
 
     def show(self):
         '''
@@ -156,7 +163,18 @@ class Message(utils.JsonDict):
         See dump()
 
         '''
-        return self.dump()
+        # NOTE:
+        #
+        #     dump() method remains stable because the downstream is
+        #     digest methods. The __str__ and __unicode__ are only
+        #     for console interaction. Normal apps should refer to
+        #     those fields in 'parsed' themselves.
+        #
+        #     We limit the output to 500 characters to make the console 
+        #     output uncluttered.
+        return unicode("[%s] at %s \n  %s") % (self.parsed.username, 
+                utils.utc2str(self.parsed.time), 
+                self.parsed.text[0:500])
 
     def dump(self):
         '''
@@ -238,18 +256,24 @@ class Message(utils.JsonDict):
         '''
         return hashlib.sha1(self.dump_full().encode('utf-8')).hexdigest()
 
-#class DeletedMessage(Message):
-#    """docstring for DeletedMessage"""
-#    def __init__(self, dct):
-#        super(DeletedMessage, self).__init__(dct, "deleted", "deleted")
-        
+    @staticmethod
+    def msg2str(message):
+        return base64.encodestring(Serialize.dumps(message))
+
+    @staticmethod
+    def str2msg(string):
+        return Serialize.loads(base64.decodestring(string))
+
+
 
 class MessageList(list):
     """
     A list of Message object 
     """
-    def __init__(self):
+    def __init__(self, init_list=None):
         super(MessageList, self).__init__()
+        if init_list:
+            self.extend(init_list)
 
     def append(self, e):
         if isinstance(e, Message):
@@ -294,7 +318,7 @@ class User(object):
         self.id = 0
         
 class AuthenticationInfo(utils.JsonObject):
-    #default auth configurations
+    # default auth configurations
     def __init__(self, auth_info = None):
         if auth_info :
             self.update(auth_info)
@@ -314,5 +338,21 @@ class AuthenticationInfo(utils.JsonObject):
                 self[k] = DEFAULT_MAPPING[k]
 
 if __name__ == "__main__":
-    s = Message({"text":"fe啊"})
-    #s.show()
+    import time
+    m1 = Message({'text': 'test', 
+        'username': 'snsapi', 
+        'userid': 'snsapi', 
+        'time': time.time() })
+    m2 = Message({'text': u'测试', 
+        'username': 'snsapi', 
+        'userid': 'snsapi', 
+        'time': time.time() })
+    ml = MessageList()
+    ml.append(m1)
+    ml.append(m2)
+    # NOTE: 
+    #     When you develop new plugins, the MessageList returned
+    #     by your ``home_timeline`` should be printable in this 
+    #     way. This is minimum checking for whether you have 
+    #     mandatory fields. 
+    print ml

@@ -128,8 +128,9 @@ class TencentWeiboStatus(SNSBase):
     @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
-        get statuses of yours and your friends'
-        @param count: number of statuses
+
+           * function : get statuses of yours and your friends'
+           * parameter count: number of statuses
         '''
         url = "https://open.t.qq.com/api/statuses/home_timeline"
         params = {}
@@ -154,8 +155,9 @@ class TencentWeiboStatus(SNSBase):
     @require_authed
     def update(self, text):
         '''update a status
-        @param text: the update message
-        @return: success or not
+
+           * parameter text: the update message
+           * return: success or not
         '''
 
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
@@ -165,17 +167,23 @@ class TencentWeiboStatus(SNSBase):
         params["content"] = text
         self._attach_authinfo(params)
         
-        ret = self._http_post(url, params)
-        if(ret['msg'] == "ok"):
-            logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
-            return True
-        return ret
+        try:
+            ret = self._http_post(url, params)
+            if(ret['msg'] == "ok"):
+                logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
+                return True
+            else:
+                return ret
+        except Exception, e:
+            logger.warning("Catch Exception: %s", e)
+            return False
         
     @require_authed
     def reply(self, statusID, text):
         '''reply to a status
-        @param text: the comment text
-        @return: success or not
+        
+           * parameter text: the comment text
+           * return: success or not
         '''
         url = "https://open.t.qq.com/api/t/reply"
         params = {}

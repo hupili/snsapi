@@ -1,0 +1,29 @@
+[
+  {
+    "platform": "RenrenStatus", 
+    "methods": "home_timeline,update,forward,reply",
+    "user_id": "", 
+    "user_name": "", 
+    "channel_name": "myrenren", 
+    "auth_info": {
+      "save_token_file": "(default)", 
+      "cmd_request_url": "(default)", 
+      "callback_url": "http://snsapi.ie.cuhk.edu.hk/aux/auth.php", 
+      "cmd_fetch_code": "(default)" 
+    }, 
+    "app_secret": "YOUR OWN APP SECRET", 
+    "app_key": "YOUR OWN APP SECRET",
+    "open": "yes", 
+    "home_timeline":{
+      "count": 20
+    }
+  },
+  {
+    "channel_name": "mysqlite", 
+    "open": "yes", 
+    "platform": "SQLite", 
+    "user_id": "",
+    "user_name": "",
+    "url": "backup.sqlite"
+  }
+]

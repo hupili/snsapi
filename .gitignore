@@ -12,8 +12,9 @@ cookies.txt
 # app_key
 config.json
 
-# access_token
-*.token.save
+# Saved credentials by SNSAPI
+# e.g. access_tokens
+.save/*
 
 # Eclipse
 .pydevproject

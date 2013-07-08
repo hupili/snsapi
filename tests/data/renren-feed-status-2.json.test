@@ -1,0 +1,63 @@
+[
+  {
+    "update_time": "2013-06-22 02:58:30", 
+    "name": "user1", 
+    "comments": {
+      "count": 4, 
+      "comment": [
+        {
+          "name": "user2", 
+          "text": "text1", 
+          "comment_id": 1111, 
+          "time": "2013-06-22 03:08", 
+          "headurl": "http://hdn.xnimg.cn/photos/hdn221/201/1850/tiny_dymK_ebf300.jpg", 
+          "uid": 2222
+        }, 
+        {
+          "name": "user3", 
+          "text": "text2", 
+          "comment_id": 3333, 
+          "time": "2013-06-22 03:32", 
+          "headurl": "http://hdn.xnimg.cn/photos/hdn121/201/0200/tiny_0PWo_ec0300.jpg", 
+          "uid": 4444
+        }
+      ]
+    }, 
+    "post_id": 22857088936, 
+    "feed_type": 10, 
+    "actor_type": "user", 
+    "likes": {
+      "friend_count": 0, 
+      "total_count": 0, 
+      "user_like": 0
+    }, 
+    "headurl": "http://hdn.xnimg.cn/photos/hdn121/201/0200/tiny_0PWo_ec03000.jpg", 
+    "actor_id": 55555
+  },
+  {
+    "update_time": "2013-06-23 00:14:31", 
+    "likes": {
+      "friend_count": 0, 
+      "total_count": 0, 
+      "user_like": 0
+    }, 
+    "name": "user5", 
+    "title": "title", 
+    "source": {
+      "text": "\u4eba\u4ebaiPhone", 
+      "href": "http://page.renren.com/600002551"
+    }, 
+    "prefix": "prefix", 
+    "comments": {
+      "count": 0
+    }, 
+    "post_id": 22867248591, 
+    "feed_type": 10, 
+    "actor_type": "user", 
+    "actor_id": 6666, 
+    "source_id": 7777, 
+    "message": "message", 
+    "headurl": "http://hdn.xnimg.cn/photos/hdn221/201/1425/tiny_MkMR_f94b0.jpg", 
+    "attachment": []
+  }
+]

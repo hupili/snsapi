@@ -32,7 +32,7 @@ fn_code="$tmp/auth.code"
 
 update_time=`stat $fn_code | grep "Modify" | sed -e 's/Modify: //g' -e 's/\.\d* //g' | xargs -i date -d"{}" +%s`
 if [[ $update_time < $last_request_time ]] ; then
-	echo "(null)"
+	echo "null"
 else 
 	cat $fn_code
 fi

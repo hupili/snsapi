@@ -11,11 +11,13 @@ It provides common authenticate and communicate methods.
 import webbrowser
 from utils import json
 import urllib
+import urllib2
 from errors import snserror
 import base64
 import urlparse
 import datetime
 import subprocess
+import functools
 
 # === snsapi modules ===
 import snstype
@@ -31,12 +33,16 @@ def require_authed(func):
     A decorator to require auth before an operation
 
     '''
+    @functools.wraps(func)
     def wrapper_require_authed(self, *al, **ad):
         if self.is_authed():
             return func(self, *al, **ad)
         else:
             logger.warning("Channel '%s' is not authed!", self.jsonconf['channel_name'])
             return 
+    doc_orig = func.__doc__ if func.__doc__ else ''
+    doc_new = doc_orig + '\n        **NOTE: This method require authorization before invokation.**'
+    wrapper_require_authed.__doc__ = doc_new
     return wrapper_require_authed
 
 
@@ -94,12 +100,45 @@ class SNSBase(object):
                     raise snserror.auth.fetchcode
             finally:
                 del self.httpd
-        else :
+        elif self.auth_info.cmd_fetch_code == "(authproxy_username_password)":
+            # Currently available for SinaWeibo. 
+            # Before using this method, please deploy one authproxy:
+            #    * https://github.com/xuanqinanhai/weibo-simulator/
+            # Or, you can use the official one:
+            #    * https://snsapi.ie.cuhk.edu.hk/authproxy/auth.php
+            # (Not recommended; only for test purpose; do not use in production)
+            try:
+                login_username = self.auth_info.login_username
+                login_password = self.auth_info.login_password
+                app_key = self.jsonconf.app_key
+                app_secret = self.jsonconf.app_secret
+                callback_url = self.auth_info.callback_url
+                authproxy_url = self.auth_info.authproxy_url
+                params = urllib.urlencode({'userid': login_username,
+                    'password': login_password, 'app_key': app_key,
+                    'app_secret': app_secret,'callback_uri': callback_url})
+                req = urllib2.Request(url=authproxy_url, data=params);
+                code = urllib2.urlopen(req).read()
+                logger.debug("response from authproxy: %s", code)
+                # Just to conform to previous SNSAPI convention
+                return "http://snsapi.snsapi/?code=%s" % code
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+                raise snserror.auth.fetchcode
+        elif self.auth_info.cmd_fetch_code == "(local_username_password)":
+            # Currently available for SinaWeibo. 
+            # The platform must implement _fetch_code_local_username_password() method
+            try:
+                return self._fetch_code_local_username_password()
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+                raise snserror.auth.fetchcode
+        else:  # Execute arbitrary command to fetch code
             cmd = "%s %s" % (self.auth_info.cmd_fetch_code, self.__last_request_time)
             logger.debug("fetch_code command is: %s", cmd) 
             ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).stdout.readline().rstrip()
             tries = 1 
-            while ret == "(null)" :
+            while str(ret) == "null" :
                 tries += 1
                 if tries > self.__fetch_code_max_try :
                     break
@@ -108,8 +147,12 @@ class SNSBase(object):
             return ret
 
     def request_url(self, url):
+        self._last_requested_url = url
         if self.auth_info.cmd_request_url == "(webbrowser)" :
             self.open_brower(url)
+        elif self.auth_info.cmd_request_url == "(dummy)" :
+            logger.debug("dummy method used for request_url(). Do nothing.")
+            pass
         elif self.auth_info.cmd_request_url == "(console_output)" :
             utils.console_output(url)
         elif self.auth_info.cmd_request_url == "(local_webserver)+(webbrowser)" :
@@ -123,7 +166,7 @@ class SNSBase(object):
                 self.open_brower(url)
             except socket.error:
                 raise snserror.auth
-        else :
+        else:  # Execute arbitrary command to request url
             self.__last_request_time = self.time()
             cmd = "%s '%s'" % (self.auth_info.cmd_request_url, url)
             logger.debug("request_url command is: %s", cmd) 
@@ -169,9 +212,9 @@ class SNSBase(object):
             self.__init_oauth2_client() 
             url = self.fetch_code() 
             logger.debug("get url: %s", url)
-            if url == "(null)" :
+            if str(url) == "null" :
                 raise snserror.auth
-            self.token = self.parseCode(url)
+            self.token = self._parse_code(url)
             self.token.update(self.auth_client.request_access_token(self.token.code))
             logger.debug("Authorized! access token is " + str(self.token))
             logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
@@ -214,27 +257,39 @@ class SNSBase(object):
     def open_brower(self, url):
         return webbrowser.open(url)
     
-    def parseCode(self, url):
+    def _parse_code(self, url):
         '''
-        .. py:function:: -
+        Parse code from a URL containing ``code=xx`` parameter
 
         :param url: 
-            contain code and openID
+            contain code and optionally other parameters
 
-        :return: JsonObject within code and openid
+        :return: JsonDict containing 'code' and (optional) other URL parameters
+
         '''
-        return utils.JsonObject(urlparse.parse_qsl(urlparse.urlparse(url).query))
+        return utils.JsonDict(urlparse.parse_qsl(urlparse.urlparse(url).query))
+
+    def _token_filename(self):
+        fname = self.auth_info.save_token_file
+        import os
+        if not os.path.isdir('.save'):
+            try: 
+                os.mkdir('.save')
+            except Exception as e:
+                logger.warning("Create token save dir '.save' failed. Do not use token save function. %s", e)
+                return None
+        if fname == "(default)":
+            fname = ".save/" + self.jsonconf.channel_name+".token.json"
+        return fname
 
     def save_token(self):
         '''
         access token can be saved, it stays valid for a couple of days
         if successfully saved, invoke get_saved_token() to get it back
         '''
-        fname = self.auth_info.save_token_file
-        if fname == "(default)" :
-            fname = self.jsonconf.channel_name+".token.save"
+        fname = self._token_filename()
         # Do not save expired token (or None type token)
-        if fname != "(null)" and not self.is_expired():
+        if not fname is None and not self.is_expired():
             #TODO: encrypt access token
             token = utils.JsonObject(self.token)
             with open(fname,"w") as fp:
@@ -244,10 +299,8 @@ class SNSBase(object):
             
     def get_saved_token(self):
         try:
-            fname = self.auth_info.save_token_file
-            if fname == "(default)" :
-                fname = self.jsonconf.channel_name+".token.save"
-            if fname != "(null)" :
+            fname = self._token_filename()
+            if not fname is None:
                 with open(fname, "r") as fp:
                     token = utils.JsonObject(json.load(fp))
                     # check expire time
@@ -271,10 +324,12 @@ class SNSBase(object):
         '''
         Calculate how long it is before token expire. 
 
-        Returns:
+        :return:
+
            * >0: the time in seconds. 
            * 0: has already expired. 
            * -1: there is no token expire issue for this platform. 
+
         '''
         if token == None:
             token = self.token
@@ -311,8 +366,18 @@ class SNSBase(object):
 
     def need_auth(self):
         '''
-        Whether this channel requires two-stage asynchronous auth. 
+        Whether this platform requires two-stage authorization.
+
+        Note:
+
+           * Some platforms have authorization flow but we do not use it,
+             e.g. Twitter, where we have a permanent key for developer
+             They'll return False.
+           * If your platform do need authorization, please override this
+             method in your subclass.
+
         '''
+
         return False
 
     @staticmethod
@@ -320,9 +385,10 @@ class SNSBase(object):
         '''
         Return a JsonDict object containing channel configurations. 
 
-        full:
-            False: only returns essential fields. 
-            True: returns all fields (essential + optional). 
+        :param full: Whether to return all config fields.
+
+           * False: only returns essential fields. 
+           * True: returns all fields (essential + optional). 
 
         '''
 
@@ -331,9 +397,16 @@ class SNSBase(object):
         c['open'] = 'yes'
 
         if full:
-            c['description'] = "a string for you to memorize"
-            # Defaultly enabled methods in SNSPocket batch operation
+            c['description'] = "A string for you to memorize this channel"
+            # Comma separated lists of method names. 
+            # Enabled those methods in SNSPocket batch operation by default.
+            # If all methods are enabled, remove this entry from your jsonconf.
             c['methods'] = "" 
+            # User identification may not be available on all platforms.
+            # The following two optional fields can be used by Apps, 
+            # e.g. filtering out all the messages "I" posted.
+            c['user_name'] = "Your Name on this channel (optional)"
+            c['user_id'] = "Your ID on this channel (optional)"
 
         return c
     
@@ -360,6 +433,17 @@ class SNSBase(object):
         self.jsonconf.app_secret = app_secret
 
     def _http_get(self, baseurl, params):
+        '''Use HTTP GET to request a JSON interface
+
+        :param baseurl: Base URL before parameters
+
+        :param params: a dict of params (can be unicode)
+
+        :return: 
+        
+           * Success: A JSON compatible structure
+           * Failure: A {}. Warning is logged. 
+        '''
         # Support unicode parameters. 
         # We should encode them as exchanging stream (e.g. utf-8)
         # before URL encoding and issue HTTP requests. 
@@ -377,6 +461,10 @@ class SNSBase(object):
             return {}
     
     def _http_post(self, baseurl, params):
+        '''Use HTTP POST to request a JSON interface. 
+
+        See ``_http_get`` for more info.
+        '''
         try:
             for p in params:
                 params[p] = self._unicode_encode(params[p])
@@ -397,7 +485,27 @@ class SNSBase(object):
         else:
             return s
     
-    def _cat(self, length, text_list):
+    def _expand_url(self, url):
+        '''
+        expand a shorten url
+        
+        :param url:
+            The url will be expanded if it is a short url, or it will
+            return the origin url string. url should contain the protocol
+            like "http://"
+        '''
+        try:
+            ex_url = urllib.urlopen(url)
+            if ex_url.url == url:
+                return ex_url.url
+            else:
+                return self._expand_url(ex_url.url)
+        except IOError, e:
+            # Deal with "service or name unknow" error
+            logger.warning('Error when expanding URL. Maybe invalid URL: %s', e)
+            return url
+
+    def _cat(self, length, text_list, delim = "||"):
         '''
         Concatenate strings. 
 
@@ -406,14 +514,12 @@ class SNSBase(object):
 
         :param text_list:
             A list of text pieces. Each element is a tuple (text, priority). 
-            The _cat function will concatenate the texts using the oder in 
+            The _cat function will concatenate the texts using the order in 
             text_list. If the output exceeds length, (part of) some texts 
             will be cut according to the priority. The lower priority one 
-            text is assigned, the earlier it will be cut. 
+            tuple is assigned, the earlier it will be cut. 
+
         '''
-        
-        delim = "||"
-        
         if length:
             order_list = zip(range(0, len(text_list)), text_list)
             order_list.sort(key = lambda tup: tup[1][1])
