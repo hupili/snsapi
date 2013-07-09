@@ -1,5 +1,5 @@
-SNSAPI 0.4.1
-====
+SNSAPI 0.5.0
+============
 
 Version string convention: `x.y.z`
 
@@ -7,8 +7,67 @@ Version string convention: `x.y.z`
    * `y`: Minor version with functional extension. 
    * `z`: Micro version with small fix. 
 
+0.5.0
+-----
+
+Main changes that may influence current running instances:
+
+   * Change default saved token path to `.save`
+   * Change old `(null)` notation. 
+   All are unified to `None` internal SNSApi.
+   Use `null` in JSON.
+   * Change default `RSS` message str style.
+
+Main functional upgrades:
+
+   * Google Reader takeout format to SNSApi channel conf converter
+   * New platform: `RSSSummary`. 
+   This can be used to format the RSS feeds with full-texts.
+   * Upgrade Twitter Api from 1.0 to 1.1.
+   * `RenrenStatus` specific forwarding is enabled.
+   * `forwarder` app is not more generic and flexible.
+
+Important fixes:
+
+   * Fix bad TZ object problem on some platforms.
+
+Miscellaneous:
+
+   * Upgrade main readme.
+   * A lot more wiki pages.
+   * SNSCLI code clean.
+   * Auto-doc upgrades.
+
+0.4.4
+-----
+
+   * Unify the Sina API request to `weibo_request()` method. 
+   * SinaWeibo support specialized forwarding. 
+   * Code clean for `snsgui.py`. 
+
+0.4.3
+-----
+
+   * URL expanding service (recursive) in SNSBase.
+   * URL shortening service for SinaWeibo.
+   * docstring upgrade for some platforms. 
+   * A word translation demo. 
+   * snsgui, GUI of SNSAPI built on Tkinter.
+
+0.4.2
+-----
+
+   * Two new methods for auto authorization prototyped for SinaWeiboStatus:
+   1) Use remote Autoproxy (see https://github.com/xuanqinanhai/weibo-simulator );
+   2) Use local username/password. 
+   * Upgrades for Sphinx autodoc:
+   1) improve decorator `require_authed` to retain docstring; 
+   2) make apps autodoc-able;
+   3) docstring upgrade to conform to Sphinx style;
+   * More UTs for snsbase methods: `_parse_code`; expiration check. 
+
 0.4.1
-----
+-----
 
    * Fix `load_config` in `app/hellosns/`
    * Email platform: check expire;
@@ -35,7 +94,7 @@ Version string convention: `x.y.z`
    * Change to nosetests. 
 
 0.3
-----
+---
 
    * Restructure nested Message class, allowing them to be pickled. 
    * Fault tolerant auth flow. 
@@ -49,7 +108,7 @@ Version string convention: `x.y.z`
    The texts in Message object is unified to have html entities unescaped. 
 
 0.2
-----
+---
 
    * New platform reference mechanism. 
    Support trial platforms. 
@@ -62,7 +121,7 @@ Version string convention: `x.y.z`
    * Add Twitter platform. 
 
 0.1
-----
+---
 
    * Initial framework. 
    * Setup website. 

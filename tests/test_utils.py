@@ -44,3 +44,6 @@ def nok_(v):
 
 def get_data(filename):
     return json.load(open(os.path.join(DIR_TEST_DATA, filename), 'r'))
+
+def get_str(filename):
+    return open(os.path.join(DIR_TEST_DATA, filename), 'r')

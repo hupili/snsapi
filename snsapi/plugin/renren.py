@@ -194,6 +194,7 @@ class RenrenBase(SNSBase):
             logger.warning("Catch exception: %s", e)
 
         if type(response) is not list and "error_code" in response:
+            logger.debug("params: %s", params) 
             logger.warning(response["error_msg"]) 
             raise RenrenAPIError(response["error_code"], response["error_msg"])
         return response
@@ -217,7 +218,7 @@ class RenrenShareMessage(snstype.Message):
         self.ID.status_id = dct["source_id"]
         self.ID.source_user_id = dct["actor_id"]
 
-        self.parsed.userid = dct['actor_id']
+        self.parsed.userid = str(dct['actor_id'])
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
 
@@ -378,7 +379,7 @@ class RenrenStatusMessage(snstype.Message):
         self.ID.status_id = dct["source_id"]
         self.ID.source_user_id = dct["actor_id"]
 
-        self.parsed.userid = dct['actor_id']
+        self.parsed.userid = str(dct['actor_id'])
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
         self.parsed.text = dct['message']
@@ -444,17 +445,21 @@ class RenrenStatus(RenrenBase):
         '''
 
         api_params = dict(method = "feed.get", type = 10, page = 1, count = count)
-        
-        statuslist = snstype.MessageList()
         try:
             jsonlist = self.renren_request(api_params)
-            for j in jsonlist:
+        except Exception as e:
+            logger.warning("catch expection: %s", e)
+            jsonlist = []
+        
+        statuslist = snstype.MessageList()
+        for j in jsonlist:
+            try:
                 statuslist.append(self.Message(j,\
                         platform = self.jsonconf['platform'],\
                         channel = self.jsonconf['channel_name']\
                         ))
-        except Exception, e:
-            logger.warning("catch expection:%s", e.message)
+            except Exception as e:
+                logger.warning("catch expection '%s' in parsing '%s'", e, j)
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf.channel_name)
         return statuslist
@@ -468,7 +473,7 @@ class RenrenStatus(RenrenBase):
 
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
-        api_params = dict(method = "status.set", status = text)
+        api_params = dict(method="status.set", status=text, place_id='RRAF04D95FA37892FFA88')
         
         try:
             ret = self.renren_request(api_params)
@@ -477,6 +482,7 @@ class RenrenStatus(RenrenBase):
                 return True
         except Exception, e:
             logger.warning("Catch Exception %s", e)
+            return False
 
         logger.info("Update status '%s' on '%s' fail", text, self.jsonconf.channel_name)
         return False
@@ -502,9 +508,65 @@ class RenrenStatus(RenrenBase):
                 return True
         except Exception, e:
             logger.warning("Catch Exception %s", e)
+            return False
 
         logger.info("Reply '%s' to status '%s' fail", text, statusID)
         return False
+
+    @require_authed
+    def forward(self, message, text):
+        '''
+        Forward a status on Renren: 
+
+           * If message is from the same platform, forward it 
+             using special interface. 
+           * Else, route the request
+             to a general forward method of ``SNSBase``.
+
+        :param message: 
+            An ``snstype.Message`` object to forward
+
+        :param text: 
+            Append comment text
+
+        :return: Success or not
+
+        '''
+        if not message.platform == self.platform:
+            return super(RenrenStatus, self).forward(message, text)
+        else:
+            mID = message.ID
+            decorated_text = text
+            return self._forward(mID, decorated_text)
+
+    @require_authed
+    def _forward(self, mID, text):
+        '''
+        Raw forward method
+
+           * Only support Renren message
+           * Use 'text' as exact comment sequence
+        '''
+        try:
+            api_params = {'method': 'status.forward',
+                    'status': text,
+                    'forward_owner': mID.source_user_id,
+                    'place_id': 'RRAF04D95FA37892FFA88',
+                    'forward_id': mID.status_id
+                    }
+            ret = self.renren_request(api_params)
+            if 'id' in ret:
+                # ret['id'] is the ID of new status
+                # X, their doc says the field name is 'result'...
+                return True
+            else:
+                logger.warning("'%s' forward status '%s' with comment '%s' fail. ret: %s",
+                        self.jsonconf.channel_name, mID, text, ret)
+                return False
+        except Exception as e:
+            logger.warning("'%s' forward status '%s' with comment '%s' fail: %s", 
+                    self.jsonconf.channel_name, mID, text, e)
+            return False
 
 class RenrenBlogMessage(snstype.Message):
 
@@ -523,9 +585,11 @@ class RenrenBlogMessage(snstype.Message):
         else:  #page
             self.ID.source_page_id = dct["actor_id"]
 
-        self.parsed.userid = dct['actor_id']
+        self.parsed.userid = str(dct['actor_id'])
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
+        # This is the news feed of blogs, so you can not get the body
+        self.parsed.description = dct['description']
         self.parsed.text = dct['description']
         self.parsed.title = dct['title']
 

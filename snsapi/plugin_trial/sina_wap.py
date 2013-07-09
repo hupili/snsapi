@@ -10,6 +10,7 @@ if __name__ == '__main__':
     import urllib
     import re
     import lxml.html
+    import time
     sys.path.append('..')
     from snslog import SNSLog as logger
     from snsbase import SNSBase, require_authed
@@ -22,6 +23,7 @@ else:
     import urllib
     import re
     import lxml.html
+    import time
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
@@ -43,6 +45,30 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         #    Check whether the fields conform to snsapi convention.
         #    http://snsapi.ie.cuhk.edu.hk/doc/snsapi.html#module-snsapi.snstype
         self.parsed.time = dct['time']
+        logger.debug('TIME:' + self.parsed.time)
+        if u'分钟前' in self.parsed.time:
+            self.parsed.time = time.time() - 60 * \
+                    int(self.parsed.time[0:self.parsed.time.find(u'分钟前')])
+        elif u'今天' in self.parsed.time:
+            minute, second = map(int, re.search('([0-9]*):([0-9]*)', self.parsed.time).groups())
+            today = time.gmtime(time.time() + 28800)
+            self.parsed.time = time.mktime(time.strptime("%04d-%02d-%02d %02d:%02d" % (
+                today.tm_year,
+                today.tm_mon,
+                today.tm_mday,
+                minute,
+                second), '%Y-%m-%d %H:%M')) - time.altzone - 28800
+        else:
+            minute, second = map(int, re.search('([0-9]*):([0-9]*)', self.parsed.time).groups())
+            month, day = map(int, re.search(u'([0-9]*)月([0-9]*)', self.parsed.time).groups())
+            today = time.gmtime(time.time() + 28800)
+            self.parsed.time = time.mktime(time.strptime("%04d-%02d-%02d %02d:%02d" % (
+                today.tm_year,
+                month,
+                day,
+                minute,
+                second), '%Y-%m-%d %H:%M')) - time.altzone - 28800
+
         self.parsed.username = dct['author']
         self.parsed.text = dct['text']
         self.parsed.comments_count = dct['comments_count']
@@ -84,24 +110,66 @@ class SinaWeiboWapStatus(SNSBase):
 
 
     def _get_weibo_homepage(self):
-        req = urllib2.Request('http://weibo.cn/?gsid=' + self.token['gsid'])
+        if self.token and 'gsid' in self.token:
+            gsid = self.token['gsid']
+        else:
+            gsid =  ''
+        req = urllib2.Request('http://weibo.cn/?gsid=' + gsid)
         req = self._process_req(req)
         m = urllib2.urlopen(req, timeout = 10).read()
         return m
+
+    def expire_after(self, token = None):
+        return -1
 
     def auth(self):
         if self.jsonconf['auth_by'] == 'gsid':
             self.token['gsid'] = self.jsonconf['gsid']
         elif self.jsonconf['auth_by'] == 'userpass':
-            req = urllib2.Request('http://weibo.cn/dpool/ttt/login.php')
+            show_verification = False
+            verification_code = ''
+            req = urllib2.Request('http://login.weibo.cn/login/?vt=4&revalid=2&ns=1&pt=1')
             req = self._process_req(req)
-            data = {'uname' : self.jsonconf['username'], 'pwd': self.jsonconf['password'],
-                    'l' : '', 'scookie' : 'on', 'submit' : '登录'}
-            data = urllib.urlencode(data)
-            response = urllib2.urlopen(req, data, timeout = 10)
+            response = urllib2.urlopen(req, timeout = 10)
             p = response.read()
-            final_url = response.geturl()
-            self.token = {'gsid' :  final_url[final_url.find('=') + 1:]}
+            while True:
+                req = urllib2.Request('http://login.weibo.cn/login/?rand=' + (re.search("rand=([0-9]*)", p).group(1) )+ '&backURL=http%3A%2F%2Fweibo.cn&backTitle=%E6%89%8B%E6%9C%BA%E6%96%B0%E6%B5%AA%E7%BD%91&vt=4&revalid=2&ns=1')
+                data = {'mobile': self.jsonconf['username'],
+                        'password_%s' % (re.search('name="password_([0-9]*)"', p).group(1)): self.jsonconf['password'],
+                        'backURL': 'http%3A%2F%2Fweibo.cn',
+                        'backTitle': '手机新浪网',
+                        'tryCount': '',
+                        'vk': re.search('name="vk" value="([^"]*)"', p).group(1),
+                        'submit' : '登录'}
+                if show_verification:
+                    data['code'] = verification_code
+                    data['capId'] = re.search('name="capId" value="([^"]*)"', p).group(1)
+                    show_verification = False
+                req = self._process_req(req)
+                data = urllib.urlencode(data)
+                response = urllib2.urlopen(req, data, timeout = 10)
+                p = response.read()
+                final_url = response.geturl()
+                if 'newlogin' in final_url:
+                    final_gsid = re.search('g=([^&]*)', final_url).group(1)
+                    self.token = {'gsid' :  final_gsid}
+                    break
+                elif '验证码' in p:
+                    err_msg = re.search('class="me">([^>]*)<', p).group(1)
+                    if '请输入图片中的字符' in p:
+                        captcha_url = re.search(r'"([^"]*captcha[^"]*)', p).group(1)
+                        show_verification = True
+                        import Image
+                        import StringIO
+                        ss = urllib2.urlopen(captcha_url, timeout=10).read()
+                        sss = StringIO.StringIO(ss)
+                        img = Image.open(sss)
+                        img.show()
+                        verification_code = raw_input(err_msg)
+                else:
+                    err_msg = re.search('class="me">([^>]*)<', p).group(1)
+                    logger.warning(err_msg)
+                    break
         else:
             return False
         return self.is_authed()
@@ -117,7 +185,6 @@ class SinaWeiboWapStatus(SNSBase):
             # Already expired
             return 0
 
-    @require_authed
     def _get_uid_by_pageurl(self, url, type='num'):
         if url[0:len('http://weibo.cn')] == 'http://weibo.cn':
             url = url[len('http://weibo.cn'):]
@@ -131,7 +198,6 @@ class SinaWeiboWapStatus(SNSBase):
         elif type == 'path':
             return re.search(r'\/([^?]*)\?', url).group(1)
 
-    @require_authed
     def _get_weibo(self, page = 1):
         #FIXME: 获取转发和评论数应该修改为分析DOM而不是正则表达式（以免与内容重复）
         #FIXME: 对于转发的微博，原微博信息不足
@@ -170,7 +236,7 @@ class SinaWeiboWapStatus(SNSBase):
                         weibo['orig']['comments_count'] = int(zf.group(2))
                         weibo['orig']['reposts_count'] = int(zf.group(3))
                 else:
-                    weibo = {'author' : i.find_class('nk')[0].text, 
+                    weibo = {'author' : i.find_class('nk')[0].text,
                             'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
                             'text': i.find_class('ctt')[0].text_content(),
                             'id': i.get('id')[2:],

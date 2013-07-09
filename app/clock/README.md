@@ -97,7 +97,7 @@ http://localhost:11111/auth/second/?code=b5ae这里是一串授权代码c827db
    * 编写更复杂的钟逻辑。
    写好后我可以把链接加在这里，
    方便他人寻找更多的样例。
-   * 去[snsapi网站](https://snsapi.ie.cuhk.edu.hk/)
+   * 去[snsapi网站](http://snsapi.ie.cuhk.edu.hk/)
    阅读snsapi入门材料。
    * 遇到问题？发
    [issue](https://github.com/hupili/snsapi/issues?state=open)。
@@ -115,7 +115,7 @@ http://localhost:11111/auth/second/?code=b5ae这里是一串授权代码c827db
 需要直接query ajax接口吗？（模拟浏览器）；
 ……。
 
-[snsapi](https://snsapi.ie.cuhk.edu.hk/)
+[snsapi](http://snsapi.ie.cuhk.edu.hk/)
 对常用的操作进行了封装，
 使得一处编码可以适用多个平台。
 面向snsapi这套中间件的app，可以很容易迁移。
