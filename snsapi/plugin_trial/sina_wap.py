@@ -174,7 +174,6 @@ class SinaWeiboWapStatus(SNSBase):
         return '<input type="submit" value="发布" />' in self._get_weibo_homepage()
 
 
-    @require_authed
     def _get_uid_by_pageurl(self, url, type='num'):
         if url[0:len('http://weibo.cn')] == 'http://weibo.cn':
             url = url[len('http://weibo.cn'):]
@@ -188,7 +187,6 @@ class SinaWeiboWapStatus(SNSBase):
         elif type == 'path':
             return re.search(r'\/([^?]*)\?', url).group(1)
 
-    @require_authed
     def _get_weibo(self, page = 1):
         #FIXME: 获取转发和评论数应该修改为分析DOM而不是正则表达式（以免与内容重复）
         #FIXME: 对于转发的微博，原微博信息不足
