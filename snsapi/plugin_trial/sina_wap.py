@@ -134,8 +134,8 @@ class SinaWeiboWapStatus(SNSBase):
             p = response.read()
             while True:
                 req = urllib2.Request('http://login.weibo.cn/login/?rand=' + (re.search("rand=([0-9]*)", p).group(1) )+ '&backURL=http%3A%2F%2Fweibo.cn&backTitle=%E6%89%8B%E6%9C%BA%E6%96%B0%E6%B5%AA%E7%BD%91&vt=4&revalid=2&ns=1')
-                data = {'mobile': self.jsonconf['username'],
-                        'password_%s' % (re.search('name="password_([0-9]*)"', p).group(1)): self.jsonconf['password'],
+                data = {'mobile': self.auth_info['login_username'],
+                        'password_%s' % (re.search('name="password_([0-9]*)"', p).group(1)): self.auth_info['login_password'],
                         'backURL': 'http%3A%2F%2Fweibo.cn',
                         'backTitle': '手机新浪网',
                         'tryCount': '',
@@ -310,11 +310,15 @@ if __name__ == '__main__':
         # Else, we let you input from console
         import getpass
         sina_conf = SinaWeiboWapStatus.new_channel()
-        sina_conf['auth_by'] = 'userpass'
         sina_conf['channel_name'] = 'demo_channel'
+        sina_conf['auth_by'] = 'userpass'
         print 'Username:' ,
-        sina_conf['username'] = raw_input().strip()
-        sina_conf['password'] = getpass.getpass()
+        _username = raw_input().strip()
+        _password = getpass.getpass()
+        sina_conf['auth_info'] = {
+                'login_username': _username,
+                'login_password': _password
+                }
         sina_conf['uidtype'] = 'path'
         print sina_conf
 
