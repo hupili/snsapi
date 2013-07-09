@@ -7,3 +7,4 @@
 from sqlite import SQLite
 from twitter import TwitterStatus
 from emails import Email
+from sina_wap import SinaWeiboWapStatus
