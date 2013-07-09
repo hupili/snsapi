@@ -315,6 +315,7 @@ if __name__ == '__main__':
         print 'Username:' ,
         sina_conf['username'] = raw_input().strip()
         sina_conf['password'] = getpass.getpass()
+        sina_conf['uidtype'] = 'path'
         print sina_conf
 
     sina = SinaWeiboWapStatus(sina_conf)
