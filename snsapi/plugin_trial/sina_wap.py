@@ -10,6 +10,7 @@ if __name__ == '__main__':
     import urllib
     import re
     import lxml.html
+    import time
     sys.path.append('..')
     from snslog import SNSLog as logger
     from snsbase import SNSBase, require_authed
@@ -22,6 +23,7 @@ else:
     import urllib
     import re
     import lxml.html
+    import time
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
@@ -40,6 +42,29 @@ class SinaWeiboWapStatusMessage(snstype.Message):
 
     def _parse(self, dct):
         self.parsed.time = dct['time']
+        if u'分钟前' in self.parsed.time:
+            self.parsed.time = time.time() - 60 * \
+                    int(self.parsed.time[0:self.parsed.time.find(u'分钟前')])
+        elif u'今天' in self.parsed.time:
+            minute, second = map(int, re.search('([0-9]*):([0-9]*)', self.parsed.time).groups())
+            today = time.gmtime(time.time() + 28800)
+            self.parsed.time = time.mktime(time.strptime("%04d-%02d-%02d %02d:%02d" % (
+                today.tm_year,
+                today.tm_mon,
+                today_tm_mday,
+                minute,
+                second))) - time.altzone - 28800
+        else:
+            minute, second = map(int, re.search('([0-9]*):([0-9]*)', self.parsed.time).groups())
+            month, day = map(int, re.search(u'([0-9]*)月([0-9]*)', self.parsed.time).groups())
+            today = time.gmtime(time.time() + 28800)
+            self.parsed.time = time.mktime(time.strptime("%04d-%02d-%02d %02d:%02d" % (
+                today.tm_year,
+                month,
+                day,
+                minute,
+                second))) - time.altzone - 28800
+
         self.parsed.username = dct['author']
         self.parsed.text = dct['text']
         self.parsed.comments_count = dct['comments_count']
@@ -90,6 +115,9 @@ class SinaWeiboWapStatus(SNSBase):
         m = urllib2.urlopen(req, timeout = 10).read()
         return m
 
+    def expire_after(self, token = None):
+        return -1
+
     def auth(self):
         if self.jsonconf['auth_by'] == 'gsid':
             self.token['gsid'] = self.jsonconf['gsid']
@@ -122,6 +150,7 @@ class SinaWeiboWapStatus(SNSBase):
                 if 'newlogin' in final_url:
                     final_gsid = re.search('g=([^&]*)', final_url).group(1)
                     self.token = {'gsid' :  final_gsid}
+                    break
                 elif '验证码' in p:
                     err_msg = re.search('class="me">([^>]*)<', p).group(1)
                     if '请输入图片中的字符' in p:
