@@ -327,6 +327,8 @@ class AuthenticationInfo(utils.JsonObject):
             self.cmd_fetch_code = "(default)"
             self.cmd_request_url = "(default)"
             self.save_token_file = "(default)"
+            self.login_username = None
+            self.login_password = None
 
     def set_defaults(self):
         DEFAULT_MAPPING = {
