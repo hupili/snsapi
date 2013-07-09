@@ -109,8 +109,10 @@ class SinaWeiboWapStatus(SNSBase):
         return req
 
 
-    def _get_weibo_homepage(self):
-        if self.token and 'gsid' in self.token:
+    def _get_weibo_homepage(self, token = None):
+        if token:
+            gsid = token['gsid']
+        elif self.token and 'gsid' in self.token:
             gsid = self.token['gsid']
         else:
             gsid =  ''
@@ -118,12 +120,6 @@ class SinaWeiboWapStatus(SNSBase):
         req = self._process_req(req)
         m = urllib2.urlopen(req, timeout = 10).read()
         return m
-
-    def expire_after(self, token = None):
-        if self.is_authed():
-            return -1
-        else:
-            return 0
 
     def auth(self):
         if self.get_saved_token():
@@ -182,15 +178,13 @@ class SinaWeiboWapStatus(SNSBase):
             self.save_token()
         return res
 
-    #def is_authed(self):
-    #    return '<input type="submit" value="发布" />' in self._get_weibo_homepage()
+    def is_authed(self, token = None):
+        return '<input type="submit" value="发布" />' in self._get_weibo_homepage(token)
 
     def expire_after(self, token = None):
-        if '<input type="submit" value="发布" />' in self._get_weibo_homepage():
-            # No expiration issue
+        if self.is_authed(token):
             return -1
         else:
-            # Already expired
             return 0
 
     def _get_uid_by_pageurl(self, url, type='num'):
