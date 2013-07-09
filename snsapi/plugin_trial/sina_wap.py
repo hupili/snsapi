@@ -42,6 +42,7 @@ class SinaWeiboWapStatusMessage(snstype.Message):
 
     def _parse(self, dct):
         self.parsed.time = dct['time']
+        logger.debug('TIME:' + self.parsed.time)
         if u'分钟前' in self.parsed.time:
             self.parsed.time = time.time() - 60 * \
                     int(self.parsed.time[0:self.parsed.time.find(u'分钟前')])
