@@ -81,7 +81,11 @@ class SinaWeiboWapStatus(SNSBase):
 
 
     def _get_weibo_homepage(self):
-        req = urllib2.Request('http://weibo.cn/?gsid=' + self.token['gsid'])
+        if self.token and 'gsid' in self.token:
+            gsid = self.token['gsid']
+        else:
+            gsid =  ''
+        req = urllib2.Request('http://weibo.cn/?gsid=' + gsid)
         req = self._process_req(req)
         m = urllib2.urlopen(req, timeout = 10).read()
         return m
@@ -90,25 +94,48 @@ class SinaWeiboWapStatus(SNSBase):
         if self.jsonconf['auth_by'] == 'gsid':
             self.token['gsid'] = self.jsonconf['gsid']
         elif self.jsonconf['auth_by'] == 'userpass':
+            show_verification = False
+            verification_code = ''
             req = urllib2.Request('http://login.weibo.cn/login/?vt=4&revalid=2&ns=1&pt=1')
             req = self._process_req(req)
             response = urllib2.urlopen(req, timeout = 10)
             p = response.read()
-            req = urllib2.Request('http://login.weibo.cn/login/?rand=' + (re.search("rand=([0-9]*)", p).group(1) )+ '&backURL=http%3A%2F%2Fweibo.cn&backTitle=%E6%89%8B%E6%9C%BA%E6%96%B0%E6%B5%AA%E7%BD%91&vt=4&revalid=2&ns=1')
-            data = {'mobile': self.jsonconf['username'],
-                    'password_%s' % (re.search('name="password_([0-9]*)"', p).group(1)): self.jsonconf['password'],
-                    'backURL': 'http%3A%2F%2Fweibo.cn',
-                    'backTitle': '手机新浪网',
-                    'tryCount': '',
-                    'vk': re.search('name="vk" value="([^"]*)"', p).group(1),
-                    'submit' : '登录'}
-            req = self._process_req(req)
-            data = urllib.urlencode(data)
-            response = urllib2.urlopen(req, data, timeout = 10)
-            p = response.read()
-            final_url = response.geturl()
-            final_gsid = re.search('g=([^&]*)', final_url).group(1)
-            self.token = {'gsid' :  final_gsid}
+            while True:
+                req = urllib2.Request('http://login.weibo.cn/login/?rand=' + (re.search("rand=([0-9]*)", p).group(1) )+ '&backURL=http%3A%2F%2Fweibo.cn&backTitle=%E6%89%8B%E6%9C%BA%E6%96%B0%E6%B5%AA%E7%BD%91&vt=4&revalid=2&ns=1')
+                data = {'mobile': self.jsonconf['username'],
+                        'password_%s' % (re.search('name="password_([0-9]*)"', p).group(1)): self.jsonconf['password'],
+                        'backURL': 'http%3A%2F%2Fweibo.cn',
+                        'backTitle': '手机新浪网',
+                        'tryCount': '',
+                        'vk': re.search('name="vk" value="([^"]*)"', p).group(1),
+                        'submit' : '登录'}
+                if show_verification:
+                    data['code'] = verification_code
+                    data['capId'] = re.search('name="capId" value="([^"]*)"', p).group(1)
+                    show_verification = False
+                req = self._process_req(req)
+                data = urllib.urlencode(data)
+                response = urllib2.urlopen(req, data, timeout = 10)
+                p = response.read()
+                final_url = response.geturl()
+                err_msg = ''
+                if 'newlogin' in final_url:
+                    final_gsid = re.search('g=([^&]*)', final_url).group(1)
+                    self.token = {'gsid' :  final_gsid}
+                elif '验证码' in p:
+                    err_msg = re.search('class="me">([^>]*)<', p).group(1)
+                    if '请输入图片中的字符' in p:
+                        captcha_url = re.search(r'"([^"]*captcha[^"]*)', p).group(1)
+                        show_verification = True
+                        import Image
+                        import StringIO
+                        ss = urllib2.urlopen(captcha_url, timeout=10).read()
+                        sss = StringIO.StringIO(ss)
+                        img = Image.open(sss)
+                        img.show()
+                        verification_code = raw_input(err_msg)
+                else:
+                    break
         else:
             return False
         return self.is_authed()
