@@ -1,7 +1,7 @@
 #-*- encoding: utf-8 -*-
 
 '''
-Sina Weibo client
+Sina Weibo Wap client
 '''
 
 if __name__ == '__main__':
@@ -178,11 +178,18 @@ class SinaWeiboWapStatus(SNSBase):
             self.save_token()
         return res
 
-    def is_authed(self, token = None):
+    def _is_authed(self, token = None):
+        '''
+        ``is_authed`` is an ``SNSBase`` general method. 
+        It invokes platform specific ``expire_after`` to 
+        determine whether this platform is authed.
+
+        Rename this method.
+        '''
         return '<input type="submit" value="发布" />' in self._get_weibo_homepage(token)
 
     def expire_after(self, token = None):
-        if self.is_authed(token):
+        if self._is_authed(token):
             return -1
         else:
             return 0
