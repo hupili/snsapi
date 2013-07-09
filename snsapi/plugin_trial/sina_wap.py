@@ -126,6 +126,8 @@ class SinaWeiboWapStatus(SNSBase):
             return 0
 
     def auth(self):
+        if self.get_saved_token():
+            return self.is_authed()
         if self.jsonconf['auth_by'] == 'gsid':
             self.token['gsid'] = self.jsonconf['gsid']
         elif self.jsonconf['auth_by'] == 'userpass':
@@ -175,7 +177,10 @@ class SinaWeiboWapStatus(SNSBase):
                     break
         else:
             return False
-        return self.is_authed()
+        res = self.is_authed()
+        if res:
+            self.save_token()
+        return res
 
     #def is_authed(self):
     #    return '<input type="submit" value="发布" />' in self._get_weibo_homepage()
