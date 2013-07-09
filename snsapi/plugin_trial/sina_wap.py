@@ -117,7 +117,10 @@ class SinaWeiboWapStatus(SNSBase):
         return m
 
     def expire_after(self, token = None):
-        return -1
+        if self.is_authed():
+            return -1
+        else:
+            return 0
 
     def auth(self):
         if self.jsonconf['auth_by'] == 'gsid':
