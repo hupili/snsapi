@@ -90,15 +90,25 @@ class SinaWeiboWapStatus(SNSBase):
         if self.jsonconf['auth_by'] == 'gsid':
             self.token['gsid'] = self.jsonconf['gsid']
         elif self.jsonconf['auth_by'] == 'userpass':
-            req = urllib2.Request('http://weibo.cn/dpool/ttt/login.php')
+            req = urllib2.Request('http://login.weibo.cn/login/?vt=4&revalid=2&ns=1&pt=1')
             req = self._process_req(req)
-            data = {'uname' : self.jsonconf['username'], 'pwd': self.jsonconf['password'],
-                    'l' : '', 'scookie' : 'on', 'submit' : '登录'}
+            response = urllib2.urlopen(req, timeout = 10)
+            p = response.read()
+            req = urllib2.Request('http://login.weibo.cn/login/?rand=' + (re.search("rand=([0-9]*)", p).group(1) )+ '&backURL=http%3A%2F%2Fweibo.cn&backTitle=%E6%89%8B%E6%9C%BA%E6%96%B0%E6%B5%AA%E7%BD%91&vt=4&revalid=2&ns=1')
+            data = {'mobile': self.jsonconf['username'],
+                    'password_%s' % (re.search('name="password_([0-9]*)"', p).group(1)): self.jsonconf['password'],
+                    'backURL': 'http%3A%2F%2Fweibo.cn',
+                    'backTitle': '手机新浪网',
+                    'tryCount': '',
+                    'vk': re.search('name="vk" value="([^"]*)"', p).group(1),
+                    'submit' : '登录'}
+            req = self._process_req(req)
             data = urllib.urlencode(data)
             response = urllib2.urlopen(req, data, timeout = 10)
             p = response.read()
             final_url = response.geturl()
-            self.token = {'gsid' :  final_url[final_url.find('=') + 1:]}
+            final_gsid = re.search('g=([^&]*)', final_url).group(1)
+            self.token = {'gsid' :  final_gsid}
         else:
             return False
         return self.is_authed()
@@ -160,7 +170,7 @@ class SinaWeiboWapStatus(SNSBase):
                         weibo['orig']['comments_count'] = int(zf.group(2))
                         weibo['orig']['reposts_count'] = int(zf.group(3))
                 else:
-                    weibo = {'author' : i.find_class('nk')[0].text, 
+                    weibo = {'author' : i.find_class('nk')[0].text,
                             'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
                             'text': i.find_class('ctt')[0].text_content(),
                             'id': i.get('id')[2:],
