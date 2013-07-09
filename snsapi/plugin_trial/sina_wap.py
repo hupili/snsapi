@@ -51,9 +51,9 @@ class SinaWeiboWapStatusMessage(snstype.Message):
             self.parsed.time = time.mktime(time.strptime("%04d-%02d-%02d %02d:%02d" % (
                 today.tm_year,
                 today.tm_mon,
-                today_tm_mday,
+                today.tm_mday,
                 minute,
-                second))) - time.altzone - 28800
+                second), '%Y-%m-%d %H:%M')) - time.altzone - 28800
         else:
             minute, second = map(int, re.search('([0-9]*):([0-9]*)', self.parsed.time).groups())
             month, day = map(int, re.search(u'([0-9]*)月([0-9]*)', self.parsed.time).groups())
@@ -63,7 +63,7 @@ class SinaWeiboWapStatusMessage(snstype.Message):
                 month,
                 day,
                 minute,
-                second))) - time.altzone - 28800
+                second), '%Y-%m-%d %H:%M')) - time.altzone - 28800
 
         self.parsed.username = dct['author']
         self.parsed.text = dct['text']
@@ -146,7 +146,6 @@ class SinaWeiboWapStatus(SNSBase):
                 response = urllib2.urlopen(req, data, timeout = 10)
                 p = response.read()
                 final_url = response.geturl()
-                err_msg = ''
                 if 'newlogin' in final_url:
                     final_gsid = re.search('g=([^&]*)', final_url).group(1)
                     self.token = {'gsid' :  final_gsid}
@@ -164,6 +163,8 @@ class SinaWeiboWapStatus(SNSBase):
                         img.show()
                         verification_code = raw_input(err_msg)
                 else:
+                    err_msg = re.search('class="me">([^>]*)<', p).group(1)
+                    logger.warning(err_msg)
                     break
         else:
             return False
