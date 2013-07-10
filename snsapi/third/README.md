@@ -11,6 +11,9 @@ information missing, please refer to original
 releases. 
 
 We leave a pointer for each library:
+
+   * 'facebook.py'. 
+   [https://github.com/pythonforfacebook/facebook-sdk](https://github.com/pythonforfacebook/facebook-sdk)
    * 'feedparser.py'. 
    [http://code.google.com/p/feedparser/](http://code.google.com/p/feedparser/)
    * 'PyRSS2Gen.py'. 
