@@ -61,12 +61,13 @@ class FacebookFeed(SNSBase):
         if self.get_saved_token():
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             return True
-        if self.is_authed(self.jsonconf['access_token']):
+        if self._is_authed(self.jsonconf['access_token']):
             self.token = {'access_token': self.jsonconf['access_token']}
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             self.save_token()
             return True
         else:
+            logger.debug('auth failed')
             return False
 
     @require_authed
@@ -102,7 +103,7 @@ class FacebookFeed(SNSBase):
             logger.warning('update Facebook failed: %s', str(e))
             return False
 
-    def is_authed(self, token=None):
+    def _is_authed(self, token=None):
         orig_token = token
         if token == None and 'access_token' in self.token:
             token = self.token['access_token']
@@ -126,7 +127,7 @@ class FacebookFeed(SNSBase):
             token = token['access_token']
         else:
             token = None
-        if self.is_authed(token):
+        if self._is_authed(token):
             return -1
         else:
             return 0
