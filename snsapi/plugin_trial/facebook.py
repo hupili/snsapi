@@ -49,28 +49,56 @@ class FacebookFeed(SNSBase):
 
         c['platform'] = 'FacebookFeed'
         c['access_token'] = ''
-        c['app_id'] = ''
+        # The client_id in FB's term
         c['app_key'] = ''
-        c['redirect_uri'] = ''
+        c['app_secret'] = ''
+
+        c['auth_info'] = {
+                "save_token_file": "(default)", 
+                "cmd_request_url": "(console_output)", 
+                "callback_url": "http://snsapi.sinaapp.com/auth.php", 
+                "cmd_fetch_code": "(console_input)" 
+                } 
 
         return c
 
     def read_channel(self, channel):
         super(FacebookFeed, self).read_channel(channel)
 
-    def _do_auth(self):
+    def auth_first(self):
         url = "https://www.facebook.com/dialog/oauth?client_id=" + \
-                self.jsonconf['app_id'] + \
+                self.jsonconf['app_key'] + \
                 "&redirect_uri=" + \
-                self.jsonconf['redirect_uri'] + \
+                self.auth_info['callback_url'] + \
                 "&response_type=token&scope=read_stream,publish_stream"
-        console_output("Please open " + url + '\n')
-        console_output("Please input token: ")
-        self.token = {'access_token' : self.console_input().strip(),
-                      'expires' : -1}
+        #console_output("Please open " + url + '\n')
+        #console_output("Please input token: ")
+        self.request_url(url)
+
+    def auth_second(self):
+        #TODO:
+        #    Find a way to get the code in parameters, not in URL fragmentation
+        url = self.fetch_code()
+        url = url.replace('#', '?')
+        self.token = self._parse_code(url)
+        self.token.expires_in = int(int(self.token.expires_in) + time.time())
+        #self.token = {'access_token' : self.fetch_code(),
+        #              'expires_in' : -1}
         self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
+
+    def _do_oauth(self):
+        '''
+        The two-stage OAuth 
+        '''
+        self.auth_first()
+        self.auth_second()
         if self._is_authed():
             self.save_token()
+            return True
+        else:
+            logger.info("OAuth channel '%s' on Facebook fail", self.jsonconf.channel_name)
+            return False
+
 
     def auth(self):
         #FIXME: This is not a real authentication, just refresh token, and save
@@ -78,12 +106,12 @@ class FacebookFeed(SNSBase):
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             return True
         if self.jsonconf['access_token'] and self._is_authed(self.jsonconf['access_token']):
-            self.token = {'access_token': self.jsonconf['access_token'], 'expires' : -1}
+            self.token = {'access_token': self.jsonconf['access_token'], 'expires_in' : -1}
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             self.save_token()
             return True
         elif 'access_token' not in self.jsonconf or not self.jsonconf['access_token']:
-            self._do_auth()
+            return self._do_oauth()
         else:
             logger.debug('auth failed')
             return False
@@ -132,21 +160,22 @@ class FacebookFeed(SNSBase):
         t = facebook.GraphAPI(access_token=token)
         try:
             res = t.request('me/')
-            if orig_token == None and self.jsonconf['app_secret'] and self.jsonconf['app_id'] and (self.token['expires'] - time.time() < 600):
+            if orig_token == None and self.jsonconf['app_secret'] and self.jsonconf['app_key'] and (self.token['expires_in'] - time.time() < 600):
                 logger.debug("refreshing token")
                 try:
-                    res = t.extend_access_token(self.jsonconf['app_id'], self.jsonconf['app_secret'])
-                    logger.debug("new token expires in %s" % (res['expires']))
+                    res = t.extend_access_token(self.jsonconf['app_key'], self.jsonconf['app_secret'])
+                    logger.debug("new token expires in %s" % (res['expires_in']))
                     self.token['access_token'] = res['access_token']
-                    if 'expires' in res:
-                        self.token['expires'] = int(res['expires']) + time.time()
+                    if 'expires_in' in res:
+                        self.token['expires_in'] = int(res['expires_in']) + time.time()
                     else:
-                        self.token['expires'] = -1
+                        self.token['expires_in'] = -1
                     self.graph.access_token = res['access_token']
                 except Exception, ei:
                     logger.warning("Refreshing token failed: %s", ei)
             return True
-        except:
+        except Exception, e:
+            logger.warning("Catch Exception: %s", e)
             return False
 
     def expire_after(self, token = None):
@@ -156,8 +185,8 @@ class FacebookFeed(SNSBase):
         else:
             token = None
         if self._is_authed(token):
-            if 'expires' in self.token:
-                return self.token['expires']
+            if 'expires_in' in self.token:
+                return self.token['expires_in']
             else:
                 return -1
         else:

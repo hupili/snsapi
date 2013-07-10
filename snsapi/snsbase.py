@@ -262,7 +262,7 @@ class SNSBase(object):
         :param url: 
             contain code and optionally other parameters
 
-        :return: JsonDict containing 'code' and (optional) other URL parameters
+        :return: JsonDict containing 'code' and **(optional) other URL parameters**
 
         '''
         return utils.JsonDict(urlparse.parse_qsl(urlparse.urlparse(url).query))
