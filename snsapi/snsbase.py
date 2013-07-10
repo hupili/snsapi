@@ -60,8 +60,6 @@ class SNSBase(object):
         self.time = lambda : time.time()
         self.console_input = lambda : utils.console_input()
         self.console_output = lambda : utils.console_output()
-        #self.utc2str = lambda u: utils.utc2str(u)
-        #self.str2utc = lambda s: utils.str2utc(s)
         self._urlencode = lambda params : urllib.urlencode(params)
         
         # We can not init the auth client here. 
@@ -407,6 +405,7 @@ class SNSBase(object):
             # e.g. filtering out all the messages "I" posted.
             c['user_name'] = "Your Name on this channel (optional)"
             c['user_id'] = "Your ID on this channel (optional)"
+            c['text_length_limit'] = None
 
         return c
     
@@ -421,9 +420,6 @@ class SNSBase(object):
             self.auth_info['host'] = 'localhost'
         if not 'port' in self.auth_info:
             self.auth_info['port'] = 12121
-
-        #if not 'text_length_limit' in self.jsonconf:
-        #    self.jsonconf['text_length_limit'] = 140
 
     def setup_oauth_key(self, app_key, app_secret):
         '''
@@ -594,11 +590,6 @@ class SNSBase(object):
         tll = None
         if 'text_length_limit' in self.jsonconf:
             tll = self.jsonconf['text_length_limit']
-        #orig_text = "[%s:%s][%s]%s" % (message.platform, message.parsed.username, \
-        #        utils.utc2str(message.parsed.time), message.parsed.text)
-        #if 'platform_prefix' in self.jsonconf:
-        #    platform_prefix = self.jsonconf['platform_prefix']
-        #else:
 
         #TODO:
         #    This mapping had better be configurable from user side
@@ -635,5 +626,4 @@ class SNSBase(object):
             final = self._cat(tll, [(text, 3), (last_user, 2),\
                     (unicode(message.parsed.text), 1)])
        
-        #print final
         return self.update(final)

@@ -125,10 +125,6 @@ class RenrenBase(SNSBase):
         '''
 
         try:
-            #TODO:
-            #    The name 'fetch_code' is not self-explained.
-            #    It actually fetches the authenticated callback_url.
-            #    Code is parsed from this url. 
             url = self.fetch_code()
             self.token = self._parse_code(url)
             args = dict(client_id=self.jsonconf.app_key, redirect_uri = self.auth_info.callback_url)
