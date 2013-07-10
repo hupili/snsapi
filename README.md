@@ -1,6 +1,13 @@
 # SNSAPI
 
-A cross-platform middleware for Social Networking Services (SNS).
+A cross-platform **middleware** for Social Networking Services (SNS):
+
+   * Unified interfaces and data structures.
+   * The building block of a **user-centric**
+   [meta social network](https://github.com/hupili/snsapi/wiki/Taxonomy).
+   * Near-zero infrastructure [requirements](https://github.com/hupili/snsapi/wiki/Installation).
+   * Play with your social channels 
+   [like a hacker](http://snsapi.ie.cuhk.edu.hk/).
 
 ## Lightning Demo 1 -- Read Twitter Timeline
 
@@ -113,6 +120,32 @@ Now, try to build something without worrying about the interfacing detials.
 
 See [RSoc Community Page](https://github.com/hupili/snsapi/wiki/Rsoc) if you are interested.
 
+## Supported Platforms
+
+Enther the interactive shell by  `python -i snscli.py`.
+Get the supported platforms as follows:
+
+```
+>>> lsp()
+
+Supported platforms:
+   * Email
+   * RSS
+   * RSS2RW
+   * RSSSummary
+   * RenrenBlog
+   * RenrenShare
+   * RenrenStatus
+   * SQLite
+   * SinaWeiboStatus
+   * TencentWeiboStatus
+   * TwitterStatus
+   ...
+```
+
+More platforms are coming!
+Please join us!
+
 ## Get Started
 
    * Clone and install dependencies via `pip`. 
@@ -162,3 +195,7 @@ except for the followings:
    Please refer to their original LICENSE. 
    We have pointers in `snsapi/third/README.md`
    for those third party modules. 
+
+## Other
+
+   * Old version of this readme [in Chinese](https://github.com/hupili/snsapi/blob/master/doc/snsapi-old-readme-cn.md)
