@@ -104,13 +104,25 @@ class FacebookFeed(SNSBase):
     @require_authed
     def update(self, text):
         try:
-            status = self.graph.put_object("me", "feed", message=text)
+            status = self.graph.put_object("me", "feed", message=self._unicode_encode(text))
             if status:
                 return True
             else:
                 return False
         except Exception, e:
             logger.warning('update Facebook failed: %s', str(e))
+            return False
+
+    @require_authed
+    def reply(self, statusID, text):
+        try:
+            status = self.graph.put_object(statusID.id, "comments", message=self._unicode_encode(text))
+            if status:
+                return True
+            else:
+                return False
+        except Exception, e:
+            logger.warning("commenting on Facebook failed:%s", str(e))
             return False
 
     def _is_authed(self, token=None):
