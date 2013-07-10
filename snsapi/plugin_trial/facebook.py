@@ -2,6 +2,7 @@
 
 import json
 import urllib2
+import time
 from ..snslog import SNSLog
 logger = SNSLog
 from ..snsbase import SNSBase, require_authed
@@ -62,7 +63,7 @@ class FacebookFeed(SNSBase):
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             return True
         if self._is_authed(self.jsonconf['access_token']):
-            self.token = {'access_token': self.jsonconf['access_token']}
+            self.token = {'access_token': self.jsonconf['access_token'], 'expires' : -1}
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             self.save_token()
             return True
@@ -74,19 +75,11 @@ class FacebookFeed(SNSBase):
     def home_timeline(self, count=20):
         status_list = snstype.MessageList()
         try:
-            statuses = self.graph.get_connections("me", "home")
-            while True:
-                for s in statuses['data']:
-                    if len(status_list) >= count:
-                        break
-                    status_list.append(self.Message(s,\
-                            self.jsonconf['platform'],\
-                            self.jsonconf['channel_name']))
-                if len(status_list) >= count:
-                    break
-                logger.debug('reading next page')
-                t = urllib2.urlopen(statuses['paging']['next'] + '&access_token=' + self.jsonconf['access_token'])
-                statuses = json.loads(t.read())
+            statuses = self.graph.get_connections("me", "home", limit=count)
+            for s in statuses['data']:
+                status_list.append(self.Message(s,\
+                        self.jsonconf['platform'],\
+                        self.jsonconf['channel_name']))
         except Exception, e:
             logger.warning("Catch expection: %s", e)
         return status_list
@@ -110,10 +103,16 @@ class FacebookFeed(SNSBase):
         t = facebook.GraphAPI(access_token=token)
         try:
             res = t.request('me/')
-            if orig_token == None and self.jsonconf['app_secret'] and self.jsonconf['app_id']:
+            if orig_token == None and self.jsonconf['app_secret'] and self.jsonconf['app_id'] and (self.token['expires'] - time.time() < 600):
                 logger.debug("refreshing token")
                 try:
                     res = t.extend_access_token(self.jsonconf['app_id'], self.jsonconf['app_secret'])
+                    logger.debug("new token expires at %s" % (res['expires']))
+                    self.token['access_token'] = res['access_token']
+                    if 'expires' in res:
+                        self.token['expires'] = int(res['expires']) + time.time()
+                    else:
+                        self.token['expires'] = -1
                     self.graph.access_token = res['access_token']
                 except Exception, ei:
                     logger.warning("Refreshing token failed: %s", ei)
@@ -128,6 +127,9 @@ class FacebookFeed(SNSBase):
         else:
             token = None
         if self._is_authed(token):
-            return -1
+            if 'expires' in self.token:
+                return self.token['expires']
+            else:
+                return -1
         else:
             return 0
