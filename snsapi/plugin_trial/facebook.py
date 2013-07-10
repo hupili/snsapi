@@ -111,8 +111,11 @@ class FacebookFeed(SNSBase):
             res = t.request('me/')
             if orig_token == None and self.jsonconf['app_secret'] and self.jsonconf['app_id']:
                 logger.debug("refreshing token")
-                res = t.extend_access_token(self.jsonconf['app_id'], self.jsonconf['app_secret'])
-                self.graph.access_token = res['access_token']
+                try:
+                    res = t.extend_access_token(self.jsonconf['app_id'], self.jsonconf['app_secret'])
+                    self.graph.access_token = res['access_token']
+                except Exception, ei:
+                    logger.warning("Refreshing token failed: %s", ei)
             return True
         except:
             return False
