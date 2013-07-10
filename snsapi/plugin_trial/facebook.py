@@ -4,7 +4,7 @@ import json
 import urllib2
 from ..snslog import SNSLog
 logger = SNSLog
-from ..snsbase import SNSBase
+from ..snsbase import SNSBase, require_authed
 from .. import snstype
 from ..utils import console_output
 from .. import utils
@@ -40,7 +40,7 @@ class FacebookFeed(SNSBase):
     def __init__(self, channel=None):
         super(FacebookFeed, self).__init__(channel)
         self.platform = self.__class__.__name__
-        self.graph = facebook.GraphAPI(access_token=self.jsonconf['access_token'])
+        self.token = {}
 
     @staticmethod
     def new_channel(full=False):
@@ -57,8 +57,19 @@ class FacebookFeed(SNSBase):
         super(FacebookFeed, self).read_channel(channel)
 
     def auth(self):
-        logger.info("Current implementation of Facebook does not use auth!")
+        #FIXME: This is not a real authentication, just refresh token, and save
+        if self.get_saved_token():
+            self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
+            return True
+        if self.is_authed(self.jsonconf['access_token']):
+            self.token = {'access_token': self.jsonconf['access_token']}
+            self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
+            self.save_token()
+            return True
+        else:
+            return False
 
+    @require_authed
     def home_timeline(self, count=20):
         status_list = snstype.MessageList()
         try:
@@ -79,6 +90,7 @@ class FacebookFeed(SNSBase):
             logger.warning("Catch expection: %s", e)
         return status_list
 
+    @require_authed
     def update(self, text):
         try:
             status = self.graph.put_object("me", "feed", message=text)
@@ -91,21 +103,27 @@ class FacebookFeed(SNSBase):
             return False
 
     def is_authed(self, token=None):
-        if token == None:
-            token = self.jsonconf['access_token']
+        orig_token = token
+        if token == None and 'access_token' in self.token:
+            token = self.token['access_token']
         t = facebook.GraphAPI(access_token=token)
-        res = t.request('me/')
-        if 'error' in res:
-            return False
-        else:
-            if self.jsonconf['app_secret'] and self.jsonconf['app_id']:
+        try:
+            res = t.request('me/')
+            if orig_token == None and self.jsonconf['app_secret'] and self.jsonconf['app_id']:
+                logger.debug("refreshing token")
                 res = t.extend_access_token(self.jsonconf['app_id'], self.jsonconf['app_secret'])
                 self.graph.access_token = res['access_token']
             return True
+        except:
+            return False
 
     def expire_after(self, token = None):
         # This platform does not have token expire issue.
-        if self.is_authed():
+        if token and 'access_token' in token:
+            token = token['access_token']
+        else:
+            token = None
+        if self.is_authed(token):
             return -1
         else:
             return 0
