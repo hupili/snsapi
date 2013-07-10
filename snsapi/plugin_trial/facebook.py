@@ -51,22 +51,39 @@ class FacebookFeed(SNSBase):
         c['access_token'] = ''
         c['app_id'] = ''
         c['app_key'] = ''
+        c['redirect_uri'] = ''
 
         return c
 
     def read_channel(self, channel):
         super(FacebookFeed, self).read_channel(channel)
 
+    def _do_auth(self):
+        url = "https://www.facebook.com/dialog/oauth?client_id=" + \
+                self.jsonconf['app_id'] + \
+                "&redirect_uri=" + \
+                self.jsonconf['redirect_uri'] + \
+                "&response_type=token&scope=read_stream,publish_stream"
+        console_output("Please open " + url + '\n')
+        console_output("Please input token: ")
+        self.token = {'access_token' : self.console_input().strip(),
+                      'expires' : -1}
+        self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
+        if self._is_authed():
+            self.save_token()
+
     def auth(self):
         #FIXME: This is not a real authentication, just refresh token, and save
         if self.get_saved_token():
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             return True
-        if self._is_authed(self.jsonconf['access_token']):
+        if self.jsonconf['access_token'] and self._is_authed(self.jsonconf['access_token']):
             self.token = {'access_token': self.jsonconf['access_token'], 'expires' : -1}
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             self.save_token()
             return True
+        elif 'access_token' not in self.jsonconf or not self.jsonconf['access_token']:
+            self._do_auth()
         else:
             logger.debug('auth failed')
             return False
@@ -107,7 +124,7 @@ class FacebookFeed(SNSBase):
                 logger.debug("refreshing token")
                 try:
                     res = t.extend_access_token(self.jsonconf['app_id'], self.jsonconf['app_secret'])
-                    logger.debug("new token expires at %s" % (res['expires']))
+                    logger.debug("new token expires in %s" % (res['expires']))
                     self.token['access_token'] = res['access_token']
                     if 'expires' in res:
                         self.token['expires'] = int(res['expires']) + time.time()
