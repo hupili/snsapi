@@ -160,19 +160,25 @@ class FacebookFeed(SNSBase):
         t = facebook.GraphAPI(access_token=token)
         try:
             res = t.request('me/')
-            if orig_token == None and self.jsonconf['app_secret'] and self.jsonconf['app_key'] and (self.token['expires_in'] - time.time() < 600):
+            if orig_token == None and self.jsonconf['app_secret'] and self.jsonconf['app_key'] and (self.token['expires_in'] - time.time() < 6000):
                 logger.debug("refreshing token")
                 try:
                     res = t.extend_access_token(self.jsonconf['app_key'], self.jsonconf['app_secret'])
-                    logger.debug("new token expires in %s" % (res['expires_in']))
+                    print res
+                    logger.debug("new token expires in %s relative seconds" % (res['expires']))
                     self.token['access_token'] = res['access_token']
-                    if 'expires_in' in res:
-                        self.token['expires_in'] = int(res['expires_in']) + time.time()
+                    if 'expires' in res:
+                        self.token['expires_in'] = int(res['expires']) + time.time()
                     else:
+                        #TODO:
+                        #    How to come to this branch?
+                        #    Can we assert False here?
                         self.token['expires_in'] = -1
                     self.graph.access_token = res['access_token']
+                    self.save_token()
                 except Exception, ei:
                     logger.warning("Refreshing token failed: %s", ei)
+                    return False
             return True
         except Exception, e:
             logger.warning("Catch Exception: %s", e)
