@@ -78,13 +78,17 @@ class FacebookFeed(SNSBase):
     def auth_second(self):
         #TODO:
         #    Find a way to get the code in parameters, not in URL fragmentation
-        url = self.fetch_code()
-        url = url.replace('#', '?')
-        self.token = self._parse_code(url)
-        self.token.expires_in = int(int(self.token.expires_in) + time.time())
-        #self.token = {'access_token' : self.fetch_code(),
-        #              'expires_in' : -1}
-        self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
+        try:
+            url = self.fetch_code()
+            url = url.replace('#', '?')
+            self.token = self._parse_code(url)
+            self.token.expires_in = int(int(self.token.expires_in) + time.time())
+            #self.token = {'access_token' : self.fetch_code(),
+            #              'expires_in' : -1}
+            self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
+        except Exception, e:
+            logger.warning("Auth second fail. Catch exception: %s", e)
+            self.token = None
 
     def _do_oauth(self):
         '''
@@ -127,6 +131,7 @@ class FacebookFeed(SNSBase):
                         self.jsonconf['channel_name']))
         except Exception, e:
             logger.warning("Catch expection: %s", e)
+        logger.info("FB '%s' read '%d' statuses", self.jsonconf.channel_name, len(status_list))
         return status_list
 
     @require_authed
@@ -153,14 +158,28 @@ class FacebookFeed(SNSBase):
             logger.warning("commenting on Facebook failed:%s", str(e))
             return False
 
+    def need_auth(self):
+        return True
+
     def _is_authed(self, token=None):
+        #FIXME:
+        #TODO:
+        #    Important refactor point here!
+        #    See `SNSBase.expire_after` for the flow.
+        #    The aux function should only look at the 'token' parameter.
+        #    Belowing is just a logic fix. 
         orig_token = token
-        if token == None and 'access_token' in self.token:
-            token = self.token['access_token']
+        if token == None:
+            if self.token and 'access_token' in self.token:
+                token = self.token['access_token']
+            else:
+                # No token passed in. No token in `self.token`
+                # --> not authed
+                return False
         t = facebook.GraphAPI(access_token=token)
         try:
             res = t.request('me/')
-            if orig_token == None and self.jsonconf['app_secret'] and self.jsonconf['app_key'] and (self.token['expires_in'] - time.time() < 6000):
+            if orig_token == None and self.token and self.jsonconf['app_secret'] and self.jsonconf['app_key'] and (self.token['expires_in'] - time.time() < 6000):
                 logger.debug("refreshing token")
                 try:
                     res = t.extend_access_token(self.jsonconf['app_key'], self.jsonconf['app_secret'])
