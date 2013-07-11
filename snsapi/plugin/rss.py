@@ -145,8 +145,6 @@ class RSS(SNSBase):
                     platform=self.jsonconf['platform'], 
                     channel=self.jsonconf['channel_name'],
                     conf=conf)
-            #print s.dump_parsed()
-            #print s.dump_full()
             #TODO:
             #     RSS parsed result is not json serializable. 
             #     Try to find other ways of serialization. 
@@ -195,23 +193,49 @@ class RSS2RW(RSS):
     def read_channel(self, channel):
         super(RSS2RW, self).read_channel(channel)
 
-        if 'author' in channel:
-            self.author = channel['author']
-        else:
-            self.author = "snsapi"
-        if 'entry_timeout' in channel:
-            self.entry_timeout = channel['entry_timeout']
-        else:
-            self.entry_timeout = 3600 #in seconds, default 1 hour
+        if not 'author' in self.jsonconf:
+            self.jsonconf['author'] = 'snsapi'
+        if not 'entry_timeout' in self.jsonconf:
+            # Default entry timeout in seconds (1 hour)
+            self.jsonconf['entry_timeout'] = 3600 
 
     def update(self, message):
-        if isinstance(message, snstype.Message):
-            text = '@%s: %s' % (message.parsed.username, message.parsed.text)
+        '''
+        :type message: ``Message`` or ``str``
+        :param message:
+            For ``Message`` update it directly. RSS2RW guarantee the 
+            message can be read back with the same values in standard
+            fields of ``Message.parsed``.
+            For ``str``, we compose the virtual ``Message`` first
+            using current time and configured author information.
+        '''
+        if isinstance(message, str):
+            msg = snstype.Message()
+            msg.parsed.text = message
+            msg.parsed.username = self.jsonconf.author
+            msg.parsed.userid = self.jsonconf.author
+            msg.parsed.time = self.time()
         else:
-            text = message
-        return self._update(text)
+            msg = message
+        return self._update(msg)
 
-    def _update(self, text):
+    def _make_link(self, msg):
+        '''
+        Make a URL for current ``Message``.
+
+        Note that ``Message.link`` is not mandotary field in SNSApi.
+        However, some RSS readers do not accept items with no links.
+        Some other readers perform deduplication based on links.
+        Towards this end, we use this function to generate unique links
+        for each message.
+        '''
+        _link = msg.parsed.get('link', 'http://goo.gl/7aokV')
+        # No link or the link is our official stub
+        if _link is None or _link.find('http://goo.gl/7aokV') != -1:
+            _link = 'http://goo.gl/7aokV#' + msg.digest()
+        return _link
+
+    def _update(self, message):
         '''
         Update the RSS2 feeds. 
         This is the raw update method.
@@ -222,9 +246,7 @@ class RSS2RW(RSS):
            * parameter text: messages to update in a feeds
         '''
 
-        from dateutil import parser as dtparser, tz
-
-        #cur_time = datetime.datetime.now(tz.tzlocal())
+        _entry_timeout = self.jsonconf.entry_timeout
         cur_time = self.time()
 
         items = []
@@ -235,30 +257,30 @@ class RSS2RW(RSS):
         for j in d['items']:
             try:
                 s = self.Message(j)
-                #print s
-                #entry_time = dtparser.parse(s.parsed.time)
-                #entry_time = datetime.datetime.utcfromtimestamp(s.parsed.time)
                 entry_time = s.parsed.time
-                if cur_time - entry_time < self.entry_timeout:
+                if _entry_timeout is None or cur_time - entry_time < _entry_timeout:
                     items.append( 
                         PyRSS2Gen.RSSItem(
                             author = s.parsed.username, 
                             title = s.parsed.title, 
                             description = "snsapi RSS2RW update",
+                            link = self._make_link(s),
                             pubDate = utils.utc2str(entry_time)
                             )
                         )
             except Exception as e:
                 logger.warning("can not parse RSS entry: %s", e)
 
-        items.insert(0, 
-            PyRSS2Gen.RSSItem(
-                author = self.author, 
-                title = text, 
-                description = "snsapi RSS2RW update",
-                pubDate = utils.utc2str(cur_time)
+        if _entry_timeout is None or cur_time - message.parsed.time < _entry_timeout:
+            items.insert(0, 
+                PyRSS2Gen.RSSItem(
+                    author = message.parsed.username,
+                    title = message.parsed.text, 
+                    description = "snsapi RSS2RW update",
+                    link = self._make_link(message),
+                    pubDate = utils.utc2str(message.parsed.time)
+                    )
                 )
-            )
 
         rss = PyRSS2Gen.RSS2(
             title = "snsapi, RSS2 R/W Channel",
