@@ -37,8 +37,9 @@ class TestRSSSummary(TestBase):
 class TestRSS2RW(TestBase):
 
     def setup(self):
+        _url = os.path.join(DIR_TMP, "_test_rss.xml")
         channel_conf = {
-          "url": "_test_rss.xml", 
+          "url": _url, 
           "channel_name": "test_rss", 
           "open": "yes", 
           "platform": "RSS2RW"

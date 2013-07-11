@@ -11,8 +11,10 @@ import os
 import glob
 import sys
 import json
+import shutil
 
 DIR_TEST = os.path.abspath(os.path.dirname(__file__))
+DIR_TMP = os.path.join(DIR_TEST, "tmp")
 DIR_TEST_DATA = os.path.join(DIR_TEST, "data")
 DIR_ROOT = os.path.dirname(DIR_TEST)
 DIR_CONF = os.path.join(DIR_ROOT, "conf")
@@ -34,6 +36,9 @@ class TestBase(object):
     @classmethod
     def setup_class(klass):
         sys.stderr.write("\nRunning %s\n" % klass)
+        if not os.path.isdir(DIR_TMP):
+            print "makedirs"
+            os.makedirs(DIR_TMP)
 
     @classmethod
     def teardown_class(klass):
@@ -41,6 +46,7 @@ class TestBase(object):
         klass.clean_up(DIR_SNSAPI, "*.py?")
         klass.clean_up(DIR_PLUGIN, "*.py?")
         klass.clean_up(DIR_ROOT, "*.py?")
+        shutil.rmtree(DIR_TMP)
 
 # ===== old funcs from testUtils.py ======
     
