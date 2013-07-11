@@ -79,25 +79,32 @@ class SNSBase(object):
         elif self.auth_info.cmd_fetch_code == "(local_webserver)":
             try: 
                 self.httpd.handle_request()
-                if 'code' in self.httpd.query_params:
-                    code = self.httpd.query_params['code']
-                    logger.info("Get code from local server: %s", code)
-                    return "http://localhost/?%s" % urllib.urlencode(self.httpd.query_params)
-                else:
-                    #TODO:
-                    #    There is a non repeatable bug here. 
-                    #    When we have multiple platforms to authorize, 
-                    #    successive platforms may fail in this branch. 
-                    #    That means there is other HTTP request to the local HTTP server
-                    #    before the call_back URL. 
-                    #
-                    #    Solution:
-                    #        * Configure different port for different channels. 
-                    #          This is solved at upper layer. 
-                    #        * Support random port by default. 
-                    raise snserror.auth.fetchcode
+                return "http://localhost%s" % self.httpd.query_path
+                # Following handle of code is obsolete
+                # Not all platforms have 'code'. 
+                # Some may have more fields. 
+                # simply return the full URL and it's subject to plugins how to handle it.
+                #if 'code' in self.httpd.query_params:
+                #    code = self.httpd.query_params['code']
+                #    logger.info("Get code from local server: %s", code)
+                #    return "http://localhost/?%s" % urllib.urlencode(self.httpd.query_params)
+                #else:
+                #    #TODO:
+                #    #    There is a non repeatable bug here. 
+                #    #    When we have multiple platforms to authorize, 
+                #    #    successive platforms may fail in this branch. 
+                #    #    That means there is other HTTP request to the local HTTP server
+                #    #    before the call_back URL. 
+                #    #
+                #    #    Solution:
+                #    #        * Configure different port for different channels. 
+                #    #          This is solved at upper layer. 
+                #    #        * Support random port by default. 
+                #    raise snserror.auth.fetchcode
             finally:
+                #TODO: uncomment
                 del self.httpd
+                #pass
         elif self.auth_info.cmd_fetch_code == "(authproxy_username_password)":
             # Currently available for SinaWeibo. 
             # Before using this method, please deploy one authproxy:
