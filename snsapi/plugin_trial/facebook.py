@@ -55,9 +55,9 @@ class FacebookFeed(SNSBase):
 
         c['auth_info'] = {
                 "save_token_file": "(default)", 
-                "cmd_request_url": "(console_output)", 
-                "callback_url": "http://snsapi.sinaapp.com/auth.php", 
-                "cmd_fetch_code": "(console_input)" 
+                "cmd_request_url": "(default)", 
+                "callback_url": "http://snsapi.ie.cuhk.edu.hk/aux/auth.php", 
+                "cmd_fetch_code": "(default)" 
                 } 
 
         return c
