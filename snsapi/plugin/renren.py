@@ -33,9 +33,9 @@ RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_SESSION_KEY_URI = "http://graph.renren.com/renren_api/session_key"
 RENREN_API_SERVER = "http://api.renren.com/restserver.do"
 
-# This error is moved back to "renren.py". 
-# It's platform specific and we do not expect other 
-# file to raise this error. 
+# This error is moved back to "renren.py".
+# It's platform specific and we do not expect other
+# file to raise this error.
 class RenrenAPIError(Exception):
     def __init__(self, code, message):
         super(RenrenAPIError, self).__init__(message)
@@ -58,33 +58,33 @@ class RenrenBase(SNSBase):
         c['app_secret'] = ''
         c['platform'] = 'RenrenBase'
         c['auth_info'] = {
-                "save_token_file": "(default)", 
-                "cmd_request_url": "(default)", 
-                "callback_url": "http://snsapi.sinaapp.com/auth.php", 
-                "cmd_fetch_code": "(default)" 
-                } 
+                "save_token_file": "(default)",
+                "cmd_request_url": "(default)",
+                "callback_url": "http://snsapi.sinaapp.com/auth.php",
+                "cmd_fetch_code": "(default)"
+                }
 
         return c
 
-        
+
     def read_channel(self, channel):
         '''
         docstring placeholder
         '''
 
-        super(RenrenBase, self).read_channel(channel) 
+        super(RenrenBase, self).read_channel(channel)
 
-        if not "callback_url" in self.auth_info: 
+        if not "callback_url" in self.auth_info:
             self.auth_info.callback_url = "http://snsapi.sinaapp.com/auth.php"
-            # The following is official test link. 
-            # Keep here for future reference. 
+            # The following is official test link.
+            # Keep here for future reference.
             #self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
 
         # Renren API document says the limit is 140 character....
-        # After test, it seems 245 unicode character. 
-        # To leave some safe margin, we use 240 here. 
+        # After test, it seems 245 unicode character.
+        # To leave some safe margin, we use 240 here.
         self.jsonconf['text_length_limit'] = 240
-        
+
         #if not 'platform_prefix' in self.jsonconf:
         #    self.jsonconf['platform_prefix'] = u'人人'
 
@@ -94,13 +94,13 @@ class RenrenBase(SNSBase):
         '''
 
         return True
-        
+
     def auth_first(self):
         '''
         docstring placeholder
         '''
 
-        args = {"client_id": self.jsonconf.app_key, 
+        args = {"client_id": self.jsonconf.app_key,
                 "redirect_uri": self.auth_info.callback_url}
         args["response_type"] = "code"
         args["scope"] = " ".join(["read_user_feed",
@@ -148,14 +148,16 @@ class RenrenBase(SNSBase):
         logger.info("Try to authenticate '%s' using OAuth2", self.jsonconf.channel_name)
         self.auth_first()
         self.auth_second()
+        if not self.token:
+            return False
         self.save_token()
         logger.debug("Authorized! access token is " + str(self.token))
         logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
 
     def renren_request(self, params = None):
         '''
-        A general purpose encapsulation of renren API. 
-        It fills in system paramters and compute the signature. 
+        A general purpose encapsulation of renren API.
+        It fills in system paramters and compute the signature.
         '''
 
         #request a session key
@@ -166,7 +168,7 @@ class RenrenBase(SNSBase):
         except Exception, e:
             logger.warning("Catch exception when requesting session key: %s", e)
             if type(response) is not list and "error_code" in response:
-                logger.warning(response["error_msg"]) 
+                logger.warning(response["error_msg"])
                 raise RenrenAPIError(response["error_code"], response["error_msg"])
             return []
 
@@ -177,21 +179,21 @@ class RenrenBase(SNSBase):
         params["session_key"] = session_key
         params["v"] = '1.0'
         # del 'sig' first, if not:
-        #   Client may use the same params dict repeatedly. 
-        #   Later call will fail because they have previous 'sig'. 
+        #   Client may use the same params dict repeatedly.
+        #   Later call will fail because they have previous 'sig'.
         if "sig" in params:
-            del params["sig"] 
+            del params["sig"]
         sig = self.__hash_params(params);
         params["sig"] = sig
-        
+
         try:
             response = self._http_post(RENREN_API_SERVER, params)
         except Exception, e:
             logger.warning("Catch exception: %s", e)
 
         if type(response) is not list and "error_code" in response:
-            logger.debug("params: %s", params) 
-            logger.warning(response["error_msg"]) 
+            logger.debug("params: %s", params)
+            logger.warning(response["error_msg"])
             raise RenrenAPIError(response["error_code"], response["error_msg"])
         return response
 
@@ -201,7 +203,7 @@ class RenrenBase(SNSBase):
         hashstring = hashstring + self._unicode_encode(self.jsonconf.app_secret)
         hasher = hashlib.md5(hashstring)
         return hasher.hexdigest()
-        
+
 
 class RenrenShareMessage(snstype.Message):
     platform = "RenrenShare"
@@ -224,7 +226,7 @@ class RenrenShareMessage(snstype.Message):
             self._parse_feed_32(dct)
         else:
             #self.parsed.text_orig = dct['description']
-            self.parsed.text_last = dct['message'] 
+            self.parsed.text_last = dct['message']
             self.parsed.text_trace = dct['trace']['text']
             self.parsed.title = dct['title']
             self.parsed.description = dct['description']
@@ -238,11 +240,11 @@ class RenrenShareMessage(snstype.Message):
 
     def _parse_feed_33(self, dct):
         '''
-        Feed type 33. Albums 
+        Feed type 33. Albums
         '''
 
         #self.parsed.text_orig = dct['prefix']
-        self.parsed.text_last = dct['message'] 
+        self.parsed.text_last = dct['message']
         self.parsed.text_trace = dct['trace']['text']
         self.parsed.title = dct['title']
         self.parsed.link = dct['href']
@@ -262,7 +264,7 @@ class RenrenShareMessage(snstype.Message):
         '''
 
         #self.parsed.text_orig = dct['description']
-        self.parsed.text_last = dct['message'] 
+        self.parsed.text_last = dct['message']
         self.parsed.text_trace = dct['trace']['text']
         self.parsed.title = dct['title']
         self.parsed.link = dct['attachment'][0]['href']
@@ -293,13 +295,13 @@ class RenrenShare(RenrenBase):
         c = RenrenBase.new_channel(full)
         c['platform'] = 'RenrenShare'
         return c
-        
+
     @require_authed
     def home_timeline(self, count=20):
         '''
         Get timeline of Renren statuses
 
-        :param count: 
+        :param count:
             Number of statuses
 
         :return:
@@ -314,7 +316,7 @@ class RenrenShare(RenrenBase):
         except RenrenAPIError, e:
             logger.warning("RenrenAPIError, %s", e)
             return snstype.MessageList()
-        
+
         statuslist = snstype.MessageList()
         try:
             for j in jsonlist:
@@ -368,7 +370,7 @@ class RenrenStatusMessage(snstype.Message):
         # By trial, it seems:
         #    * 'post_id' : the id of news feeds
         #    * 'source_id' : the id of status
-        #      equal to 'status_id' returned by 
+        #      equal to 'status_id' returned by
         #      'status.get' interface
         # self.id = dct["post_id"]
 
@@ -380,7 +382,7 @@ class RenrenStatusMessage(snstype.Message):
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
         self.parsed.text = dct['message']
 
-        #print dct 
+        #print dct
 
         try:
             self.parsed.username_orig = dct['attachment'][0]['owner_name']
@@ -393,7 +395,7 @@ class RenrenStatusMessage(snstype.Message):
         #except Exception, e:
         #    raise e
 
-        self.parsed.text_trace = dct['message'] 
+        self.parsed.text_trace = dct['message']
         self.parsed.reposts_count = 'N/A'
         self.parsed.comments_count = dct['comments']['count']
 
@@ -407,7 +409,7 @@ class RenrenStatusMessage(snstype.Message):
         #self.ID.status_id = dct["source_id"]
         #self.ID.source_user_id = dct["actor_id"]
 
-    # The following is to parse Status of Renren. 
+    # The following is to parse Status of Renren.
     # (get by invoking 'status.get', not 'feed.get')
     #def _parse_status(self, dct):
     #    self.id = dct["status_id"]
@@ -426,13 +428,13 @@ class RenrenStatus(RenrenBase):
     def __init__(self, channel = None):
         super(RenrenStatus, self).__init__(channel)
         self.platform = self.__class__.__name__
-        
+
     @staticmethod
     def new_channel(full = False):
         c = RenrenBase.new_channel(full)
         c['platform'] = 'RenrenStatus'
         return c
-        
+
     @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
@@ -446,7 +448,7 @@ class RenrenStatus(RenrenBase):
         except Exception as e:
             logger.warning("catch expection: %s", e)
             jsonlist = []
-        
+
         statuslist = snstype.MessageList()
         for j in jsonlist:
             try:
@@ -470,7 +472,7 @@ class RenrenStatus(RenrenBase):
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
         api_params = dict(method="status.set", status=text, place_id='RRAF04D95FA37892FFA88')
-        
+
         try:
             ret = self.renren_request(api_params)
             if 'result' in ret and ret['result'] == 1:
@@ -512,17 +514,17 @@ class RenrenStatus(RenrenBase):
     @require_authed
     def forward(self, message, text):
         '''
-        Forward a status on Renren: 
+        Forward a status on Renren:
 
-           * If message is from the same platform, forward it 
-             using special interface. 
+           * If message is from the same platform, forward it
+             using special interface.
            * Else, route the request
              to a general forward method of ``SNSBase``.
 
-        :param message: 
+        :param message:
             An ``snstype.Message`` object to forward
 
-        :param text: 
+        :param text:
             Append comment text
 
         :return: Success or not
@@ -560,7 +562,7 @@ class RenrenStatus(RenrenBase):
                         self.jsonconf.channel_name, mID, text, ret)
                 return False
         except Exception as e:
-            logger.warning("'%s' forward status '%s' with comment '%s' fail: %s", 
+            logger.warning("'%s' forward status '%s' with comment '%s' fail: %s",
                     self.jsonconf.channel_name, mID, text, e)
             return False
 
@@ -596,13 +598,13 @@ class RenrenBlog(RenrenBase):
     def __init__(self, channel = None):
         super(RenrenBlog, self).__init__(channel)
         self.platform = self.__class__.__name__
-        
+
     @staticmethod
     def new_channel(full = False):
         c = RenrenBase.new_channel(full)
         c['platform'] = 'RenrenBlog'
         return c
-        
+
     @require_authed
     def home_timeline(self, count=20):
         '''
@@ -613,7 +615,7 @@ class RenrenBlog(RenrenBase):
 
         api_params = {'method': 'feed.get',
                       'type': '20,22',
-                      'page': 1, 
+                      'page': 1,
                       'count': count}
 
         try:
@@ -622,7 +624,7 @@ class RenrenBlog(RenrenBase):
         except RenrenAPIError, e:
             logger.warning("RenrenAPIError, %s", e)
             return snstype.MessageList()
-        
+
         statuslist = snstype.MessageList()
         try:
             for j in jsonlist:
@@ -650,16 +652,16 @@ class RenrenBlog(RenrenBase):
         if title is None:
             title = self._cat(20, [(text, 1)])
 
-        api_params = {'method': 'blog.addBlog', 
+        api_params = {'method': 'blog.addBlog',
                       'content': text,
                       'title': title}
-        
+
         try:
             ret = self.renren_request(api_params)
             logger.debug("response: %s", ret)
             #TODO:
-            #    Preserve the id for further use? 
-            #    Return it as multi-return-value? 
+            #    Preserve the id for further use?
+            #    Return it as multi-return-value?
             if 'id' in ret:
                 logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
                 return True
@@ -688,7 +690,7 @@ class RenrenBlog(RenrenBase):
 
         api_params = {'method': 'blog.addComment',
                       'content': text,
-                      'id': mID.blog_id, 
+                      'id': mID.blog_id,
                       owner_key: owner_value}
 
         logger.debug('request parameters: %s', api_params)
