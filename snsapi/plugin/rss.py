@@ -253,23 +253,26 @@ class RSS2RW(RSS):
 
         # Read and filter existing entries.
         # Old entries are disgarded to keep the file short and clean.
-        d = feedparser.parse(self.jsonconf.url)
-        for j in d['items']:
-            try:
-                s = self.Message(j)
-                entry_time = s.parsed.time
-                if _entry_timeout is None or cur_time - entry_time < _entry_timeout:
-                    items.append( 
-                        PyRSS2Gen.RSSItem(
-                            author = s.parsed.username, 
-                            title = s.parsed.title, 
-                            description = "snsapi RSS2RW update",
-                            link = self._make_link(s),
-                            pubDate = utils.utc2str(entry_time)
+        try:
+            d = feedparser.parse(self.jsonconf.url)
+            for j in d['items']:
+                try:
+                    s = self.Message(j)
+                    entry_time = s.parsed.time
+                    if _entry_timeout is None or cur_time - entry_time < _entry_timeout:
+                        items.append( 
+                            PyRSS2Gen.RSSItem(
+                                author = s.parsed.username, 
+                                title = s.parsed.title, 
+                                description = "snsapi RSS2RW update",
+                                link = self._make_link(s),
+                                pubDate = utils.utc2str(entry_time)
+                                )
                             )
-                        )
-            except Exception as e:
-                logger.warning("can not parse RSS entry: %s", e)
+                except Exception as e:
+                    logger.warning("can not parse RSS entry: %s", e)
+        except Exception as e:
+            logger.warning("Can not parse '%s', no such file? Error: %s", self.jsonconf.url, e)
 
         if _entry_timeout is None or cur_time - message.parsed.time < _entry_timeout:
             items.insert(0, 
