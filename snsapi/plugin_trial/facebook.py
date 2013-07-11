@@ -54,11 +54,11 @@ class FacebookFeed(SNSBase):
         c['app_secret'] = ''
 
         c['auth_info'] = {
-                "save_token_file": "(default)", 
-                "cmd_request_url": "(console_output)", 
-                "callback_url": "http://snsapi.sinaapp.com/auth.php", 
-                "cmd_fetch_code": "(console_input)" 
-                } 
+                "save_token_file": "(default)",
+                "cmd_request_url": "(console_output)",
+                "callback_url": "http://snsapi.sinaapp.com/auth.php",
+                "cmd_fetch_code": "(console_input)"
+                }
 
         return c
 
@@ -92,7 +92,7 @@ class FacebookFeed(SNSBase):
 
     def _do_oauth(self):
         '''
-        The two-stage OAuth 
+        The two-stage OAuth
         '''
         self.auth_first()
         self.auth_second()
@@ -167,7 +167,7 @@ class FacebookFeed(SNSBase):
         #    Important refactor point here!
         #    See `SNSBase.expire_after` for the flow.
         #    The aux function should only look at the 'token' parameter.
-        #    Belowing is just a logic fix. 
+        #    Belowing is just a logic fix.
         orig_token = token
         if token == None:
             if self.token and 'access_token' in self.token:
@@ -211,7 +211,7 @@ class FacebookFeed(SNSBase):
             token = None
         if self._is_authed(token):
             if 'expires_in' in self.token:
-                return self.token['expires_in']
+                return self.token['expires_in'] - time.time()
             else:
                 return -1
         else:
