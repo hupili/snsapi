@@ -21,6 +21,7 @@ class ClientRedirectServer(BaseHTTPServer.HTTPServer):
   into query_params and then stops serving.
   """
   query_params = {}
+  query_path = ""
 
 
 class ClientRedirectHandler(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -40,6 +41,7 @@ class ClientRedirectHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     s.send_response(200)
     s.send_header("Content-type", "text/html")
     s.end_headers()
+    s.server.query_path = s.path
     query = s.path.split('?', 1)[-1]
     query = dict(parse_qsl(query))
     s.server.query_params = query
