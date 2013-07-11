@@ -209,14 +209,15 @@ class RSS2RW(RSS):
             For ``str``, we compose the virtual ``Message`` first
             using current time and configured author information.
         '''
-        if isinstance(message, str):
+        if isinstance(message, snstype.Message):
+            msg = message
+        else:
+            # 'str' or 'unicode'
             msg = snstype.Message()
             msg.parsed.text = message
             msg.parsed.username = self.jsonconf.author
             msg.parsed.userid = self.jsonconf.author
             msg.parsed.time = self.time()
-        else:
-            msg = message
         return self._update(msg)
 
     def _make_link(self, msg):

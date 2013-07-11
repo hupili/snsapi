@@ -53,7 +53,7 @@ class TestRSS2RW(TestBase):
             os.unlink(_url)
         del self.rss
 
-    def test_rss2rw_update_text(self):
+    def test_rss2rw_update_text_str(self):
         import time
         _time1 = int(time.time())
         # Execution takes time
@@ -62,6 +62,19 @@ class TestRSS2RW(TestBase):
         msg = self.rss.home_timeline()[0]
         ok_(msg.parsed.time >= _time1 and msg.parsed.time <= _time2)
         eq_(msg.parsed.text, 'test status')
+        # The default settings
+        eq_(msg.parsed.username, 'snsapi')
+        eq_(msg.parsed.userid, 'snsapi')
+
+    def test_rss2rw_update_text_unicode(self):
+        import time
+        _time1 = int(time.time())
+        # Execution takes time
+        self.rss.update(u'test status unicode')
+        _time2 = int(time.time())
+        msg = self.rss.home_timeline()[0]
+        ok_(msg.parsed.time >= _time1 and msg.parsed.time <= _time2)
+        eq_(msg.parsed.text, 'test status unicode')
         # The default settings
         eq_(msg.parsed.username, 'snsapi')
         eq_(msg.parsed.userid, 'snsapi')
