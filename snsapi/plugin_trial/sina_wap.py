@@ -45,7 +45,6 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         #    Check whether the fields conform to snsapi convention.
         #    http://snsapi.ie.cuhk.edu.hk/doc/snsapi.html#module-snsapi.snstype
         self.parsed.time = dct['time']
-        logger.debug('TIME:' + self.parsed.time)
         if u'分钟前' in self.parsed.time:
             self.parsed.time = time.time() - 60 * \
                     int(self.parsed.time[0:self.parsed.time.find(u'分钟前')])
@@ -245,12 +244,12 @@ class SinaWeiboWapStatus(SNSBase):
                     weibo['text'] = retweet_reason.decode('utf-8')
                     zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', parent.text_content().encode('utf-8'))
                     if zf:
-                        weibo['comments_count'] = int(zf.group(2))
-                        weibo['reposts_count'] = int(zf.group(3))
+                        weibo['comments_count'] = int(zf.group(3))
+                        weibo['reposts_count'] = int(zf.group(2))
                     zf = re.search(r'赞\[([0-9]*)\] 原文转发\[([0-9]*)\] 原文评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
                     if zf:
-                        weibo['orig']['comments_count'] = int(zf.group(2))
-                        weibo['orig']['reposts_count'] = int(zf.group(3))
+                        weibo['orig']['comments_count'] = int(zf.group(3))
+                        weibo['orig']['reposts_count'] = int(zf.group(2))
                 else:
                     weibo = {'author' : i.find_class('nk')[0].text,
                             'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
@@ -260,8 +259,8 @@ class SinaWeiboWapStatus(SNSBase):
                             }
                     zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
                     if zf:
-                        weibo['comments_count'] = int(zf.group(2))
-                        weibo['reposts_count'] = int(zf.group(3))
+                        weibo['comments_count'] = int(zf.group(3))
+                        weibo['reposts_count'] = int(zf.group(2))
                 weibos.append(weibo)
         statuslist = snstype.MessageList()
         for i in weibos:
