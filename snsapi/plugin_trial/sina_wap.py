@@ -254,7 +254,7 @@ class SinaWeiboWapStatus(SNSBase):
                 else:
                     weibo = {'author' : i.find_class('nk')[0].text,
                             'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
-                            'text': i.find_class('ctt')[0].text_content(),
+                             'text': i.find_class('ctt')[0].text_content()[1:],
                             'id': i.get('id')[2:],
                             'time': i.find_class('ct')[0].text.encode('utf-8').strip(' ').split(' ')[0].decode('utf-8')
                             }
