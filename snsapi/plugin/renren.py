@@ -219,6 +219,7 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.userid = str(dct['actor_id'])
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
+        self.parsed.attachment = []
 
         if dct['feed_type'] == 33:
             self._parse_feed_33(dct)
@@ -248,15 +249,20 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.text_trace = dct['trace']['text']
         self.parsed.title = dct['title']
         self.parsed.link = dct['href']
+        self.parsed.attachment.append({
+            'type': 'picture_link',
+            'data': self.parsed.link
+        })
         self.parsed.description = dct['title']
         self.parsed.reposts_count = 'N/A'
         self.parsed.comments_count = dct['comments']['count']
-        self.parsed.text_orig = self.parsed.title + "||" + self.parsed.link
+        self.parsed.text_orig = self.parsed.title
 
         #self.parsed.text = "%s||%s||%s" % (\
         #        self.parsed.text_orig, self.parsed.title, self.parsed.link)
-        self.parsed.text = "%s||%s" % (\
-                self.parsed.title, self.parsed.link)
+        self.parsed.text =  self.parsed.text_trace + '//@orig: ' + self.parsed.title
+        #self.parsed.text = "%s||%s" % (\
+        #        self.parsed.title, self.parsed.link)
 
     def _parse_feed_32(self, dct):
         '''
@@ -271,10 +277,13 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.description = dct['description']
         self.parsed.reposts_count = 'N/A'
         self.parsed.comments_count = dct['comments']['count']
-        self.parsed.text_orig = self.parsed.link + "||" + self.parsed.title + "||" + self.parsed.description
+        self.parsed.text_orig = self.parsed.title + "||" + self.parsed.description
+        self.parsed.text = self.parsed.text_trace + "//@orig:" + self.parsed.text_orig
+        self.parsed.attachment.append({
+            'type': 'picture_link',
+            'data': self.parsed.link
+        })
 
-        self.parsed.text = "%s||%s||%s||%s" % (\
-                self.parsed.text_trace, self.parsed.link, self.parsed.title, self.parsed.description)
 
 
 class RenrenShare(RenrenBase):

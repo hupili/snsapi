@@ -26,14 +26,18 @@ class FacebookFeedMessage(snstype.Message):
         self.parsed.time = utils.str2utc(dct['created_time'])
         self.parsed.username = dct['from']['name']
         self.parsed.userid = dct['from']['id']
+        self.parsed.attachment = []
         resmsg = []
-        logger.debug(str(dct))
         if 'message' in dct:
             resmsg.append(dct['message'])
         if 'story' in dct:
             resmsg.append(dct['story'])
+        #FIXME: More kinds of attachment like links, videos.
         if 'picture' in dct:
-            resmsg.append(dct['picture'])
+            self.parsed.attachment.append({
+                'type': 'picture_link',
+                'data': dct['picture']
+            })
         self.parsed.text = '\n'.join(resmsg)
 
 
