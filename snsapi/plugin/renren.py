@@ -219,7 +219,7 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.userid = str(dct['actor_id'])
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
-        self.parsed.attachment = []
+        self.parsed.attachments = []
 
         if dct['feed_type'] == 33:
             self._parse_feed_33(dct)
@@ -249,7 +249,7 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.text_trace = dct['trace']['text']
         self.parsed.title = dct['title']
         self.parsed.link = dct['href']
-        self.parsed.attachment.append({
+        self.parsed.attachments.append({
             'type': 'picture_link',
             'data': self.parsed.link
         })
@@ -279,7 +279,7 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.comments_count = dct['comments']['count']
         self.parsed.text_orig = self.parsed.title + "||" + self.parsed.description
         self.parsed.text = self.parsed.text_trace + "//@orig:" + self.parsed.text_orig
-        self.parsed.attachment.append({
+        self.parsed.attachments.append({
             'type': 'picture_link',
             'data': self.parsed.link
         })
