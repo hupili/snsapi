@@ -27,7 +27,7 @@ class FacebookFeedMessage(snstype.Message):
         self.parsed.username = dct['from']['name']
         self.parsed.userid = dct['from']['id']
         resmsg = []
-        logger.debug(str(dct))
+        logger.debug('%s', str(dct))
         if 'message' in dct:
             resmsg.append(dct['message'])
         if 'story' in dct:

@@ -99,7 +99,7 @@ class SNSPocket(dict):
             setattr(c, m, self.__dummy_method(channel, m))
 
     def add_channel(self, jsonconf):
-        logger.debug(json.dumps(jsonconf))
+        logger.debug('%s', json.dumps(jsonconf))
         cname = jsonconf['channel_name']
 
         if cname in self:

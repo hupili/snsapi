@@ -174,7 +174,7 @@ class SinaWeiboWapStatus(SNSBase):
                         verification_code = raw_input(err_msg)
                 else:
                     err_msg = re.search('class="me">([^>]*)<', p).group(1)
-                    logger.warning(err_msg)
+                    logger.warning('%s', err_msg)
                     break
         else:
             return False

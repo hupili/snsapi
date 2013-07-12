@@ -168,7 +168,7 @@ class RenrenBase(SNSBase):
         except Exception, e:
             logger.warning("Catch exception when requesting session key: %s", e)
             if type(response) is not list and "error_code" in response:
-                logger.warning(response["error_msg"])
+                logger.warning('%s', response["error_msg"])
                 raise RenrenAPIError(response["error_code"], response["error_msg"])
             return []
 
@@ -193,7 +193,7 @@ class RenrenBase(SNSBase):
 
         if type(response) is not list and "error_code" in response:
             logger.debug("params: %s", params)
-            logger.warning(response["error_msg"])
+            logger.warning('%s', response["error_msg"])
             raise RenrenAPIError(response["error_code"], response["error_msg"])
         return response
 
@@ -366,7 +366,7 @@ class RenrenStatusMessage(snstype.Message):
         self._parse_feed_status(self.raw)
 
     def _parse_feed_status(self, dct):
-        #logger.debug(json.dumps(dct))
+        #logger.debug('%s', json.dumps(dct))
         # By trial, it seems:
         #    * 'post_id' : the id of news feeds
         #    * 'source_id' : the id of status
