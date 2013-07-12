@@ -76,9 +76,11 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         self.parsed.userid = dct['uid']
         if 'orig' in dct:
             self.parsed.has_orig = True
+            self.parsed.orig_author = dct['orig']['author']
             self.parsed.orig_text = dct['orig']['text']
             self.parsed.orig_comments_count = dct['orig']['comments_count']
             self.parsed.orig_reposts_count = dct['orig']['reposts_count']
+            self.parsed.text = self.parsed.text + '//@' + self.parsed.orig_author + ':' + self.parsed.orig_text
         else:
             self.parsed.has_orig = False
         self.ID.id = dct['id']
@@ -231,6 +233,7 @@ class SinaWeiboWapStatus(SNSBase):
                             'text' : None,
                             'orig' : {
                                 'text': i.find_class('ctt')[0].text_content(),
+                                'author': re.search(u'转发了\xa0(.*)\xa0的微博', i.find_class('cmt')[0].text_content()).group(1),
                                 'comments_count' : 0,
                                 'reposts_count' : 0
                                 },
