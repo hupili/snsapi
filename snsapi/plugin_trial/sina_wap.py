@@ -76,11 +76,11 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         self.parsed.userid = dct['uid']
         if 'orig' in dct:
             self.parsed.has_orig = True
-            self.parsed.orig_author = dct['orig']['author']
-            self.parsed.orig_text = dct['orig']['text']
-            self.parsed.orig_comments_count = dct['orig']['comments_count']
-            self.parsed.orig_reposts_count = dct['orig']['reposts_count']
-            self.parsed.text = self.parsed.text + '//@' + self.parsed.orig_author + ':' + self.parsed.orig_text
+            self.parsed.username_origin = dct['orig']['author']
+            self.parsed.text_orig = dct['orig']['text']
+            self.parsed.comments_count_orig = dct['orig']['comments_count']
+            self.parsed.reposts_count_orig = dct['orig']['reposts_count']
+            self.parsed.text = self.parsed.text + '//@' + self.parsed.username_origin + ':' + self.parsed.text_orig
         else:
             self.parsed.has_orig = False
         self.ID.id = dct['id']
