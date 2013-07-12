@@ -98,10 +98,14 @@ class SinaWeiboWapStatus(SNSBase):
     def new_channel(full = False):
         c = SNSBase.new_channel(full)
         c['platform'] = 'SinaWeiboWapStatus'
-        c['auth_by'] = 'userpass'
-        c['username'] = 'root'
-        c['password'] = 'password'
         c['uidtype'] = 'path'
+        c['auth_by'] = 'userpass'
+        c['auth_info'] = {
+            'save_token_file': "(default)",
+            'login_username': '',
+            'login_password': ''
+
+        }
         return c
 
     def _process_req(self, req):
@@ -180,8 +184,8 @@ class SinaWeiboWapStatus(SNSBase):
 
     def _is_authed(self, token = None):
         '''
-        ``is_authed`` is an ``SNSBase`` general method. 
-        It invokes platform specific ``expire_after`` to 
+        ``is_authed`` is an ``SNSBase`` general method.
+        It invokes platform specific ``expire_after`` to
         determine whether this platform is authed.
 
         Rename this method.
