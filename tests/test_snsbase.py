@@ -34,7 +34,7 @@ class TestSNSBase(TestBase):
 
     def test_snsbase_new_channel_full(self):
         nc = SNSBase.new_channel(full=True)
-        eq_(6, len(nc), WRONG_RESULT_ERROR)
+        eq_(7, len(nc), WRONG_RESULT_ERROR)
         in_('channel_name', nc)
         in_('open', nc)
         in_('description', nc)
