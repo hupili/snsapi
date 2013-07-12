@@ -45,7 +45,6 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         #    Check whether the fields conform to snsapi convention.
         #    http://snsapi.ie.cuhk.edu.hk/doc/snsapi.html#module-snsapi.snstype
         self.parsed.time = dct['time']
-        logger.debug('TIME:' + self.parsed.time)
         if u'分钟前' in self.parsed.time:
             self.parsed.time = time.time() - 60 * \
                     int(self.parsed.time[0:self.parsed.time.find(u'分钟前')])
@@ -76,9 +75,11 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         self.parsed.userid = dct['uid']
         if 'orig' in dct:
             self.parsed.has_orig = True
-            self.parsed.orig_text = dct['orig']['text']
-            self.parsed.orig_comments_count = dct['orig']['comments_count']
-            self.parsed.orig_reposts_count = dct['orig']['reposts_count']
+            self.parsed.username_origin = dct['orig']['author']
+            self.parsed.text_orig = dct['orig']['text']
+            self.parsed.comments_count_orig = dct['orig']['comments_count']
+            self.parsed.reposts_count_orig = dct['orig']['reposts_count']
+            self.parsed.text = self.parsed.text + '//@' + self.parsed.username_origin + ':' + self.parsed.text_orig
         else:
             self.parsed.has_orig = False
         self.ID.id = dct['id']
@@ -98,10 +99,14 @@ class SinaWeiboWapStatus(SNSBase):
     def new_channel(full = False):
         c = SNSBase.new_channel(full)
         c['platform'] = 'SinaWeiboWapStatus'
-        c['auth_by'] = 'userpass'
-        c['username'] = 'root'
-        c['password'] = 'password'
         c['uidtype'] = 'path'
+        c['auth_by'] = 'userpass'
+        c['auth_info'] = {
+            'save_token_file': "(default)",
+            'login_username': '',
+            'login_password': ''
+
+        }
         return c
 
     def _process_req(self, req):
@@ -180,8 +185,8 @@ class SinaWeiboWapStatus(SNSBase):
 
     def _is_authed(self, token = None):
         '''
-        ``is_authed`` is an ``SNSBase`` general method. 
-        It invokes platform specific ``expire_after`` to 
+        ``is_authed`` is an ``SNSBase`` general method.
+        It invokes platform specific ``expire_after`` to
         determine whether this platform is authed.
 
         Rename this method.
@@ -227,6 +232,7 @@ class SinaWeiboWapStatus(SNSBase):
                             'text' : None,
                             'orig' : {
                                 'text': i.find_class('ctt')[0].text_content(),
+                                'author': re.search(u'转发了\xa0(.*)\xa0的微博', i.find_class('cmt')[0].text_content()).group(1),
                                 'comments_count' : 0,
                                 'reposts_count' : 0
                                 },
@@ -238,23 +244,23 @@ class SinaWeiboWapStatus(SNSBase):
                     weibo['text'] = retweet_reason.decode('utf-8')
                     zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', parent.text_content().encode('utf-8'))
                     if zf:
-                        weibo['comments_count'] = int(zf.group(2))
-                        weibo['reposts_count'] = int(zf.group(3))
+                        weibo['comments_count'] = int(zf.group(3))
+                        weibo['reposts_count'] = int(zf.group(2))
                     zf = re.search(r'赞\[([0-9]*)\] 原文转发\[([0-9]*)\] 原文评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
                     if zf:
-                        weibo['orig']['comments_count'] = int(zf.group(2))
-                        weibo['orig']['reposts_count'] = int(zf.group(3))
+                        weibo['orig']['comments_count'] = int(zf.group(3))
+                        weibo['orig']['reposts_count'] = int(zf.group(2))
                 else:
                     weibo = {'author' : i.find_class('nk')[0].text,
                             'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
-                            'text': i.find_class('ctt')[0].text_content(),
+                             'text': i.find_class('ctt')[0].text_content()[1:],
                             'id': i.get('id')[2:],
                             'time': i.find_class('ct')[0].text.encode('utf-8').strip(' ').split(' ')[0].decode('utf-8')
                             }
                     zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
                     if zf:
-                        weibo['comments_count'] = int(zf.group(2))
-                        weibo['reposts_count'] = int(zf.group(3))
+                        weibo['comments_count'] = int(zf.group(3))
+                        weibo['reposts_count'] = int(zf.group(2))
                 weibos.append(weibo)
         statuslist = snstype.MessageList()
         for i in weibos:

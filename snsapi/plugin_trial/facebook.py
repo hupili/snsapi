@@ -27,10 +27,13 @@ class FacebookFeedMessage(snstype.Message):
         self.parsed.username = dct['from']['name']
         self.parsed.userid = dct['from']['id']
         resmsg = []
+        logger.debug(str(dct))
         if 'message' in dct:
             resmsg.append(dct['message'])
         if 'story' in dct:
             resmsg.append(dct['story'])
+        if 'picture' in dct:
+            resmsg.append(dct['picture'])
         self.parsed.text = '\n'.join(resmsg)
 
 
@@ -54,11 +57,11 @@ class FacebookFeed(SNSBase):
         c['app_secret'] = ''
 
         c['auth_info'] = {
-                "save_token_file": "(default)", 
-                "cmd_request_url": "(default)", 
-                "callback_url": "http://snsapi.ie.cuhk.edu.hk/aux/auth.php", 
-                "cmd_fetch_code": "(default)" 
-                } 
+                "save_token_file": "(default)",
+                "cmd_request_url": "(default)",
+                "callback_url": "http://snsapi.ie.cuhk.edu.hk/aux/auth.php",
+                "cmd_fetch_code": "(default)"
+                }
 
         return c
 
