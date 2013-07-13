@@ -221,6 +221,22 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
         self.parsed.attachments = []
 
+        if 'attachment' in dct:
+            for at in dct['attachment']:
+                if at['media_type'] == 'photo':
+                    self.parsed.attachments.append({
+                        'type': 'picture',
+                        'format': 'link',
+                        'data': at['raw_src']
+                    })
+                elif at['media_type'] == 'album':
+                    self.parsed.attachments.append({
+                        'type': 'album',
+                        'format': 'link',
+                        'data': at['href']
+                    })
+
+
         if dct['feed_type'] == 33:
             self._parse_feed_33(dct)
         elif dct['feed_type'] == 32:
@@ -249,11 +265,6 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.text_trace = dct['trace']['text']
         self.parsed.title = dct['title']
         self.parsed.link = dct['href']
-        self.parsed.attachments.append({
-            'type': 'picture',
-            'format': ['link'],
-            'data': self.parsed.link
-        })
         self.parsed.description = dct['title']
         self.parsed.reposts_count = 'N/A'
         self.parsed.comments_count = dct['comments']['count']
@@ -280,11 +291,6 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.comments_count = dct['comments']['count']
         self.parsed.text_orig = self.parsed.title + "||" + self.parsed.description
         self.parsed.text = self.parsed.text_trace + "//@orig:" + self.parsed.text_orig
-        self.parsed.attachments.append({
-            'type': 'picture',
-            'format': ['link'],
-            'data': self.parsed.link
-        })
 
 
 
