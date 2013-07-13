@@ -126,7 +126,7 @@ class Message(utils.JsonDict):
         self['ID'] = MessageID(platform, channel)
 
         self['raw'] = utils.JsonDict({})
-        self['parsed'] = utils.JsonDict({})
+        self['parsed'] = utils.JsonDict({'attachments' : []})
         if dct:
             self['raw'] = utils.JsonDict(dct)
             try:
