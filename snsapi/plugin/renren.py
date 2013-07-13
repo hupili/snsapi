@@ -598,9 +598,12 @@ class RenrenBlogMessage(snstype.Message):
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
         # This is the news feed of blogs, so you can not get the body
-        self.parsed.description = dct['description']
-        self.parsed.text = dct['description']
         self.parsed.title = dct['title']
+        self.parsed.description = dct['description']
+        self.parsed.text = '"' + self.parsed.title + '"  ' +  self.parsed.description
+        self.parsed.attachments = [
+            {'type': 'blog', 'format': ['link'], 'data': dct['href']}
+        ]
 
 class RenrenBlog(RenrenBase):
 
