@@ -219,6 +219,7 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.userid = str(dct['actor_id'])
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
+        self.parsed.attachments = []
 
         if dct['feed_type'] == 33:
             self._parse_feed_33(dct)
@@ -248,15 +249,21 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.text_trace = dct['trace']['text']
         self.parsed.title = dct['title']
         self.parsed.link = dct['href']
+        self.parsed.attachments.append({
+            'type': 'picture',
+            'format': ['link'],
+            'data': self.parsed.link
+        })
         self.parsed.description = dct['title']
         self.parsed.reposts_count = 'N/A'
         self.parsed.comments_count = dct['comments']['count']
-        self.parsed.text_orig = self.parsed.title + "||" + self.parsed.link
+        self.parsed.text_orig = self.parsed.title
 
         #self.parsed.text = "%s||%s||%s" % (\
         #        self.parsed.text_orig, self.parsed.title, self.parsed.link)
-        self.parsed.text = "%s||%s" % (\
-                self.parsed.title, self.parsed.link)
+        self.parsed.text =  self.parsed.text_trace + '//@orig: ' + self.parsed.title
+        #self.parsed.text = "%s||%s" % (\
+        #        self.parsed.title, self.parsed.link)
 
     def _parse_feed_32(self, dct):
         '''
@@ -271,10 +278,14 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.description = dct['description']
         self.parsed.reposts_count = 'N/A'
         self.parsed.comments_count = dct['comments']['count']
-        self.parsed.text_orig = self.parsed.link + "||" + self.parsed.title + "||" + self.parsed.description
+        self.parsed.text_orig = self.parsed.title + "||" + self.parsed.description
+        self.parsed.text = self.parsed.text_trace + "//@orig:" + self.parsed.text_orig
+        self.parsed.attachments.append({
+            'type': 'picture',
+            'format': ['link'],
+            'data': self.parsed.link
+        })
 
-        self.parsed.text = "%s||%s||%s||%s" % (\
-                self.parsed.text_trace, self.parsed.link, self.parsed.title, self.parsed.description)
 
 
 class RenrenShare(RenrenBase):
@@ -587,9 +598,12 @@ class RenrenBlogMessage(snstype.Message):
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
         # This is the news feed of blogs, so you can not get the body
-        self.parsed.description = dct['description']
-        self.parsed.text = dct['description']
         self.parsed.title = dct['title']
+        self.parsed.description = dct['description']
+        self.parsed.text = '"' + self.parsed.title + '"  ' +  self.parsed.description
+        self.parsed.attachments = [
+            {'type': 'blog', 'format': ['link'], 'data': dct['href']}
+        ]
 
 class RenrenBlog(RenrenBase):
 
