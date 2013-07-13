@@ -226,13 +226,13 @@ class RenrenShareMessage(snstype.Message):
                 if at['media_type'] == 'photo':
                     self.parsed.attachments.append({
                         'type': 'picture',
-                        'format': 'link',
+                        'format': ['link'],
                         'data': at['raw_src']
                     })
                 elif at['media_type'] == 'album':
                     self.parsed.attachments.append({
                         'type': 'album',
-                        'format': 'link',
+                        'format': ['link'],
                         'data': at['href']
                     })
 
