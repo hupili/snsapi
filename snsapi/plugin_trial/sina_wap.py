@@ -48,6 +48,19 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         if u'分钟前' in self.parsed.time:
             self.parsed.time = time.time() - 60 * \
                     int(self.parsed.time[0:self.parsed.time.find(u'分钟前')])
+            pp = time.localtime(self.parsed.time)
+            if pp.tm_sec > 0:
+                self.parsed.time = 60 + \
+                        time.mktime((
+                            pp.tm_year,
+                            pp.tm_mon,
+                            pp.tm_mday,
+                            pp.tm_hour,
+                            pp.tm_min,
+                            0,
+                            pp.tm_wday,
+                            pp.tm_yday,
+                            pp.tm_isdst))
         elif u'今天' in self.parsed.time:
             minute, second = map(int, re.search('([0-9]*):([0-9]*)', self.parsed.time).groups())
             today = time.gmtime(time.time() + 28800)
