@@ -221,6 +221,8 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.time = utils.str2utc(dct["update_time"], " +08:00")
         self.parsed.attachments = []
 
+        original_author = None
+
         if 'attachment' in dct:
             for at in dct['attachment']:
                 if at['media_type'] == 'photo':
@@ -229,12 +231,25 @@ class RenrenShareMessage(snstype.Message):
                         'format': ['link'],
                         'data': at['raw_src']
                     })
+                    if 'owner_name' in at:
+                        original_author = at['owner_name']
                 elif at['media_type'] == 'album':
                     self.parsed.attachments.append({
                         'type': 'album',
                         'format': ['link'],
                         'data': at['href']
                     })
+                    if 'owner_name' in at:
+                        original_author = at['owner_name']
+                else:
+                    self.parsed.attachments.append({
+                        'type': 'link',
+                        'format': ['link'],
+                        'data': at['href']
+                    })
+
+        if original_author:
+            self.parsed.username_orig = original_author
 
 
         if dct['feed_type'] == 33:
@@ -272,7 +287,7 @@ class RenrenShareMessage(snstype.Message):
 
         #self.parsed.text = "%s||%s||%s" % (\
         #        self.parsed.text_orig, self.parsed.title, self.parsed.link)
-        self.parsed.text =  self.parsed.text_trace + '//@orig: ' + self.parsed.title
+        self.parsed.text = self.parsed.text_trace + '//' + self.parsed.username_orig + ': ' + self.parsed.title
         #self.parsed.text = "%s||%s" % (\
         #        self.parsed.title, self.parsed.link)
 
@@ -290,8 +305,7 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.reposts_count = 'N/A'
         self.parsed.comments_count = dct['comments']['count']
         self.parsed.text_orig = self.parsed.title + "||" + self.parsed.description
-        self.parsed.text = self.parsed.text_trace + "//@orig:" + self.parsed.text_orig
-
+        self.parsed.text = self.parsed.text_trace + "//" + self.parsed.username_orig + ":" + self.parsed.text_orig
 
 
 class RenrenShare(RenrenBase):
