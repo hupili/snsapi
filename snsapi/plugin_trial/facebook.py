@@ -3,6 +3,7 @@
 import json
 import urllib2
 import time
+import re
 from ..snslog import SNSLog
 logger = SNSLog
 from ..snsbase import SNSBase, require_authed
@@ -32,12 +33,24 @@ class FacebookFeedMessage(snstype.Message):
             resmsg.append(dct['message'])
         if 'story' in dct:
             resmsg.append(dct['story'])
-        #FIXME: More kinds of attachment like links, videos.
-        if 'picture' in dct:
+        if dct['type'] == 'photo':
             self.parsed.attachments.append({
                 'type': 'picture',
                 'format': ['link'],
-                'data': dct['picture']
+                #NOTE: replace _s to _n will get the original picture
+                'data': re.sub(r'_[a-z](\.[^.]*)$', r'_n\1', dct['picture'])
+            })
+        if dct['type'] == 'video':
+            self.parsed.attachments.append({
+                'type': 'video',
+                'format': ['link'],
+                'data': dct['link']
+            })
+        if dct['type'] == 'link':
+            self.parsed.attachments.append({
+                'type': 'link',
+                'format': ['link'],
+                'data': dct['link']
             })
         self.parsed.text = '\n'.join(resmsg)
 
