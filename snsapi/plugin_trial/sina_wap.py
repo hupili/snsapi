@@ -49,6 +49,11 @@ class SinaWeiboWapStatusMessage(snstype.Message):
             self.parsed.time = time.time() - 60 * \
                     int(self.parsed.time[0:self.parsed.time.find(u'分钟前')])
             pp = time.localtime(self.parsed.time)
+            # FIXME:
+            # approximate time aligned to minute
+            # if your request is at different minute from
+            # the server's response. You might get ONE minute's
+            # difference.
             if pp.tm_sec > 0:
                 self.parsed.time = 60 + \
                         time.mktime((
