@@ -110,9 +110,10 @@ class Message(utils.JsonDict):
          There is no unified format yet.
        * ``username_origin``: a string. The username who posts 'text_orig'.
        * ``attachments``: an array of attachments, for one attachment, it
-         should be a dict like {'type': TYPE, 'data': DATA},
-         and TYPE can be one of link, picture_link video_link, picture_bin,
-          and text_bin.
+       should be a dict like {'type': TYPE, 'format': [FORMAT], data': DATA},
+         and TYPE can be one of link, picture, album, video, blog,
+         and FORMAT can be any of link, binary, and others
+         and DATA is your data.
 
     '''
 

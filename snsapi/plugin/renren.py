@@ -250,7 +250,8 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.title = dct['title']
         self.parsed.link = dct['href']
         self.parsed.attachments.append({
-            'type': 'picture_link',
+            'type': 'picture',
+            'format': ['link'],
             'data': self.parsed.link
         })
         self.parsed.description = dct['title']
@@ -280,7 +281,8 @@ class RenrenShareMessage(snstype.Message):
         self.parsed.text_orig = self.parsed.title + "||" + self.parsed.description
         self.parsed.text = self.parsed.text_trace + "//@orig:" + self.parsed.text_orig
         self.parsed.attachments.append({
-            'type': 'picture_link',
+            'type': 'picture',
+            'format': ['link'],
             'data': self.parsed.link
         })
 

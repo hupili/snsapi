@@ -35,7 +35,8 @@ class FacebookFeedMessage(snstype.Message):
         #FIXME: More kinds of attachment like links, videos.
         if 'picture' in dct:
             self.parsed.attachments.append({
-                'type': 'picture_link',
+                'type': 'picture',
+                'format': ['link'],
                 'data': dct['picture']
             })
         self.parsed.text = '\n'.join(resmsg)
