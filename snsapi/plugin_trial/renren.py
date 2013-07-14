@@ -196,7 +196,6 @@ class RenrenFeed(SNSBase):
         kwargs['access_token'] = self.token.access_token
         kwargs['v'] = '1.0'
         kwargs['format'] = 'json'
-        kwargs['type'] = '10,11,20,21,22,23,30,31,32,33,34,35,36,40,41,50,51,52,53,54,55'
         response = self._http_post(RENREN_API_SERVER, kwargs)
 
 
@@ -270,7 +269,8 @@ class RenrenFeed(SNSBase):
             jsonlist = self.renren_request(
                 method="feed.get",
                 page=1,
-                count=count
+                count=count,
+                type='10,11,20,21,22,23,30,31,32,33,34,35,36,40,41,50,51,52,53,54,55'
             )
         except RenrenAPIError, e:
             logger.warning("RenrenAPIError, %s", e)
@@ -342,5 +342,28 @@ class RenrenFeed(SNSBase):
             return False
 
     @require_authed
-    def forward(self, statusId, text):
-        pass
+    def forward(self, message, text):
+        res = None
+        if message.parsed.feed_type == 'STATUS':
+            res = self.renren_request(
+                method='status.forward',
+                status=text,
+                forward_id=message.ID.status_id,
+                forward_owner=message.ID.source_user_id,
+            )
+        elif message.parsed.feed_type != 'OTHER':
+            res = self.renren_request(
+                method='share.share',
+                type=str({
+                    'BLOG': 1,
+                    'PHOTO': 2,
+                    'SHARE': 20
+                }[message.parsed.feed_type]),
+                ugc_id=message.ID.status_id,
+                user_id=message.ID.source_user_id,
+                comment=text
+            )
+        if res:
+            return True
+        else:
+            return False
