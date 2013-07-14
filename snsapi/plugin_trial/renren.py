@@ -294,11 +294,30 @@ class RenrenFeed(SNSBase):
         return statuslist
 
     @require_authed
-    def update(self, text):
-        if self.renren_request(
-            method='status.set',
-            status = text
-        ):
+    def update(self, text, **kwargs):
+        update_status = not ('link' in kwargs or 'title' in kwargs)
+        update_blog = 'title' in kwargs and 'link' not in kwargs
+        update_share_link = 'title' not in kwargs and 'link' in kwargs
+        res = None
+        if update_status:
+            res = self.renren_request(
+                method='status.set',
+                status = text
+            )
+        elif update_blog:
+            res = self.renren_request(
+                method='blog.addBlog',
+                title=kwargs['title'],
+                content=text
+            )
+        elif update_share_link:
+            res = self.renren_request(
+                method='share.share',
+                type='6',
+                url=kwargs['link'],
+                comment=text
+            )
+        if res:
             return True
         else:
             return False
