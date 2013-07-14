@@ -139,8 +139,9 @@ class RenrenFeedMessage(snstype.Message):
             self.parsed.text += dct['message']
         if dct['feed_type'] in [21, 23, 32, 33, 36, 50, 51, 52, 53, 54, 55]:
             self.parsed.text += u"//" + ORIG_USER + ":"
-        if dct['feed_type'] in [20, 21, 22, 23]:
-            self.parsed.text += ' "' + dct['title'] + '" '
+        if 'title' in dct:
+            if 'message' not in dct or dct['message'] != dct['title']:
+                self.parsed.text += ' "' + dct['title'] + '" '
         if 'description' in dct:
             self.parsed.text += dct['description']
         if 'attachment' in dct and dct['attachment']:
@@ -162,6 +163,8 @@ class RenrenFeedMessage(snstype.Message):
                             'format': ['link'],
                             'data': at['href']
                         })
+                if 'content' in at:
+                    self.parsed.text += at['content']
 
 
 class RenrenFeed(SNSBase):
