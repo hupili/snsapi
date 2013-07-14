@@ -101,10 +101,34 @@ class RenrenFeedMessage(snstype.Message):
         self._parse(self.raw)
 
     def _parse(self, dct):
-        self.parsed.userid = dct['actor_id']
+        self.ID.status_id = dct['source_id']
+        self.ID.source_user_id = self.parsed.userid = dct['actor_id']
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct['update_time'], " +08:00")
         self.parsed.text = ""
+        self.ID.feed_type = self.parsed.feed_type = {
+            10: 'STATUS',
+            11: 'STATUS',
+            20: 'BLOG',
+            21: 'SHARE',
+            22: 'BLOG',
+            23: 'SHARE',
+            30: 'PHOTO',
+            31: 'PHOTO',
+            32: 'SHARE',
+            33: 'SHARE',
+            34: 'OTHER',
+            35: 'OTHER',
+            36: 'SHARE',
+            40: 'OTHER',
+            41: 'OTHER',
+            50: 'SHARE',
+            51: 'SHARE',
+            52: 'SHARE',
+            53: 'SHARE',
+            54: 'SHARE',
+            55: 'SHARE'
+        }[dct['feed_type']]
         ORIG_USER = 'orig'
         if 'attachment' in dct and dct['attachment']:
             for at in dct['attachment']:
@@ -174,7 +198,6 @@ class RenrenFeed(SNSBase):
         kwargs['format'] = 'json'
         kwargs['type'] = '10,11,20,21,22,23,30,31,32,33,34,35,36,40,41,50,51,52,53,54,55'
         response = self._http_post(RENREN_API_SERVER, kwargs)
-        logger.debug('RESP: %s' % (response))
 
 
         if type(response) is not list and "error_code" in response:
@@ -266,3 +289,58 @@ class RenrenFeed(SNSBase):
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
         return statuslist
+
+    @require_authed
+    def update(self, text):
+        if self.renren_request(
+            method='status.set',
+            status = text
+        ):
+            return True
+        else:
+            return False
+
+
+    @require_authed
+    def reply(self, statusId, text):
+        #NOTE: you can mix API1 and API2.
+        #NOTE: API2 is more better on comment
+        res = None
+        if statusId.feed_type == 'STATUS':
+            res = self.renren_request(
+                method='status.addComment',
+                status_id=statusId.status_id,
+                owner_id=statusId.source_user_id,
+                content=text
+            )
+        if statusId.feed_type == 'SHARE':
+            res = self.renren_request(
+                method='share.addComment',
+                share_id=statusId.status_id,
+                user_id=statusId.source_user_id,
+                content=text
+            )
+        if statusId.feed_type == 'BLOG':
+            res = self.renren_request(
+                method='blog.addComment',
+                id=statusId.status_id,
+                #FIXME: page_id, uid
+                uid=statusId.source_user_id,
+                content=text
+            )
+        if statusId.feed_type == 'PHOTO':
+            res = self.renren_request(
+                method='photos.addComment',
+                uid=statusId.source_user_id,
+                content=text,
+                #FIXME: aid, pid
+                pid=statusId.status_id
+            )
+        if res:
+            return True
+        else:
+            return False
+
+    @require_authed
+    def forward(self, statusId, text):
+        pass
