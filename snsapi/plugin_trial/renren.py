@@ -306,35 +306,44 @@ class RenrenFeed(SNSBase):
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
         return statuslist
 
+    def _update_status(self, text):
+        return self.renren_request(
+            method='status.set',
+            status = text
+        ) and True or False
+
+    def _update_blog(self, text, title):
+        return self.renren_request(
+            method='blog.addBlog',
+            title=title,
+            content=text
+        ) and True or False
+
+    def _update_share_link(self, text, link):
+        return self.renren_request(
+            method='share.share',
+            type='6',
+            url=link,
+            comment=text
+        ) and True or False
+
+    def _dummy_update(self, text, **kwargs):
+        return False
+
     @require_authed
     def update(self, text, **kwargs):
-        update_status = not ('link' in kwargs or 'title' in kwargs)
-        update_blog = 'title' in kwargs and 'link' not in kwargs
-        update_share_link = 'title' not in kwargs and 'link' in kwargs
-        res = None
-        if update_status:
-            res = self.renren_request(
-                method='status.set',
-                status = text
-            )
-        elif update_blog:
-            res = self.renren_request(
-                method='blog.addBlog',
-                title=kwargs['title'],
-                content=text
-            )
-        elif update_share_link:
-            res = self.renren_request(
-                method='share.share',
-                type='6',
-                url=kwargs['link'],
-                comment=text
-            )
-        if res:
-            return True
-        else:
-            return False
-
+        coder= int(''.join(map(lambda t: str(int(t)),
+            [
+                'title' in kwargs,
+                'link' in kwargs
+            ][::-1])
+        ))
+        update_what = {
+            0: self._update_status,
+            1: self._update_blog,
+            10: self._update_share_link
+        }[coder]
+        return update_what(text, **kwargs)
 
     @require_authed
     def reply(self, statusId, text):
@@ -422,7 +431,7 @@ class RenrenStatus(RenrenFeed):
 
     @require_authed
     def update(self, text):
-        return RenrenFeed.update(self, text)
+        return RenrenFeed._update_status(self, text)
 
 
 class RenrenBlog(RenrenFeed):
@@ -445,7 +454,7 @@ class RenrenBlog(RenrenFeed):
     def update(self, text, title=None):
         if not title:
             title = text.split('\n')[0]
-        return RenrenFeed.update(self, text, title=title)
+        return RenrenFeed._update_blog(self, text, title)
 
 class RenrenPhoto(RenrenFeed):
     Message = RenrenPhotoMessage
@@ -487,4 +496,4 @@ class RenrenShare(RenrenFeed):
     def update(self, text, link=None):
         if not link:
             link = text
-        return RenrenFeed.update(self, text, link=link)
+        RenrenFeed._update_share_link(self, text, link)
