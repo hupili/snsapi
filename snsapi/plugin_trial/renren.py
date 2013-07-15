@@ -37,61 +37,6 @@ class RenrenAPIError(Exception):
         super(RenrenAPIError, self).__init__(message)
         self.code = code
 
-class RenrenBase(SNSBase):
-    def __init__(self, channel = None):
-        super(RenrenBase, self).__init__(channel)
-        self.platform = self.__class__.__name__
-
-    @staticmethod
-    def new_channel(full = False):
-        '''
-        docstring placeholder
-        '''
-
-        c = SNSBase.new_channel(full)
-
-        c['app_key'] = ''
-        c['app_secret'] = ''
-        c['platform'] = 'RenrenBase'
-        c['auth_info'] = {
-                "save_token_file": "(default)",
-                "cmd_request_url": "(default)",
-                "callback_url": "http://snsapi.sinaapp.com/auth.php",
-                "cmd_fetch_code": "(default)"
-                }
-
-        return c
-
-
-    def read_channel(self, channel):
-        '''
-        docstring placeholder
-        '''
-
-        super(RenrenBase, self).read_channel(channel)
-
-        if not "callback_url" in self.auth_info:
-            self.auth_info.callback_url = "http://snsapi.sinaapp.com/auth.php"
-            # The following is official test link.
-            # Keep here for future reference.
-            #self.auth_info.callback_url = "http://graph.renren.com/oauth/login_success.html"
-
-        # Renren API document says the limit is 140 character....
-        # After test, it seems 245 unicode character.
-        # To leave some safe margin, we use 240 here.
-        self.jsonconf['text_length_limit'] = 240
-
-        #if not 'platform_prefix' in self.jsonconf:
-        #    self.jsonconf['platform_prefix'] = u'人人'
-
-    def need_auth(self):
-        '''
-        docstring placeholder
-        '''
-
-        return True
-
-
 class RenrenFeedMessage(snstype.Message):
     platform = "RenrenFeed"
 
@@ -101,7 +46,7 @@ class RenrenFeedMessage(snstype.Message):
 
     def _parse(self, dct):
         self.ID.status_id = dct['source_id']
-        self.ID.source_user_id = self.parsed.userid = dct['actor_id']
+        self.ID.source_user_id = self.parsed.userid = str(dct['actor_id'])
         self.parsed.username = dct['name']
         self.parsed.time = utils.str2utc(dct['update_time'], " +08:00")
         self.parsed.text = ""
@@ -185,7 +130,8 @@ class RenrenFeed(SNSBase):
     Message = RenrenFeedMessage
 
     def __init__(self, channel = None):
-        SNSBase.__init__(self, channel)
+        super(RenrenFeed, self).__init__(channel)
+        self.platform = self.__class__.__name__
 
     @staticmethod
     def new_channel(full = False):
@@ -295,15 +241,15 @@ class RenrenFeed(SNSBase):
             return snstype.MessageList()
 
         statuslist = snstype.MessageList()
-        try:
-            for j in jsonlist:
+        for j in jsonlist:
+            try:
                 statuslist.append(self.Message(
                     j,
                     platform = self.jsonconf['platform'],
                     channel = self.jsonconf['channel_name']
                 ))
-        except Exception, e:
-            logger.warning("Catch exception: %s", e)
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
         return statuslist
@@ -451,7 +397,7 @@ class RenrenStatus(RenrenFeed):
     Message = RenrenStatusMessage
 
     def __init__(self, channel=None):
-        SNSBase.__init__(self, channel)
+        super(RenrenStatus, self).__init__(channel)
 
     @staticmethod
     def new_channel(full=False):
@@ -472,7 +418,7 @@ class RenrenBlog(RenrenFeed):
     Message = RenrenBlogMessage
 
     def __init__(self, channel=None):
-        SNSBase.__init__(self, channel)
+        super(RenrenBlog, self).__init__(channel)
 
     @staticmethod
     def new_channel(full=False):
@@ -494,7 +440,7 @@ class RenrenPhoto(RenrenFeed):
     Message = RenrenPhotoMessage
 
     def __init__(self, channel=None):
-        SNSBase.__init__(self, channel)
+        super(RenrenPhoto, self).__init__(channel)
 
     @staticmethod
     def new_channel(full=False):
@@ -514,7 +460,7 @@ class RenrenShare(RenrenFeed):
     Message = RenrenShareMessage
 
     def __init__(self, channel=None):
-        SNSBase.__init__(self, channel)
+        super(RenrenShare, self).__init__(channel)
 
     @staticmethod
     def new_channel(full=False):
