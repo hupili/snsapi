@@ -496,4 +496,4 @@ class RenrenShare(RenrenFeed):
     def update(self, text, link=None):
         if not link:
             link = text
-        RenrenFeed._update_share_link(self, text, link)
+        return RenrenFeed._update_share_link(self, text, link)
