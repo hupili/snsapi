@@ -11,14 +11,11 @@ if __name__ == '__main__':
     from snslog import SNSLog as logger
     from snsbase import SNSBase, require_authed
     import snstype
-    from utils import console_output
     import utils
 else:
-    import sys
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
-    from ..utils import console_output
     from .. import utils
 
 
@@ -167,6 +164,20 @@ class RenrenFeedMessage(snstype.Message):
                     self.parsed.text += at['content']
 
 
+
+class RenrenStatusMessage(RenrenFeedMessage):
+    platform = 'RenrenStatus'
+
+class RenrenShareMessage(RenrenFeedMessage):
+    platform = 'RenRenShare'
+
+class RenrenBlogMessage(RenrenFeedMessage):
+    platform = 'RenrenBlog'
+
+class RenrenPhotoMessage(RenrenFeedMessage):
+    platform = 'RenrenPhoto'
+
+
 class RenrenFeed(SNSBase):
 
     Message = RenrenFeedMessage
@@ -265,15 +276,17 @@ class RenrenFeed(SNSBase):
         return True
 
     @require_authed
-    def home_timeline(self, count=20):
+    def home_timeline(self, count=20, **kwargs):
         #FIXME: automatic paging for count > 100
-        api_params = dict()
+        ttype='10,11,20,21,22,23,30,31,32,33,34,35,36,40,41,50,51,52,53,54,55'
+        if 'type' in kwargs:
+            ttype = kwargs['type']
         try:
             jsonlist = self.renren_request(
                 method="feed.get",
                 page=1,
                 count=count,
-                type='10,11,20,21,22,23,30,31,32,33,34,35,36,40,41,50,51,52,53,54,55'
+                type=ttype,
             )
         except RenrenAPIError, e:
             logger.warning("RenrenAPIError, %s", e)
@@ -389,3 +402,89 @@ class RenrenFeed(SNSBase):
             return True
         else:
             return False
+
+
+class RenrenStatus(RenrenFeed):
+    Message = RenrenStatusMessage
+
+    def __init__(self, channel=None):
+        SNSBase.__init__(self, channel)
+
+    @staticmethod
+    def new_channel(full=False):
+        c = RenrenFeed.new_channel(full)
+        c['platform'] = 'RenrenStatus'
+        return c
+
+    @require_authed
+    def home_timeline(self, count=20):
+        return RenrenFeed.home_timeline(self, count, type='10,11')
+
+    @require_authed
+    def update(self, text):
+        return RenrenFeed.update(self, text)
+
+
+class RenrenBlog(RenrenFeed):
+    Message = RenrenBlogMessage
+
+    def __init__(self, channel=None):
+        SNSBase.__init__(self, channel)
+
+    @staticmethod
+    def new_channel(full=False):
+        c = RenrenFeed.new_channel(full)
+        c['platform'] = 'RenrenBlog'
+        return c
+
+    @require_authed
+    def home_timeline(self, count=20):
+        return RenrenFeed.home_timeline(self, count, type='20,22')
+
+    @require_authed
+    def update(self, text, title=None):
+        if not title:
+            title = text.split('\n')[0]
+        return RenrenFeed.update(self, text, title=title)
+
+class RenrenPhoto(RenrenFeed):
+    Message = RenrenPhotoMessage
+
+    def __init__(self, channel=None):
+        SNSBase.__init__(self, channel)
+
+    @staticmethod
+    def new_channel(full=False):
+        c = RenrenFeed.new_channel(full)
+        c['platform'] = 'RenrenPhoto'
+        return c
+
+    @require_authed
+    def home_timeline(self, count=20):
+        return RenrenFeed.home_timeline(self, count, type='30,31')
+
+    @require_authed
+    def update(self, text, photo=None):
+        return False
+
+class RenrenShare(RenrenFeed):
+    Message = RenrenShareMessage
+
+    def __init__(self, channel=None):
+        SNSBase.__init__(self, channel)
+
+    @staticmethod
+    def new_channel(full=False):
+        c = RenrenFeed.new_channel(full)
+        c['platform'] = 'RenrenShare'
+        return c
+
+    @require_authed
+    def home_timeline(self, count=20):
+        return RenrenFeed.home_timeline(self, count, type='21,23,32,33,36,50,51,52,53,54,55')
+
+    @require_authed
+    def update(self, text, link=None):
+        if not link:
+            link = text
+        return RenrenFeed.update(self, text, link=link)
