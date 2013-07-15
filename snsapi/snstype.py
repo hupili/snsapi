@@ -13,7 +13,7 @@ from snslog import SNSLog as logger
 
 
 class BooleanWrappedData:
-    def __init__(self, boolval, data):
+    def __init__(self, boolval, data=None):
         self.boolval = boolval
         self.data = data
 
@@ -21,7 +21,7 @@ class BooleanWrappedData:
         return self.boolval
 
     def __eq__(self, other):
-        if self.boolval ^ other:
+        if self.boolval ^ bool(other):
             return False
         else:
             return True
@@ -31,6 +31,9 @@ class BooleanWrappedData:
 
     def __str__(self):
         return str((self.boolval, self.data))
+
+    def __repr__(self):
+        return repr((self.boolval, self.data))
 
 class MessageID(utils.JsonDict):
     """

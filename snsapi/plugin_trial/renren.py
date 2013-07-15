@@ -11,10 +11,12 @@ if __name__ == '__main__':
     from snslog import SNSLog as logger
     from snsbase import SNSBase, require_authed
     import snstype
+    from snstype import BooleanWrappedData
     import utils
 else:
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
+    from ..snstype import BooleanWrappedData
     from .. import snstype
     from .. import utils
 
@@ -310,14 +312,24 @@ class RenrenFeed(SNSBase):
         return self.renren_request(
             method='status.set',
             status = text
-        ) and True or False
+        ) and \
+                BooleanWrappedData(True) or \
+                BooleanWrappedData(False, {
+                    'errors': ['PLATFORM_'],
+                })
+
 
     def _update_blog(self, text, title):
         return self.renren_request(
             method='blog.addBlog',
             title=title,
             content=text
-        ) and True or False
+        ) and \
+                BooleanWrappedData(True) or \
+                BooleanWrappedData(False, {
+                    'errors': ['PLATFORM_'],
+                })
+
 
     def _update_share_link(self, text, link):
         return self.renren_request(
@@ -325,7 +337,12 @@ class RenrenFeed(SNSBase):
             type='6',
             url=link,
             comment=text
-        ) and True or False
+        ) and \
+                BooleanWrappedData(True) or \
+                BooleanWrappedData(False, {
+                    'errors': ['PLATFORM_'],
+                })
+
 
     def _dummy_update(self, text, **kwargs):
         return False
@@ -338,11 +355,16 @@ class RenrenFeed(SNSBase):
                 'link' in kwargs
             ][::-1])
         ))
-        update_what = {
-            0: self._update_status,
-            1: self._update_blog,
-            10: self._update_share_link
-        }[coder]
+        try:
+            update_what = {
+                0: self._update_status,
+                1: self._update_blog,
+                10: self._update_share_link
+            }[coder]
+        except:
+            return BooleanWrappedData(False, {
+                'errors' : ['SNSAPI_NOT_SUPPORTED'],
+            })
         return update_what(text, **kwargs)
 
     @require_authed
@@ -357,14 +379,14 @@ class RenrenFeed(SNSBase):
                 owner_id=statusId.source_user_id,
                 content=text
             )
-        if statusId.feed_type == 'SHARE':
+        elif statusId.feed_type == 'SHARE':
             res = self.renren_request(
                 method='share.addComment',
                 share_id=statusId.status_id,
                 user_id=statusId.source_user_id,
                 content=text
             )
-        if statusId.feed_type == 'BLOG':
+        elif statusId.feed_type == 'BLOG':
             res = self.renren_request(
                 method='blog.addComment',
                 id=statusId.status_id,
@@ -372,7 +394,7 @@ class RenrenFeed(SNSBase):
                 uid=statusId.source_user_id,
                 content=text
             )
-        if statusId.feed_type == 'PHOTO':
+        elif statusId.feed_type == 'PHOTO':
             res = self.renren_request(
                 method='photos.addComment',
                 uid=statusId.source_user_id,
@@ -380,10 +402,16 @@ class RenrenFeed(SNSBase):
                 #FIXME: aid, pid
                 pid=statusId.status_id
             )
-        if res:
-            return True
         else:
-            return False
+            return BooleanWrappedData(False, {
+                'errors' : ['SNSAPI_NOT_SUPPORTED'],
+            })
+        if res:
+            return BooleanWrappedData(True)
+        else:
+            return BooleanWrappedData(False, {
+                'errors' : ['PLATFORM_'],
+            })
 
     @require_authed
     def forward(self, message, text):
@@ -407,10 +435,16 @@ class RenrenFeed(SNSBase):
                 user_id=message.ID.source_user_id,
                 comment=text
             )
-        if res:
-            return True
         else:
-            return False
+            return BooleanWrappedData(False, {
+                'errors' : ['SNSAPI_NOT_SUPPORTED'],
+            })
+        if res:
+            return BooleanWrappedData(True)
+        else:
+            return BooleanWrappedData(False, {
+                'errors' : ['PLATFORM_'],
+            })
 
 
 class RenrenStatus(RenrenFeed):
