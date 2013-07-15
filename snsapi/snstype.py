@@ -7,10 +7,33 @@ SNS type: status, user, comment
 import hashlib
 
 import utils
-from utils import Serialize
 from errors import snserror
 from snsconf import SNSConf
 from snslog import SNSLog as logger
+
+
+class BooleanWrappedData:
+    def __init__(self, boolval, data=None):
+        self.boolval = boolval
+        self.data = data
+
+    def __nonzero__(self):
+        return self.boolval
+
+    def __eq__(self, other):
+        if self.boolval ^ bool(other):
+            return False
+        else:
+            return True
+
+    def __unicode__(self):
+        return unicode((self.boolval, self.data))
+
+    def __str__(self):
+        return str((self.boolval, self.data))
+
+    def __repr__(self):
+        return repr((self.boolval, self.data))
 
 class MessageID(utils.JsonDict):
     """
