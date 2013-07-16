@@ -9,26 +9,21 @@ if __name__ == '__main__':
     import urllib2
     import urllib
     import re
-    import lxml.html
+    import lxml.html, lxml.etree
     import time
     sys.path.append('..')
     from snslog import SNSLog as logger
     from snsbase import SNSBase, require_authed
     import snstype
-    from utils import console_output
-    import utils
 else:
-    import sys
     import urllib2
     import urllib
     import re
-    import lxml.html
+    import lxml.html, lxml.etree
     import time
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
-    from ..utils import console_output
-    from .. import utils
 
 
 logger.debug("%s plugged!", __file__)
@@ -101,6 +96,12 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         else:
             self.parsed.has_orig = False
         self.ID.id = dct['id']
+        if 'attachment_img' in dct:
+            self.parsed.attachments.append({
+                'type': 'picture',
+                'format': ['link'],
+                'data': dct['attachment_img']
+                })
 
 
 class SinaWeiboWapStatus(SNSBase):
@@ -279,6 +280,9 @@ class SinaWeiboWapStatus(SNSBase):
                     if zf:
                         weibo['comments_count'] = int(zf.group(3))
                         weibo['reposts_count'] = int(zf.group(2))
+                if i.find_class('ib'):
+                    #FIXME: Still not able to process a collections of pictures
+                    weibo['attachment_img'] = i.find_class('ib')[0].get('src').replace('wap128', 'woriginal')
                 weibos.append(weibo)
         statuslist = snstype.MessageList()
         for i in weibos:
