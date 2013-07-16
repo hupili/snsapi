@@ -82,7 +82,7 @@ class RenrenFeedMessage(snstype.Message):
         if 'message' in dct:
             self.parsed.text += dct['message']
         if dct['feed_type'] in [21, 23, 32, 33, 36, 50, 51, 52, 53, 54, 55]:
-            self.parsed.text += u"//" + ORIG_USER + ":"
+            self.parsed.text += u" //" + ORIG_USER + ":"
         if 'title' in dct:
             if 'message' not in dct or dct['message'] != dct['title']:
                 self.parsed.text += ' "' + dct['title'] + '" '
