@@ -100,10 +100,12 @@ class RenrenFeedMessage(snstype.Message):
                         }
                     )
                 elif 'href' in at:
-                    #FIXME: need to do some detailed handling
+                    attype = 'link'
+                    if at['media_type'] in ['album', 'blog']:
+                        attype = at['media_type']
                     self.parsed.attachments.append(
                         {
-                            'type': 'link',
+                            'type': attype,
                             'format': ['link'],
                             'data': at['href']
                         })
