@@ -96,7 +96,7 @@ class RenrenFeedMessage(snstype.Message):
                             'type': 'picture',
                             'format': ['link'],
                             #FIXME: page photo don't have raw_src
-                            'data': 'raw_src' in at and at['raw_src'] or at['src']
+                            'data': 'raw_src' in at and at['raw_src'] or at['src'].replace('head_', 'original_')
                         }
                     )
                 elif 'href' in at:
