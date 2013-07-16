@@ -1,14 +1,11 @@
 #-*- encoding: utf-8 -*-
 
-import json
-import urllib2
 import time
 import re
 from ..snslog import SNSLog
 logger = SNSLog
 from ..snsbase import SNSBase, require_authed
 from .. import snstype
-from ..utils import console_output
 from .. import utils
 
 from ..third import facebook
@@ -92,8 +89,6 @@ class FacebookFeed(SNSBase):
                 "&redirect_uri=" + \
                 self.auth_info['callback_url'] + \
                 "&response_type=token&scope=read_stream,publish_stream"
-        #console_output("Please open " + url + '\n')
-        #console_output("Please input token: ")
         self.request_url(url)
 
     def auth_second(self):
@@ -126,7 +121,6 @@ class FacebookFeed(SNSBase):
 
 
     def auth(self):
-        #FIXME: This is not a real authentication, just refresh token, and save
         if self.get_saved_token():
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             return True
@@ -144,14 +138,14 @@ class FacebookFeed(SNSBase):
     @require_authed
     def home_timeline(self, count=20):
         status_list = snstype.MessageList()
-        try:
-            statuses = self.graph.get_connections("me", "home", limit=count)
-            for s in statuses['data']:
+        statuses = self.graph.get_connections("me", "home", limit=count)
+        for s in statuses['data']:
+            try:
                 status_list.append(self.Message(s,\
                         self.jsonconf['platform'],\
                         self.jsonconf['channel_name']))
-        except Exception, e:
-            logger.warning("Catch expection: %s", e)
+            except Exception, e:
+                logger.warning("Catch expection: %s", e)
         logger.info("FB '%s' read '%d' statuses", self.jsonconf.channel_name, len(status_list))
         return status_list
 
