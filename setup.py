@@ -11,7 +11,7 @@ setup(name='snsapi',
       packages=['snsapi', 'snsapi.third', 'snsapi.plugin', 'snsapi.plugin_trial'],
       package_data={'snsapi': ['conf/*.ini', 'conf/*.example']},
       scripts=['snscli.py', 'snsgui.py'],
-      classfiers=[
+      classifiers=[
           'License :: Public Domain',
           'Intended Audience :: Developers',
           'Intended Audience :: End Users/Desktop',
