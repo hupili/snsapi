@@ -20,6 +20,8 @@ Majors:
    * RSS Message is now fully JSON serializable.
    (the `.raw` is serialized to a str first)
    * snsgui now have RSSSummary and RenrenBlog platform
+   * Support static data dir.
+   * Detect and change storage dir intelligently.
 
 Minors:
 
