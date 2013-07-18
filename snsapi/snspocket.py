@@ -270,8 +270,14 @@ class SNSPocket(dict):
         """
 
         status_list = snstype.MessageList()
-        if channel and not self[channel].is_expired():
-            status_list.extend(self._home_timeline(count, self[channel]))
+        if channel:
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    status_list.extend(self._home_timeline(count, self[channel]))
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'home_timeline') and not c.is_expired():
@@ -288,8 +294,14 @@ class SNSPocket(dict):
             The channel name. Use None to update all channels
         """
         re = {}
-        if channel and not self[channel].is_expired():
-            re[channel] = self[channel].update(text)
+        if channel:
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re[channel] = self[channel].update(text)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'update') and not c.is_expired():
@@ -322,8 +334,14 @@ class SNSPocket(dict):
             return {}
 
         re = {}
-        if channel and not self[channel].is_expired():
-            re = self[channel].reply(message, text)
+        if channel:
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re = self[channel].reply(mID, text)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'reply') and not c.is_expired():
@@ -344,8 +362,14 @@ class SNSPocket(dict):
 
         """
         re = {}
-        if channel and not self[channel].is_expired():
-            re = self[channel].forward(message, text)
+        if channel:
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re = self[channel].forward(message, text)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'forward') and not c.is_expired():
