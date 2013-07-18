@@ -8,7 +8,7 @@ setup(name='snsapi',
       author='Pili Hu',
       author_email='me@hupili.net',
       url='https://github.com/hupili/snsapi',
-      packages=['snsapi'],
+      packages=['snsapi', 'snsapi.third', 'snsapi.plugin', 'snsapi.plugin_trial'],
       scripts=['snscli.py', 'snsgui.py'],
       classfiers=[
           'License :: Public Domain',
