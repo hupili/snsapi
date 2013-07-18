@@ -24,6 +24,8 @@ Majors:
 Minors:
 
    * `RSS2RW.update` now supports a `Message`.
+   * Default log config is changed.
+   Developers please refer to `snsapi/custom_conf.py.example`.
    * More UTs.
 
 0.5.0
