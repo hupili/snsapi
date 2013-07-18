@@ -212,7 +212,7 @@ class SinaWeiboStatusMessage(snstype.Message):
         self.parsed.comments_count = dct['comments_count']
         if 'pic_urls' in dct:
             for pic in dct['pic_urls']:
-                self.attachments.appaned(
+                self.parsed.attachments.append(
                 {
                     'type': 'picture',
                     'format': ['link'],
@@ -223,7 +223,7 @@ class SinaWeiboStatusMessage(snstype.Message):
             self.parsed.username_orig = "unknown"
             if 'pic_urls' in dct['retweeted_status']:
                 for pic in dct['retweeted_status']['pic_urls']:
-                    self.attachments.appaned(
+                    self.parsed.attachments.append(
                         {
                             'type': 'picture',
                             'format': ['link'],
