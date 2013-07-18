@@ -10,3 +10,6 @@ from errors import snserror
 import platform
 
 _dir_static_data = snsconf.SNSConf.SNSAPI_DIR_STATIC_DATA
+
+__versioninfo__ = (0, 6, 1)
+__version__ = '.'.join(map(str, __versioninfo__))

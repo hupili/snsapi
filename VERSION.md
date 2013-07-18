@@ -1,4 +1,4 @@
-SNSAPI 0.6.0
+SNSAPI 0.6.1
 ============
 
 Version string convention: `x.y.z`
@@ -6,6 +6,11 @@ Version string convention: `x.y.z`
    * `x`: Major version with architectural upgrades.
    * `y`: Minor version with functional extension.
    * `z`: Micro version with small fix.
+
+0.6.1
+-----
+
+   * Improve packaging
 
 0.6.0
 -----
