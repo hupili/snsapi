@@ -1,0 +1,2 @@
+include snscli.py snsgui.py README.md VERSION.md CONTRIBUTOR requirements.txt
+recursive-include snsapi *.py
