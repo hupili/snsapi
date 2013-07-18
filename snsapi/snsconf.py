@@ -108,6 +108,24 @@ class SNSConf(object):
     #TODO:
     #    Find better way to organize static package data
     SNSAPI_DIR_STATIC_DATA = path.join(path.dirname(path.abspath(__file__)), 'conf')
+    _USER_HOME = path.expanduser('~')
+    _SNSAPI_DIR_USER_ROOT = path.join(_USER_HOME, '.snsapi')
+    _SNSAPI_DIR_CWD = path.abspath('.')
+    if path.isdir(path.join(_SNSAPI_DIR_CWD, 'conf'))\
+        and path.isdir(path.join(_SNSAPI_DIR_CWD, 'save')):
+        SNSAPI_DIR_STORAGE_ROOT = _SNSAPI_DIR_CWD
+    else:
+        SNSAPI_DIR_STORAGE_ROOT = _SNSAPI_DIR_USER_ROOT
+    SNSAPI_DIR_STORAGE_CONF = path.join(SNSAPI_DIR_STORAGE_ROOT, 'conf')
+    SNSAPI_DIR_STORAGE_SAVE = path.join(SNSAPI_DIR_STORAGE_ROOT, 'save')
+    import os
+    if not path.isdir(SNSAPI_DIR_STORAGE_ROOT):
+        os.mkdir(SNSAPI_DIR_STORAGE_ROOT)
+    if not path.isdir(SNSAPI_DIR_STORAGE_CONF):
+        os.mkdir(SNSAPI_DIR_STORAGE_CONF)
+    if not path.isdir(SNSAPI_DIR_STORAGE_SAVE):
+        os.mkdir(SNSAPI_DIR_STORAGE_SAVE)
+
 
     def __init__(self):
         raise SNSConfNoInstantiation()

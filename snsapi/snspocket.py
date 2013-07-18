@@ -20,6 +20,9 @@ import platform
 
 # === 3rd party modules ===
 
+DIR_DEFAULT_CONF_CHANNEL = path.join(SNSConf.SNSAPI_DIR_STORAGE_CONF, 'channel.json')
+DIR_DEFAULT_CONF_POCKET = path.join(SNSConf.SNSAPI_DIR_STORAGE_CONF, 'pocket.json')
+
 class SNSPocket(dict):
     """The container class for snsapi's"""
 
@@ -119,9 +122,9 @@ class SNSPocket(dict):
 
         return True
 
-    def load_config(self, \
-            fn_channel = 'conf/channel.json',\
-            fn_pocket = 'conf/pocket.json'):
+    def load_config(self,
+            fn_channel = DIR_DEFAULT_CONF_CHANNEL,
+            fn_pocket = DIR_DEFAULT_CONF_POCKET):
         """
         Read configs:
         * channel.conf
@@ -153,9 +156,9 @@ class SNSPocket(dict):
 
         logger.info("Read configs done. Add %d channels" % count_add_channel)
 
-    def save_config(self, \
-            fn_channel = 'conf/channel.json',\
-            fn_pocket = 'conf/pocket.json'):
+    def save_config(self,
+            fn_channel = DIR_DEFAULT_CONF_CHANNEL,
+            fn_pocket = DIR_DEFAULT_CONF_POCKET):
         """
         Save configs: reverse of load_config
 
