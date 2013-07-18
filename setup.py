@@ -27,7 +27,11 @@ setup(name='snsapi',
       maintainer_email='me@hupili.net',
       url='https://github.com/hupili/snsapi',
       packages=['snsapi', 'snsapi.third', 'snsapi.plugin', 'snsapi.plugin_trial'],
-      package_data={'snsapi': ['conf/*.ini', 'conf/*.example']},
+      package_data={'snsapi': ['data/*.ini', 'data/*.example']},
+      data_files=[
+          ('data', ['snsapi/data/init-channel.json.example', 'snsapi/data/snsgui.ini'])
+      ],
+      include_package_data=True,
       scripts=['snscli.py', 'snsgui.py'],
       provides=['snsapi'],
       requires=REQUIRES,

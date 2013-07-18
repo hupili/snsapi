@@ -107,7 +107,7 @@ class SNSConf(object):
 
     #TODO:
     #    Find better way to organize static package data
-    SNSAPI_DIR_STATIC_DATA = path.join(path.dirname(path.abspath(__file__)), 'conf')
+    SNSAPI_DIR_STATIC_DATA = path.join(path.dirname(path.abspath(__file__)), 'data')
     _USER_HOME = path.expanduser('~')
     _SNSAPI_DIR_USER_ROOT = path.join(_USER_HOME, '.snsapi')
     _SNSAPI_DIR_CWD = path.abspath('.')
