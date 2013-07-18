@@ -9,6 +9,7 @@ setup(name='snsapi',
       author_email='me@hupili.net',
       url='https://github.com/hupili/snsapi',
       packages=['snsapi', 'snsapi.third', 'snsapi.plugin', 'snsapi.plugin_trial'],
+      package_data={'snsapi': ['conf/*.ini', 'conf/*.example']},
       scripts=['snscli.py', 'snsgui.py'],
       classfiers=[
           'License :: Public Domain',

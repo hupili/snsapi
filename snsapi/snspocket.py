@@ -7,7 +7,7 @@ snspocket: the container class for snsapi's
 
 # === system imports ===
 from utils import json
-from os.path import abspath
+from os import path
 
 # === snsapi modules ===
 import snstype
@@ -15,6 +15,7 @@ import utils
 from errors import snserror
 from utils import console_output
 from snslog import SNSLog as logger
+from snsconf import SNSConf
 import platform
 
 # === 3rd party modules ===
@@ -23,11 +24,11 @@ class SNSPocket(dict):
     """The container class for snsapi's"""
 
     __default_mapping = {
-        "home_timeline" : "home_timeline", 
-        "update" : "update", 
+        "home_timeline" : "home_timeline",
+        "update" : "update",
         "reply" : "reply",
-        "read" : "home_timeline", 
-        "write" : "update", 
+        "read" : "home_timeline",
+        "write" : "update",
         "writeto" : "reply"}
 
     def __init__(self):
@@ -57,28 +58,28 @@ class SNSPocket(dict):
 
     def __method_routing(self, channel, mapping = None):
         #TODO:
-        #    This function can support higher layer method 
+        #    This function can support higher layer method
         #    routing. The basic usage is to enable alias to
         #    lower level methods. e.g. you can call "read",
-        #    which may be routed to "home_timeline" for 
-        #    real business. 
+        #    which may be routed to "home_timeline" for
+        #    real business.
         #
-        #    Currently, it is here to map non existing methods 
-        #    to dummy methods. 
-        #  
-        #    It's also unclear that where is the best place 
+        #    Currently, it is here to map non existing methods
+        #    to dummy methods.
+        #
+        #    It's also unclear that where is the best place
         #    for this function. here, or in the base class
         #    'SNSBase'?
         #
-        #    The implementation does not look good. 
+        #    The implementation does not look good.
         #    I need two scan:
-        #       * The first is to determine who is dummy. 
-        #       * The second is to really assign dummy. 
-        # 
-        #    If we do everything in one scan, after assigning 
-        #    dummy, the later reference will find it "hasattr". 
-        #    Then we do not get the correct method name in 
-        #    log message. 
+        #       * The first is to determine who is dummy.
+        #       * The second is to really assign dummy.
+        #
+        #    If we do everything in one scan, after assigning
+        #    dummy, the later reference will find it "hasattr".
+        #    Then we do not get the correct method name in
+        #    log message.
 
         if not mapping:
             mapping = SNSPocket.__default_mapping
@@ -114,7 +115,7 @@ class SNSPocket(dict):
             return False
         if p:
             self[cname] = p(jsonconf)
-            self.__method_routing(cname, SNSPocket.__default_mapping) 
+            self.__method_routing(cname, SNSPocket.__default_mapping)
 
         return True
 
@@ -127,9 +128,9 @@ class SNSPocket(dict):
         * pocket.conf
         """
 
-        count_add_channel = 0 
+        count_add_channel = 0
         try:
-            with open(abspath(fn_channel), "r") as fp:
+            with open(path.abspath(fn_channel), "r") as fp:
                 allinfo = json.load(fp)
                 for site in allinfo:
                     if self.add_channel(utils.JsonDict(site)):
@@ -141,7 +142,7 @@ class SNSPocket(dict):
             raise snserror.config.load("file: %s; message: %s" % (fn_channel, e))
 
         try:
-            with open(abspath(fn_pocket), "r") as fp:
+            with open(path.abspath(fn_pocket), "r") as fp:
                 allinfo = json.load(fp)
                 self.jsonconf = allinfo
         except IOError:
@@ -158,10 +159,10 @@ class SNSPocket(dict):
         """
         Save configs: reverse of load_config
 
-        Configs can be modified during execution. snsapi components 
-        communicate with upper layer using Python objects. Pocket 
-        will be the unified place to handle file transactions.  
-        
+        Configs can be modified during execution. snsapi components
+        communicate with upper layer using Python objects. Pocket
+        will be the unified place to handle file transactions.
+
         """
 
         conf_channel = []
@@ -186,7 +187,8 @@ class SNSPocket(dict):
                 logger.warning("can not find platform '%s'", pl)
                 return utils.JsonDict()
         else:
-            return utils.JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))   
+            _fn_conf = path.join(SNSConf.SNSAPI_DIR_STATIC_DATA, 'init-channel.json.example')
+            return utils.JsonDict(json.load(open(_fn_conf)))
 
     def list_platform(self):
         console_output("")
@@ -224,30 +226,30 @@ class SNSPocket(dict):
 
     def __check_method(self, channel, method):
         '''
-        Check availability of batch operation methods: 
+        Check availability of batch operation methods:
 
-           * First the channel 'open' is switched on. 
-           * There is no 'methods' fields meaning all 
-           methods can be invoked by default. 
-           * If there is methods, check whether the current 
-           method is defaultly enabled. 
+           * First the channel 'open' is switched on.
+           * There is no 'methods' fields meaning all
+           methods can be invoked by default.
+           * If there is methods, check whether the current
+           method is defaultly enabled.
 
         '''
         if channel.jsonconf['open'] == "yes":
             if not 'methods' in channel.jsonconf:
                 return True
             elif channel.jsonconf['methods'].find(method) != -1:
-                return True 
+                return True
         return False
 
     def _home_timeline(self, count, ch):
         #TODO:
         #    The following set default parameter for home_timeline.
-        #    Other methods may also need default parameter some time. 
-        #    We should seek for a more unified solution. 
-        #    e.g. 
-        #    When adding channels, hide their original function 
-        #    and substitue it with a partial evaluated version 
+        #    Other methods may also need default parameter some time.
+        #    We should seek for a more unified solution.
+        #    e.g.
+        #    When adding channels, hide their original function
+        #    and substitue it with a partial evaluated version
         #    using configured defaults
         if not count:
             if 'home_timeline' in ch.jsonconf:
@@ -258,8 +260,8 @@ class SNSPocket(dict):
 
     def home_timeline(self, count = None, channel = None):
         """
-        Route to home_timeline method of snsapi. 
-        
+        Route to home_timeline method of snsapi.
+
         :param channel:
             The channel name. Use None to read all channels
         """
@@ -277,8 +279,8 @@ class SNSPocket(dict):
 
     def update(self, text, channel = None):
         """
-        Route to update method of snsapi. 
-        
+        Route to update method of snsapi.
+
         :param channel:
             The channel name. Use None to update all channels
         """
@@ -295,17 +297,17 @@ class SNSPocket(dict):
 
     def reply(self, message, text, channel = None):
         """
-        Route to reply method of snsapi. 
-        
+        Route to reply method of snsapi.
+
         :param channel:
             The channel name. Use None to automatically select
-            one compatible channel. 
+            one compatible channel.
 
         :param status:
             Message or MessageID object.
 
         :text:
-            Reply text. 
+            Reply text.
         """
 
         if isinstance(message, snstype.Message):
@@ -323,7 +325,7 @@ class SNSPocket(dict):
             for c in self.itervalues():
                 if self.__check_method(c, 'reply') and not c.is_expired():
                     #TODO:
-                    #    First try to match "channel_name". 
+                    #    First try to match "channel_name".
                     #    If there is no match, try to match "platform".
                     if c.jsonconf['platform'] == mID.platform:
                         re = c.reply(mID, text)

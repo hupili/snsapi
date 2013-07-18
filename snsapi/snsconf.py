@@ -42,6 +42,8 @@ Guidelines to add things here:
 
 '''
 
+from os import path
+
 from snslog import SNSLog
 
 
@@ -102,6 +104,10 @@ class SNSConf(object):
        * None: Output to STDOUT. Good for Debug version.
        * {Filename}: Log to {Filename}. Good for Relase version.
     '''
+
+    #TODO:
+    #    Find better way to organize static package data
+    SNSAPI_DIR_STATIC_DATA = path.join(path.dirname(path.abspath(__file__)), 'conf')
 
     def __init__(self):
         raise SNSConfNoInstantiation()
