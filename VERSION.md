@@ -1,11 +1,30 @@
-SNSAPI 0.5.0
+SNSAPI 0.6.0
 ============
 
 Version string convention: `x.y.z`
 
-   * `x`: Major version with architectural upgrades. 
-   * `y`: Minor version with functional extension. 
-   * `z`: Micro version with small fix. 
+   * `x`: Major version with architectural upgrades.
+   * `y`: Minor version with functional extension.
+   * `z`: Micro version with small fix.
+
+0.6.0
+-----
+
+Majors:
+
+   * SinaWap platform is on
+   * Facebook platform is on
+   * New data field: `Message.parsed.attachment`.
+   Can be used to convey pictures, videos, and links.
+   Format can be both link, text, or binary.
+   * RSS Message is now fully JSON serializable.
+   (the `.raw` is serialized to a str first)
+   * snsgui now have RSSSummary and RenrenBlog platform
+
+Minors:
+
+   * `RSS2RW.update` now supports a `Message`.
+   * More UTs.
 
 0.5.0
 -----
@@ -13,7 +32,7 @@ Version string convention: `x.y.z`
 Main changes that may influence current running instances:
 
    * Change default saved token path to `.save`
-   * Change old `(null)` notation. 
+   * Change old `(null)` notation.
    All are unified to `None` internal SNSApi.
    Use `null` in JSON.
    * Change default `RSS` message str style.
@@ -21,7 +40,7 @@ Main changes that may influence current running instances:
 Main functional upgrades:
 
    * Google Reader takeout format to SNSApi channel conf converter
-   * New platform: `RSSSummary`. 
+   * New platform: `RSSSummary`.
    This can be used to format the RSS feeds with full-texts.
    * Upgrade Twitter Api from 1.0 to 1.1.
    * `RenrenStatus` specific forwarding is enabled.
