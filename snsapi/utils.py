@@ -232,9 +232,11 @@ def str2utc(s, tc = None):
         logger.warning("error parsing time str '%s': %s", s, e)
         return 0
 
-def utc2str(u):
+def utc2str(u, tz=None):
     # Format to RFC822 time string in current timezone
-    return _format_date(datetime.fromtimestamp(u, SNSAPI_TIMEZONE))
+    if tz is None:
+        tz = SNSAPI_TIMEZONE
+    return _format_date(datetime.fromtimestamp(u, tz))
 
 import re
 _PATTERN_HTML_TAG = re.compile('<[^<]+?>')

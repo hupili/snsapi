@@ -203,7 +203,7 @@ class Message(utils.JsonDict):
                 utils.utc2str(self.parsed.time),
                 self.parsed.text[0:500])
 
-    def dump(self):
+    def dump(self, tz=None):
         '''
         Level 1 serialization: console output.
 
@@ -216,8 +216,12 @@ class Message(utils.JsonDict):
         See also __str__(), __unicode__(), show()
 
         '''
-        return unicode("[%s] at %s \n  %s") % \
-                (self.parsed.username, utils.utc2str(self.parsed.time), self.parsed.text)
+        if tz:
+            return unicode("[%s] at %s \n  %s") % \
+                    (self.parsed.username, utils.utc2str(self.parsed.time, tz), self.parsed.text)
+        else:
+            return unicode("[%s] at %s \n  %s") % \
+                    (self.parsed.username, utils.utc2str(self.parsed.time), self.parsed.text)
 
     def dump_parsed(self):
         '''
@@ -267,7 +271,9 @@ class Message(utils.JsonDict):
         according to this digest function.
 
         '''
-        return hashlib.sha1(self.dump().encode('utf-8')).hexdigest()
+        from utils import FixedOffsetTimeZone
+        tz = FixedOffsetTimeZone(0, 'GMT')
+        return hashlib.sha1(self.dump(tz=tz).encode('utf-8')).hexdigest()
 
     def digest_parsed(self):
         '''

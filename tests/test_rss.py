@@ -39,9 +39,9 @@ class TestRSS2RW(TestBase):
     def setup(self):
         _url = os.path.join(DIR_TMP, "_test_rss.xml")
         channel_conf = {
-          "url": _url, 
-          "channel_name": "test_rss", 
-          "open": "yes", 
+          "url": _url,
+          "channel_name": "test_rss",
+          "open": "yes",
           "platform": "RSS2RW"
         }
         self.rss = rss.RSS2RW(channel_conf)
@@ -176,4 +176,4 @@ class TestRSS2RW(TestBase):
         msg.parsed.time = 1234567890
         self.rss.update(msg)
         msg2 = self.rss.home_timeline()[0]
-        eq_(msg2.parsed.link, 'http://goo.gl/7aokV#a8667fa46fb30dc4229c6a62f8c6ba2da3045457')
+        eq_(msg2.parsed.link, 'http://goo.gl/7aokV#a6dd6e622b2b4f01065b6abe47571a33423a16ea')
