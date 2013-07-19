@@ -47,6 +47,9 @@ import tkMessageBox
 import tkSimpleDialog
 import webbrowser
 from ConfigParser import ConfigParser
+import os
+
+import snsapi
 from snsapi.snspocket import SNSPocket
 from snsapi.utils import utc2str
 
@@ -66,7 +69,7 @@ TWITTER = 'TwitterStatus'
 
 
 TITLE = 'snsapi'
-CONFILE = 'conf/snsgui.ini'
+CONFILE = os.path.join(snsapi._dir_static_data, 'snsgui.ini')
 
 
 sp = SNSPocket()

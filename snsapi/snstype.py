@@ -108,6 +108,11 @@ class Message(utils.JsonDict):
        * ``username:`` a string. (called as "usernick" as some platform)
        * ``text:`` a string. (can be 'text' in the returning json object,
          or parsed from other fields.)
+       * ``attachments``: an array of attachments. Each attachment is:
+         ``{'type': TYPE, 'format': [FORMAT1, FORMAT2, ...], 'data': DATA}``.
+         TYPE can be one of ``link``, ``picture``, ``album``, ``video``, ``blog``.
+         FORMAT can be ``link``, ``binary``, ``text`` and ``other``.
+         DATA is your data presented in FORMAT.
 
     Optional fields of 'parsed' are:
 
@@ -132,11 +137,6 @@ class Message(utils.JsonDict):
          the forwarding / retweeting / reposting sequence.
          There is no unified format yet.
        * ``username_origin``: a string. The username who posts 'text_orig'.
-       * ``attachments``: an array of attachments, for one attachment, it
-       should be a dict like {'type': TYPE, 'format': [FORMAT], data': DATA},
-         and TYPE can be one of link, picture, album, video, blog,
-         and FORMAT can be any of link, binary, and others
-         and DATA is your data.
 
     '''
 

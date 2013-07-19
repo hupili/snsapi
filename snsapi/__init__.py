@@ -4,10 +4,12 @@ import snslog
 import utils
 import snstype
 from errors import snserror
-import snscrypt
-from third import *
-#from plugin import *
-#from plugin_trial import *
-#from plugin import QQAPI
+#import snscrypt
+#from third import *
 
 import platform
+
+_dir_static_data = snsconf.SNSConf.SNSAPI_DIR_STATIC_DATA
+
+__versioninfo__ = (0, 6, 2)
+__version__ = '.'.join(map(str, __versioninfo__))

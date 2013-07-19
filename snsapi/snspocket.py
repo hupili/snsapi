@@ -7,7 +7,7 @@ snspocket: the container class for snsapi's
 
 # === system imports ===
 from utils import json
-from os.path import abspath
+from os import path
 
 # === snsapi modules ===
 import snstype
@@ -15,9 +15,13 @@ import utils
 from errors import snserror
 from utils import console_output
 from snslog import SNSLog as logger
+from snsconf import SNSConf
 import platform
 
 # === 3rd party modules ===
+
+DIR_DEFAULT_CONF_CHANNEL = path.join(SNSConf.SNSAPI_DIR_STORAGE_CONF, 'channel.json')
+DIR_DEFAULT_CONF_POCKET = path.join(SNSConf.SNSAPI_DIR_STORAGE_CONF, 'pocket.json')
 
 class SNSPocket(dict):
     """The container class for snsapi's"""
@@ -118,9 +122,9 @@ class SNSPocket(dict):
 
         return True
 
-    def load_config(self, \
-            fn_channel = 'conf/channel.json',\
-            fn_pocket = 'conf/pocket.json'):
+    def load_config(self,
+            fn_channel = DIR_DEFAULT_CONF_CHANNEL,
+            fn_pocket = DIR_DEFAULT_CONF_POCKET):
         """
         Read configs:
         * channel.conf
@@ -129,7 +133,7 @@ class SNSPocket(dict):
 
         count_add_channel = 0
         try:
-            with open(abspath(fn_channel), "r") as fp:
+            with open(path.abspath(fn_channel), "r") as fp:
                 allinfo = json.load(fp)
                 for site in allinfo:
                     if self.add_channel(utils.JsonDict(site)):
@@ -141,7 +145,7 @@ class SNSPocket(dict):
             raise snserror.config.load("file: %s; message: %s" % (fn_channel, e))
 
         try:
-            with open(abspath(fn_pocket), "r") as fp:
+            with open(path.abspath(fn_pocket), "r") as fp:
                 allinfo = json.load(fp)
                 self.jsonconf = allinfo
         except IOError:
@@ -152,9 +156,9 @@ class SNSPocket(dict):
 
         logger.info("Read configs done. Add %d channels" % count_add_channel)
 
-    def save_config(self, \
-            fn_channel = 'conf/channel.json',\
-            fn_pocket = 'conf/pocket.json'):
+    def save_config(self,
+            fn_channel = DIR_DEFAULT_CONF_CHANNEL,
+            fn_pocket = DIR_DEFAULT_CONF_POCKET):
         """
         Save configs: reverse of load_config
 
@@ -186,7 +190,8 @@ class SNSPocket(dict):
                 logger.warning("can not find platform '%s'", pl)
                 return utils.JsonDict()
         else:
-            return utils.JsonDict(json.load(open(abspath('conf/init-channel.json.example'),'r')))
+            _fn_conf = path.join(SNSConf.SNSAPI_DIR_STATIC_DATA, 'init-channel.json.example')
+            return utils.JsonDict(json.load(open(_fn_conf)))
 
     def list_platform(self):
         console_output("")
@@ -265,8 +270,14 @@ class SNSPocket(dict):
         """
 
         status_list = snstype.MessageList()
-        if channel and not self[channel].is_expired():
-            status_list.extend(self._home_timeline(count, self[channel]))
+        if channel:
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    status_list.extend(self._home_timeline(count, self[channel]))
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'home_timeline') and not c.is_expired():
@@ -283,8 +294,14 @@ class SNSPocket(dict):
             The channel name. Use None to update all channels
         """
         re = {}
-        if channel and not self[channel].is_expired():
-            re[channel] = self[channel].update(text, **kwargs)
+        if channel:
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re[channel] = self[channel].update(text)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'update') and not c.is_expired():
@@ -317,8 +334,14 @@ class SNSPocket(dict):
             return {}
 
         re = {}
-        if channel and not self[channel].is_expired():
-            re = self[channel].reply(message, text)
+        if channel:
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re = self[channel].reply(mID, text)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'reply') and not c.is_expired():
@@ -339,8 +362,14 @@ class SNSPocket(dict):
 
         """
         re = {}
-        if channel and not self[channel].is_expired():
-            re = self[channel].forward(message, text)
+        if channel:
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re = self[channel].forward(message, text)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'forward') and not c.is_expired():

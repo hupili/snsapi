@@ -1,0 +1,5 @@
+include snscli.py snsgui.py README.md VERSION.md CONTRIBUTOR requirements.txt
+recursive-include snsapi *.py *.md
+recursive-include conf *.example *.ini
+include snsapi/data/init-channel.json.example
+include snsapi/data/snsgui.ini
