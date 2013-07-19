@@ -1,9 +1,9 @@
 #-*-coding:utf-8-*-
 
 """
-Nosetest configs 
+Nosetest configs
 
-The layout of nosetest is learned from: 
+The layout of nosetest is learned from:
    wong2/xiaohuangji-new
 """
 
@@ -49,13 +49,13 @@ class TestBase(object):
         shutil.rmtree(DIR_TMP)
 
 # ===== old funcs from testUtils.py ======
-    
+
 def get_config_paths():
     '''
-    How to get the path of config.json in test directory, Use this. 
+    How to get the path of config.json in test directory, Use this.
     '''
     paths = {
-            'channel': os.path.join(DIR_CONF, 'channel.json'), 
+            'channel': os.path.join(DIR_CONF, 'channel.json'),
             'snsapi': os.path.join(DIR_CONF, 'snsapi.json')
             }
     return paths
@@ -64,11 +64,11 @@ def get_channel(platform):
     paths = get_config_paths()
     with open(paths['channel']) as fp:
         channel = json.load(fp)
-        
+
     for site in channel:
         if site['platform'] == platform:
             return site
-        
+
     raise TestInitNoSuchPlatform(platform)
 
 def clean_saved_token():
@@ -90,7 +90,7 @@ class TestInitNoSuchPlatform(TestInitError):
         if self.platform is not None:
             print "Test init error -- No such platform : %s. " \
             "Please check your channel.json config. " % self.platform
-        
+
 if __name__ == '__main__':
     print DIR_TEST
     print DIR_ROOT

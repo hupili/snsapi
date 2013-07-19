@@ -14,7 +14,7 @@ import time
 from os.path import abspath
 
 import snsapi
-from snsapi import errors 
+from snsapi import errors
 from snsapi import utils as snsapi_utils
 from snsapi.utils import json, obj2str, str2obj
 from snsapi.snspocket import SNSPocket
@@ -22,7 +22,7 @@ from snsapi.snslog import SNSLog as logger
 from snsapi.snstype import Message
 
 class Forwarder(object):
-    def __init__(self, fn_channel = "conf/channel.json", 
+    def __init__(self, fn_channel = "conf/channel.json",
             fn_forwarder = "conf/forwarder.json",
             fn_message = "messages.json"):
         super(Forwarder, self).__init__()
@@ -67,9 +67,9 @@ class Forwarder(object):
 
     def db_get_message(self):
         '''
-        Pick one message that is not forwarded (successfully). Returen a 
-        list of <channel_name, msg> pairs. If the intended out channel is  
-        limited in quota, we do not append it. 
+        Pick one message that is not forwarded (successfully). Returen a
+        list of <channel_name, msg> pairs. If the intended out channel is
+        limited in quota, we do not append it.
         '''
         ret = []
         for (sig, msg) in self.messages.iteritems():
@@ -78,7 +78,7 @@ class Forwarder(object):
                     pass
                 else:
                     if quota > 0:
-                        self.jsonconf['quota'][cn] -= 1 
+                        self.jsonconf['quota'][cn] -= 1
                         ret.append((cn, msg))
         return ret
 
@@ -133,7 +133,7 @@ class Forwarder(object):
         for s in sl:
             self.db_add(s)
         for (cn, msg) in self.db_get_message():
-            text = self.format_msg(msg) 
+            text = self.format_msg(msg)
             #r = self.sp_out[cn].update(text)
             r = self.sp_out[cn].forward(str2obj(msg['obj']), u'')
             msg['success'][cn] = "yes" if r else "no"
@@ -141,11 +141,11 @@ class Forwarder(object):
 
 def sample_forward_predicate(m):
     '''
-    Forward predicate. 
+    Forward predicate.
     Return True or False whether to forward this message.
 
     :param m:
-        A ``Message`` object. 
+        A ``Message`` object.
         See the doc of ``snsapi.snstype`` for useful fields.
     '''
     return m.parsed.username==u"hpl"

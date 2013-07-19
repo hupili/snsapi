@@ -3,8 +3,8 @@
 '''
 twitter
 
-We use python-twitter as the backend at present. 
-It should be changed to invoke REST API directly later. 
+We use python-twitter as the backend at present.
+It should be changed to invoke REST API directly later.
 '''
 
 from ..snslog import SNSLog
@@ -58,9 +58,9 @@ class TwitterStatus(SNSBase):
         c['access_secret'] = ''
 
         return c
-        
+
     def read_channel(self, channel):
-        super(TwitterStatus, self).read_channel(channel) 
+        super(TwitterStatus, self).read_channel(channel)
 
     def auth(self):
         logger.info("Current implementation of Twitter does not use auth!")
@@ -92,5 +92,5 @@ class TwitterStatus(SNSBase):
             return False
 
     def expire_after(self, token = None):
-        # This platform does not have token expire issue. 
+        # This platform does not have token expire issue.
         return -1

@@ -5,32 +5,32 @@ Errors or Exceptions for SNSAPI
 
 How to add an error type?
 
-   * Check out ``Mark1`` (in ``errors.py``). 
-     Inherit your error type from a right class. 
-     The ``#>>`` comment denotes the level an error type is in. 
-   * Check out ``Makr2`` (in ``errors.py``). 
-     Add your new error type to the corresponding tree. 
+   * Check out ``Mark1`` (in ``errors.py``).
+     Inherit your error type from a right class.
+     The ``#>>`` comment denotes the level an error type is in.
+   * Check out ``Makr2`` (in ``errors.py``).
+     Add your new error type to the corresponding tree.
 
 How to reference an error type?
 
-   * By convention, others should only import "snserror". 
-     e.g. ``from errors import snserror``, or 
+   * By convention, others should only import "snserror".
+     e.g. ``from errors import snserror``, or
      ``from snsapi import snserror``.
-   * Use dot expression to enter the exact type. 
-     e.g. ``snserror.config.nofile``. 
+   * Use dot expression to enter the exact type.
+     e.g. ``snserror.config.nofile``.
 
 '''
 
 
 # =============== Error Type ==============
 
-# Mark1 
+# Mark1
 
 #>
 class SNSError(Exception):
     def __str__(self):
         return "SNSError!"
-    
+
 #>>
 class ConfigError(SNSError):
     def __str__(self):
@@ -42,18 +42,18 @@ class NoConfigFile(ConfigError):
         self.fname = fname
     def __str__(self):
         return self.fname + " NOT EXISTS!"
-    
+
 #>>>
 class NoPlatformInfo(ConfigError):
     def __str__(self):
         return "No platform info found in snsapi/plugin/conf/config.json. \
         self.platform and platform in snsapi/plugin/conf/config.json must match."
-            
+
 #>>>
 class MissAPPInfo(ConfigError):
     def __str__(self):
         return "Please config the file snsapi/plugin/conf/config.json. \
-        You may forget to add your app_key and app_secret into it"    
+        You may forget to add your app_key and app_secret into it"
 
 #>>>
 class NoSuchPlatform(ConfigError):
@@ -71,7 +71,7 @@ class SNSTypeWrongInput(SNSError):
         self.value = value
     def __str__(self):
         return "Wrong input for snsType initializing! It must be a dict\n"+str(self.value)
-    
+
 #>>
 class SNSTypeError(SNSError):
     def __init__(self, value=""):
@@ -110,12 +110,12 @@ class SNSAuthFechCodeError(SNSAuthFail):
 class SNSOperation(SNSError):
     def __str__(self):
         return "SNS Operation Failed"
-    
+
 #>>>
 class SNSWriteFail(SNSOperation):
     def __init__(self, value):
         super(SNSWriteFail, self).__init__()
-        self.value = value 
+        self.value = value
     def __str__(self):
         return "This channel is non-writable: %s" % self.value
 
@@ -123,7 +123,7 @@ class SNSWriteFail(SNSOperation):
 class SNSReadFail(SNSOperation):
     def __str__(self):
         return "This channel is non-readable"
-    
+
 #>>
 class SNSPocketError(SNSError):
     def __init__(self):
@@ -156,7 +156,7 @@ class SNSPocketDuplicateName(SNSError):
 
 # ========= Error Tree ==================
 
-# Mark2 
+# Mark2
 
 class snserror(object):
     config = ConfigError

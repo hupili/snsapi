@@ -1,10 +1,10 @@
 '''
-Source: 
+Source:
    * http://docs.python.org/release/2.5.2/lib/datetime-tzinfo.html
 
 I have to say, the Python world is insane when dealing with time...
-The conversion between UTC integer and a human readable string 
-should be a common function required by apps. However, there does 
+The conversion between UTC integer and a human readable string
+should be a common function required by apps. However, there does
 not seem to be a "only right way" to do it...
 
 Copy these sample TZ class here to give others a hint when their

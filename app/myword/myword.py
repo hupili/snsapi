@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-myword 
+myword
 
 '''
 
@@ -24,16 +24,16 @@ def can_reply(status):
         return True
     else:
         return False
-        
-        
+
+
 def get_word(text):
     """
     To the get word in a message
     """
     text = text.replace("@" + MY_NAME +" ","")
-    return text 
-    
-    
+    return text
+
+
 def translate(word):
     """
     Translate a word with dic.zhan-dui.com
@@ -49,20 +49,20 @@ def translate(word):
         for c in results["simple_dic"]:
             mean = mean + c
         return word + " " + mean
-    
-    
-    
+
+
+
 
 def main():
     """docstring for main"""
     #set system default encoding to utf-8 to avoid encoding problems
     reload(sys)
     sys.setdefaultencoding( "utf-8" )
-    
+
     #load channel configurations
     channels = json.load(open('conf/channel.json'))
-    
-    
+
+
 
     #find one account
     rr = SNSPocket()
@@ -71,11 +71,11 @@ def main():
 
     if rr is None:
         print "cannot find one renren platform in channel.json"
-        return 
+        return
     else:
         rr.load_config()
         rr.auth()
-        
+
 
     #load record to avoid repeated reply
     try:
@@ -102,7 +102,7 @@ def main():
             time.sleep(REPLY_GAP)
             if ret:
                 sIDs[sig] = msg_string
-        else: 
+        else:
             print '[no reply]'
 
     #save reply record

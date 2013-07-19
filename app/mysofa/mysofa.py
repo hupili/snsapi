@@ -4,7 +4,7 @@ mysofa (SNSAPI Sample Application)
 
 introduction placeholder
 
-**Warning: The code is under reconstruction using new SNSAPI interface. 
+**Warning: The code is under reconstruction using new SNSAPI interface.
 Do not use this app until it is done.**
 '''
 
@@ -40,7 +40,7 @@ def main():
 
     if rr is None:
         print "cannot find one renren platform in channel.json"
-        return 
+        return
     else:
         rr.auth()
 

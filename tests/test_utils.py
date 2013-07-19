@@ -1,7 +1,7 @@
 #-*-coding:utf-8-*-
 
 """
-Nosetest configs 
+Nosetest configs
 """
 
 from nose.tools import ok_
@@ -14,9 +14,9 @@ import os.path
 def in_(k, dct):
     '''
     Helper function to assert a key is in a dict. The naming
-    is following nose's format. 
+    is following nose's format.
 
-    :param k: Key 
+    :param k: Key
     :type k: str
     :param dct: Dict
     :type dct: dict

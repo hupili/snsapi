@@ -6,12 +6,12 @@ email platform
 Support get message by IMAP and send message by SMTP
 
 The file is named as "emails.py" instead of "email.py"
-because there is a package in Python called "email". 
+because there is a package in Python called "email".
 We will import that package..
 
 Premature warning:
-   * This is platform is only tested on GMail so far. 
-   * Welcome to report test results of other platform. 
+   * This is platform is only tested on GMail so far.
+   * Welcome to report test results of other platform.
 
 '''
 
@@ -40,7 +40,7 @@ class EmailMessage(snstype.Message):
     def parse(self):
         self.ID.platform = self.platform
         self._parse(self.raw)
-    
+
     def _decode_header(self, header_value):
         ret = unicode()
         #print decode_header(header_value)
@@ -50,24 +50,24 @@ class EmailMessage(snstype.Message):
 
     def _parse(self, dct):
         #TODO:
-        #    Put in message id. 
+        #    Put in message id.
         #    The id should be composed of mailbox and id in the box.
         #
-        #    The IMAP id can not be used as a global identifier. 
-        #    Once messages are deleted or moved, it will change. 
-        #    The IMAP id is more like the subscript of an array. 
-        #    
-        #    SNSAPI should work out its own message format to store an 
-        #    identifier. An identifier should be (address, sequence). 
-        #    There are three ways to generate the sequence number: 
+        #    The IMAP id can not be used as a global identifier.
+        #    Once messages are deleted or moved, it will change.
+        #    The IMAP id is more like the subscript of an array.
+        #
+        #    SNSAPI should work out its own message format to store an
+        #    identifier. An identifier should be (address, sequence).
+        #    There are three ways to generate the sequence number:
         #       * 1. Random pick
         #       * 2. Pass message through a hash
-        #       * 3. Maintain a counter in the mailbox 
+        #       * 3. Maintain a counter in the mailbox
         #       * 4. UID as mentioned in some discussions. Not sure whether
-        #       this is account-dependent or not. 
+        #       this is account-dependent or not.
         #
-        #     I prefer 2. at present. Our Message objects are designed 
-        #     to be able to digest themselves. 
+        #     I prefer 2. at present. Our Message objects are designed
+        #     to be able to digest themselves.
 
         self.parsed.title = self._decode_header(dct.get('Subject'))
         self.parsed.text = dct.get('body')
@@ -84,9 +84,9 @@ class EmailMessage(snstype.Message):
             self.parsed.userid = sender
 
         #TODO:
-        #    The following is just temporary method to enable reply email. 
-        #    See the above TODO for details. The following information 
-        #    suffices to reply email. However, they do not form a real ID. 
+        #    The following is just temporary method to enable reply email.
+        #    See the above TODO for details. The following information
+        #    suffices to reply email. However, they do not form a real ID.
         self.ID.title = self.parsed.title
         self.ID.reply_to = dct.get('Reply-To', self.parsed.userid)
 
@@ -111,14 +111,14 @@ class Email(SNSBase):
         c['imap_host'] = 'imap.gmail.com'
         c['imap_port'] = 993 #default IMAP + TLS port
         c['smtp_host'] = 'smtp.gmail.com'
-        c['smtp_port'] = 587 #default SMTP + TLS port 
+        c['smtp_port'] = 587 #default SMTP + TLS port
         c['username'] = 'username'
         c['password'] = 'password'
         c['address'] = 'username@gmail.com'
         return c
-       
+
     def read_channel(self, channel):
-        super(Email, self).read_channel(channel) 
+        super(Email, self).read_channel(channel)
 
     def __decode_email_body(self, payload, msg):
         ret = payload
@@ -128,23 +128,23 @@ class Email(SNSBase):
                 ret = base64.decodestring(ret)
             elif transfer_enc == "7bit":
                 #TODO:
-                #    It looks like 7bit is just ASCII standard. 
-                #    Do nothing. 
-                #    Check whether this logic is correct? 
+                #    It looks like 7bit is just ASCII standard.
+                #    Do nothing.
+                #    Check whether this logic is correct?
                 pass
             else:
                 logger.warning("unknown transfer encoding: %s", transfer_enc)
                 return "(Decoding Failed)"
-        # The past content-type fetching codes. 
-        # It's better to rely on email.Message functions. 
+        # The past content-type fetching codes.
+        # It's better to rely on email.Message functions.
         #
         #if 'Content-Type' in msg:
         #    ct = msg['Content-Type']
         #    r = re.compile(r'^(.+); charset="(.+)"$', re.IGNORECASE)
         #    m = r.match(ct)
-        #    # Use search if the pattern does not start from 0. 
-        #    # Use group() to get matched part and groups() to get 
-        #    # mateched substrings. 
+        #    # Use search if the pattern does not start from 0.
+        #    # Use group() to get matched part and groups() to get
+        #    # mateched substrings.
         #    if m:
         #        cs = m.groups()[1]
         #    else:
@@ -172,13 +172,13 @@ class Email(SNSBase):
 
     def _get_text_plain(self, msg):
         '''
-        Extract text/plain section from a multipart message. 
+        Extract text/plain section from a multipart message.
 
         '''
         tp = None
         if not msg.is_multipart():
             if msg.get_content_type() == 'text/plain':
-                tp = msg 
+                tp = msg
             else:
                 return u"No text/plain found"
         else:
@@ -193,10 +193,10 @@ class Email(SNSBase):
 
     def _format_from_text_plain(self, text):
         '''
-        Some text/plain message is sent from email services. 
+        Some text/plain message is sent from email services.
         The formatting is not SNSAPI flavoured. To work around
-        this and enable unified view, we use this function 
-        to do post-formatting. 
+        this and enable unified view, we use this function
+        to do post-formatting.
 
         '''
         return text.replace('>', '').replace('\r\n', '').replace('\n', '')
@@ -211,7 +211,7 @@ class Email(SNSBase):
             num = data[0].split()[0]
             time.sleep(0.5)
         return num
-    
+
     def _get_buddy_list(self):
         # 1. Get buddy_list from "buddy" folder
 
@@ -224,9 +224,9 @@ class Email(SNSBase):
         self._buddy_message_id = None
         try:
             typ, data = conn.search(None, 'ALL')
-            # We support multiple emails in "buddy" folder. 
-            # Each of the files contain a json list. We'll 
-            # merge all the list and use it as the buddy_list. 
+            # We support multiple emails in "buddy" folder.
+            # Each of the files contain a json list. We'll
+            # merge all the list and use it as the buddy_list.
             for num in data[0].split():
                 typ, msg_data = conn.fetch(num, '(RFC822)')
                 for response_part in msg_data:
@@ -283,16 +283,16 @@ class Email(SNSBase):
         Warning: Use this function only when necessary. (20121026)
 
         We have not abstracted User class yet. The first step for SNSAPI
-        is to abstract the information flow. That is the Message class 
-        you see. We assume buddy_list is maintained in other offline manner. 
-        e.g. Users login Sina Weibo and change their buddy list. In the 
-        next milestone, we may consider abstract User class. In the current 
+        is to abstract the information flow. That is the Message class
+        you see. We assume buddy_list is maintained in other offline manner.
+        e.g. Users login Sina Weibo and change their buddy list. In the
+        next milestone, we may consider abstract User class. In the current
         framework, we need some esential function to manage buddy_list on
-        email platform. This is why the currrent function is here. The 
-        interface may be (drastically) changed in the future. 
+        email platform. This is why the currrent function is here. The
+        interface may be (drastically) changed in the future.
 
-        The better way for upper layer developers is to operate 
-        'self.buddy_list' directly following the format. 
+        The better way for upper layer developers is to operate
+        'self.buddy_list' directly following the format.
 
         '''
         #self.buddy_list.append({"userid": address, "username": nickname})
@@ -301,14 +301,14 @@ class Email(SNSBase):
 
     def _receive(self, count = 20):
         #TODO:
-        #    1. 
-        #    Consider UNSEEN message first. If we get less than count 
-        #    number of messages, then search for 'ALL'. 
+        #    1.
+        #    Consider UNSEEN message first. If we get less than count
+        #    number of messages, then search for 'ALL'.
         #
-        #    2. 
-        #    Make a separate box for snsapi. According to configs, 
-        #    search for all messages or snsapi formated messages. 
-        #    For snsapi formated messages, move them to this mailbox. 
+        #    2.
+        #    Make a separate box for snsapi. According to configs,
+        #    search for all messages or snsapi formated messages.
+        #    For snsapi formated messages, move them to this mailbox.
 
         # Check out all the email IDs
         conn = self.imap
@@ -316,8 +316,8 @@ class Email(SNSBase):
         typ, data = conn.search(None, 'ALL')
         #logger.debug("read message IDs: %s", data)
 
-        # We assume ID is in chronological order and filter 
-        # the count number of latest messages.  
+        # We assume ID is in chronological order and filter
+        # the count number of latest messages.
         latest_messages = sorted(data[0].split(), key = lambda x: int(x), reverse = True)[0:count]
         #logger.debug("selected message IDs: %s", latest_messages)
 
@@ -331,17 +331,17 @@ class Email(SNSBase):
                         msg = email.message_from_string(response_part[1])
 
                         #TODO:
-                        #    Parse header fields. Header fields can also be 
-                        #    encoded, e.g. UTF-8. 
+                        #    Parse header fields. Header fields can also be
+                        #    encoded, e.g. UTF-8.
                         #
-                        #    email.header.decode_header() may help. 
+                        #    email.header.decode_header() may help.
                         #
-                        #    There are some ill-formated senders, e.g. Baidu Passport. 
+                        #    There are some ill-formated senders, e.g. Baidu Passport.
                         #    See the link for workaround:
                         #    http://stackoverflow.com/questions/7331351/python-email-header-decoding-utf-8
 
                         # Convert header fields into dict
-                        d = dict(msg) 
+                        d = dict(msg)
                         d['body'] = self._format_from_text_plain(self._get_text_plain(msg))
                         d['_pyobj'] = utils.Serialize.dumps(msg)
                         message_list.append(utils.JsonDict(d))
@@ -351,11 +351,11 @@ class Email(SNSBase):
 
     def auth(self):
         #TODO:
-        #    login here once is not enough. 
-        #    If the client stays idle for a long time, 
-        #    it will disconnect from the server. So in 
-        #    later transactions, we should check and 
-        #    login again if necessary. 
+        #    login here once is not enough.
+        #    If the client stays idle for a long time,
+        #    it will disconnect from the server. So in
+        #    later transactions, we should check and
+        #    login again if necessary.
         #
         #    The error caught is "socket error: EOF"
 
@@ -374,13 +374,13 @@ class Email(SNSBase):
                 logger.warning("IMAP Authentication failed! Channel '%s'", self.jsonconf['channel_name'])
             else:
                 raise e
-        
+
         logger.debug("Try login SMTP server...")
         try:
             if self.smtp:
                 del self.smtp
-            self.smtp = smtplib.SMTP("%s:%s" % (self.jsonconf['smtp_host'], self.jsonconf['smtp_port']))  
-            self.smtp.starttls()  
+            self.smtp = smtplib.SMTP("%s:%s" % (self.jsonconf['smtp_host'], self.jsonconf['smtp_port']))
+            self.smtp.starttls()
             self.smtp.login(self.jsonconf['username'], self.jsonconf['password'])
             smtp_ok = True
         except smtplib.SMTPAuthenticationError:
@@ -395,11 +395,11 @@ class Email(SNSBase):
         else:
             logger.warning("Email channel '%s' auth failed!!", self.jsonconf['channel_name'])
             return False
-            
+
     def _send(self, toaddr, title, msg):
         '''
         :param toaddr:
-            The recipient, only one in a string. 
+            The recipient, only one in a string.
 
         :param msg:
             One email object, which supports as_string() method
@@ -410,7 +410,7 @@ class Email(SNSBase):
         msg['Subject'] = make_header([(self._unicode_encode(title), 'utf-8')])
 
         try:
-            self.smtp.sendmail(fromaddr, toaddr, msg.as_string())  
+            self.smtp.sendmail(fromaddr, toaddr, msg.as_string())
             return True
         except Exception, e:
             if e.message.count("socket error: EOF"):
@@ -423,7 +423,7 @@ class Email(SNSBase):
     def home_timeline(self, count = 20):
         try:
             r = self._receive(count)
-        except Exception, e: 
+        except Exception, e:
             if e.message.count("socket error: EOF"):
                 logger.debug("Catch EOF. Reconnect...")
                 self.auth()
@@ -457,7 +457,7 @@ class Email(SNSBase):
     def update(self, text, title = None):
         '''
         :title:
-            The unique field of email. Other platforms do not use it. If not supplied, 
+            The unique field of email. Other platforms do not use it. If not supplied,
             we'll format a title according to SNSAPI convention.
         '''
         msg = MIMEText(text, _charset = 'utf-8')
@@ -481,24 +481,24 @@ class Email(SNSBase):
     def expire_after(self, token = None):
         # Check whether the user supplied secrets are correct
         if self.imap_ok == True and self.smtp_ok == True:
-            # -1: Means this platform does not have token expire issue. 
-            #     More precisely, when the secrets are correct, 
-            #     you can re-login at any time. Same effect as 
-            #     refresing the token of OSN. 
+            # -1: Means this platform does not have token expire issue.
+            #     More precisely, when the secrets are correct,
+            #     you can re-login at any time. Same effect as
+            #     refresing the token of OSN.
             return -1
         else:
-            # 0: Means it has already expired. The effect of incorrect 
-            #    secrets is same as expired. 
+            # 0: Means it has already expired. The effect of incorrect
+            #    secrets is same as expired.
             return 0
 
 # === email message fields for future reference
 # TODO:
-#     Enhance the security level by check fields like 
-#     'Received'. GMail has its checking at the web 
-#     interface side. Fraud identity problem will be 
-#     alleviated. 
+#     Enhance the security level by check fields like
+#     'Received'. GMail has its checking at the web
+#     interface side. Fraud identity problem will be
+#     alleviated.
 # In [7]: msg.keys()
-# Out[7]: 
+# Out[7]:
 # ['Delivered-To',
 # 'Received',
 # 'Received',
@@ -519,18 +519,18 @@ class Email(SNSBase):
 # 'From',
 # 'To',
 # 'Content-Type']
-# 
+#
 # In [8]: msg['From']
 # Out[8]: '"Google+ team" <noreply-daa26fef@plus.google.com>'
-# 
+#
 # In [9]: msg['To']
 # Out[9]: 'hupili.snsapi@gmail.com'
-# 
+#
 # In [10]: msg['Subject']
 # Out[10]: 'Getting started on Google+'
-# 
+#
 # In [11]: msg['Date']
 # Out[11]: 'Mon, 22 Oct 2012 22:37:37 -0700 (PDT)'
-# 
+#
 # In [12]: msg['Content-Type']
 # Out[12]: 'multipart/alternative; boundary=047d7b5dbe702bc3f804ccb35e18'
