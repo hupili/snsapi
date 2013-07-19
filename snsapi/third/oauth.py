@@ -206,7 +206,7 @@ class APIClient(object):
 
     def __getattr__(self, attr):
         return getattr(self.get, attr)
-    
+
     def _parse_authinfo(self, info):
         '''
         if the auth info is a string, parse it and return as a JsonObject
@@ -223,7 +223,7 @@ class APIClient(object):
                 except ValueError:
                     pass
                 d[key] = val
-            
+
             r = _obj_hook(d)
             return r
         return info

@@ -3,7 +3,7 @@
 import time
 import hashlib
 import snsapi
-from snsapi import errors 
+from snsapi import errors
 try:
     import json
 except ImportError:
@@ -22,7 +22,7 @@ def channel_init(fn_channel):
                         (site['channel_name'],site['open'],site['platform'])
                 if site['open'] == "yes" :
                     #TODO: the following code seems clumsy
-                    #any way to simplify it? 
+                    #any way to simplify it?
                     #e.g. use the string name to the the corresponding class directly
                     if site['platform'] == "sina" :
                         #clis.append(snsapi.sina.SinaAPI(site))
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         else:
             raise e
 
-    #load message information and check in channels. 
+    #load message information and check in channels.
     #merge new messages into local storage
     #messages = json.load(open(abspath('messages.json'),'r'))
     for cin_name in channel_in :
@@ -97,7 +97,7 @@ if __name__ == "__main__":
                 #The message is new
                 #forward it to all output channels
 
-    #set quota/run for each out_channel 
+    #set quota/run for each out_channel
     #TODO: make it configurable
     quota = {}
     for c in channel_out :
@@ -111,7 +111,7 @@ if __name__ == "__main__":
                 pass
             else:
                 if quota[cout_name] > 0:
-                    quota[cout_name] -= 1 
+                    quota[cout_name] -= 1
                     cout_obj = channels[cout_name]
                     #text = "[%s] at %s \n %s"  % (s.username, s.created_at, s.text)
                     #text = "[%s] at %s \n %s (forward time:%s)"  % (s.username, s.created_at, s.text, time.time())
@@ -120,8 +120,8 @@ if __name__ == "__main__":
                     text = "[%s] at %s \n %s (forward time:%s)"  % (s['username'], s['created_at'], s['text'], time.time())
                     print "Text: %s" % (text)
                     #TODO: check the real cause of the problem.
-                    #      It is aleady announec in the front of this file 
-                    #      that all strings should be treated as UTF-8 encoding. 
+                    #      It is aleady announec in the front of this file
+                    #      that all strings should be treated as UTF-8 encoding.
                     #      Why do the following problem happen?
                     if ( cout_obj.update(text.encode('utf-8')) ):
                         messages[m]['success'][cout_name] = "yes"
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     print "forwarding done!"
     #print messages
 
-    json.dump(messages, open('messages.json','w')) 
+    json.dump(messages, open('messages.json','w'))
     #json.dumps({'1':2,3:4})
     sys.exit()
 

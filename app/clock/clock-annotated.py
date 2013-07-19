@@ -13,7 +13,7 @@ sp = SNSPocket() # SNSPocket 是一个承载各种SNS的容器
 sp.load_config() # 如名
 sp.auth()        # 批量授权（如果已授权，读取授权信息）
 
-while True: 
+while True:
     h, m = datetime.now().hour, datetime.now().minute                        # 获取当前小时和分钟
     if m == 0:                                                               # 每小时0分钟的时候发状态
         t = '%s -- 0x%X点钟， %s。( %s )' % ('烫' * h, h, TEXTS[h / 4], AD)  # 构造钟的报时文字
