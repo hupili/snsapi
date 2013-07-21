@@ -7,13 +7,19 @@ Version string convention: `x.y.z`
    * `y`: Minor version with functional extension.
    * `z`: Micro version with small fix.
 
-0.6.2
+0.6.x
 -----
+
+0.6.3:
+
+   * Use readthedocs and travis CI.
+   * Fix UT of message digest (for travis CI)
+
+0.6.2:
 
    * Solve static data support problem of setuptools
 
-0.6.1
------
+0.6.1:
 
    * Improve packaging
 
