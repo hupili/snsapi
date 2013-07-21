@@ -5,3 +5,8 @@ python:
   - "3.3"
 install: "pip install -r requirements.txt --use-mirrors"
 script: "cd tests; nosetests -sv .; cd -"
+branches:
+  only:
+    - master
+    - dev
+    - /^v\d+\.\d+.\d+$/
