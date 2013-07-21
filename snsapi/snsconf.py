@@ -107,7 +107,7 @@ class SNSConf(object):
 
     #TODO:
     #    Find better way to organize static package data
-    SNSAPI_DIR_STATIC_DATA = path.join(path.dirname(path.abspath(__file__)), 'data')
+    _SNSAPI_DIR_STATIC_DATA = path.join(path.dirname(path.abspath(__file__)), 'data')
     _USER_HOME = path.expanduser('~')
     _SNSAPI_DIR_USER_ROOT = path.join(_USER_HOME, '.snsapi')
     _SNSAPI_DIR_CWD = path.abspath('.')
@@ -118,6 +118,25 @@ class SNSConf(object):
         SNSAPI_DIR_STORAGE_ROOT = _SNSAPI_DIR_USER_ROOT
     SNSAPI_DIR_STORAGE_CONF = path.join(SNSAPI_DIR_STORAGE_ROOT, 'conf')
     SNSAPI_DIR_STORAGE_SAVE = path.join(SNSAPI_DIR_STORAGE_ROOT, 'save')
+
+    '''
+    ``SNSAPI_DIR_STORAGE_ROOT`` can be:
+
+       * ``./``: if there exists ``./save`` and ``./conf``.
+         This is the usual case for running SNSAPI under the repo.
+         We have the two dirs by default.
+         In this way, you can have multiple configurations on your machine at the same time.
+       * ``~/.snsapi/``: if the above condition is not satisfied.
+         This is to allow users to launch applications
+         (e.g. ``snscli.py`` and ``snsgui.py``)
+         from any place in the system.
+         The per-user configurations and saved credentials can be used.
+
+    ``SNSAPI_DIR_STORAGE_CONF`` and ``SNSAPI_DIR_STORAGE_SAVE``
+    are just subdir "conf" and "save" under
+    ``SNSAPI_DIR_STORAGE_ROOT``
+    '''
+
     import os
     if not path.isdir(SNSAPI_DIR_STORAGE_ROOT):
         os.mkdir(SNSAPI_DIR_STORAGE_ROOT)
