@@ -199,3 +199,9 @@ except for the followings:
 ## Other
 
    * Old version of this readme [in Chinese](https://github.com/hupili/snsapi/blob/master/doc/snsapi-old-readme-cn.md)
+
+## Build Status
+
+   * master: ![master](https://travis-ci.org/hupili/snsapi.png?branch=master)
+   * dev: ![dev](https://travis-ci.org/hupili/snsapi.png?branch=dev)
+
