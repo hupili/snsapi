@@ -1,4 +1,4 @@
-SNSAPI 0.6.2
+SNSAPI 0.6.5
 ============
 
 Version string convention: `x.y.z`
@@ -9,6 +9,10 @@ Version string convention: `x.y.z`
 
 0.6.x
 -----
+
+0.6.4, 0.6.5:
+
+   * Auto convert a `.rst` doc for PyPI use.
 
 0.6.3:
 
