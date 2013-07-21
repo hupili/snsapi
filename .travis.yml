@@ -1,12 +1,11 @@
-language: python
-python:
-  - "2.7"
-  - "2.6"
-  - "3.3"
-install: "pip install -r requirements.txt --use-mirrors"
-script: "cd tests; nosetests -sv ."
 branches:
   only:
     - master
     - dev
     - /^v\d+\.\d+.\d+$/
+language: python
+python:
+  - "2.7"
+  - "2.6"
+install: "pip install -r requirements.txt --use-mirrors"
+script: "cd tests; nosetests -sv ."
