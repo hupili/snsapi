@@ -10,9 +10,10 @@ It provides common authenticate and communicate methods.
 # === system imports ===
 import webbrowser
 from utils import json
+import requests
+from errors import snserror
 import urllib
 import urllib2
-from errors import snserror
 import urlparse
 import subprocess
 import functools
@@ -413,12 +414,14 @@ class SNSBase(object):
         self.jsonconf.app_key = app_key
         self.jsonconf.app_secret = app_secret
 
-    def _http_get(self, baseurl, params):
+    def _http_get(self, baseurl, params={}, headers=None):
         '''Use HTTP GET to request a JSON interface
 
         :param baseurl: Base URL before parameters
 
         :param params: a dict of params (can be unicode)
+
+        :param headers: a dict of params (can be unicode)
 
         :return:
 
@@ -431,17 +434,17 @@ class SNSBase(object):
         try:
             for p in params:
                 params[p] = self._unicode_encode(params[p])
-            uri = urllib.urlencode(params)
-            url = baseurl + "?" + uri
-            resp = urllib.urlopen(url)
-            json_objs = json.loads(resp.read())
-            return json_objs
+            r = requests.get(baseurl, params=params, headers=headers)
+            try:
+                return r.json()
+            except:
+                return r.text
         except Exception, e:
             # Tolerate communication fault, like network failure.
             logger.warning("_http_get fail: %s", e)
             return {}
 
-    def _http_post(self, baseurl, params):
+    def _http_post(self, baseurl, params={}, headers=None):
         '''Use HTTP POST to request a JSON interface.
 
         See ``_http_get`` for more info.
@@ -449,10 +452,11 @@ class SNSBase(object):
         try:
             for p in params:
                 params[p] = self._unicode_encode(params[p])
-            data = urllib.urlencode(params)
-            resp = urllib.urlopen(baseurl,data)
-            json_objs = json.loads(resp.read())
-            return json_objs
+            r = requests.post(baseurl, params=params, headers=headers)
+            try:
+                return r.json()
+            except:
+                return r.text
         except Exception, e:
             logger.warning("_http_post fail: %s", e)
             return {}
