@@ -448,6 +448,8 @@ class SNSBase(object):
         '''Use HTTP POST to request a JSON interface.
 
         See ``_http_get`` for more info.
+
+        :param files {'name_in_form': (filename, data/file/)}
         '''
         try:
             for p in params:
