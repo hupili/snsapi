@@ -435,6 +435,7 @@ class SNSBase(object):
             for p in params:
                 params[p] = self._unicode_encode(params[p])
             r = requests.get(baseurl, params=params, headers=headers)
+            self.reqr = r
             try:
                 return r.json()
             except:
@@ -455,6 +456,7 @@ class SNSBase(object):
             for p in params:
                 params[p] = self._unicode_encode(params[p])
             r = requests.post(baseurl, params=params, headers=headers, files=files)
+            self.reqr = r
             try:
                 return r.json()
             except:
@@ -482,14 +484,10 @@ class SNSBase(object):
             like "http://"
         '''
         try:
-            ex_url = urllib.urlopen(url)
-            if ex_url.url == url:
-                return ex_url.url
-            else:
-                return self._expand_url(ex_url.url)
-        except IOError, e:
-            # Deal with "service or name unknow" error
-            logger.warning('Error when expanding URL. Maybe invalid URL: %s', e)
+            self._http_get(url)
+            return self.reqr.url
+        except Exception, e:
+            logger.warning("Unable to expand url: %s" % (str(e)))
             return url
 
     def _cat(self, length, text_list, delim = "||"):
