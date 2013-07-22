@@ -444,7 +444,7 @@ class SNSBase(object):
             logger.warning("_http_get fail: %s", e)
             return {}
 
-    def _http_post(self, baseurl, params={}, headers=None):
+    def _http_post(self, baseurl, params={}, headers=None, files=None):
         '''Use HTTP POST to request a JSON interface.
 
         See ``_http_get`` for more info.
@@ -452,7 +452,7 @@ class SNSBase(object):
         try:
             for p in params:
                 params[p] = self._unicode_encode(params[p])
-            r = requests.post(baseurl, params=params, headers=headers)
+            r = requests.post(baseurl, params=params, headers=headers, files=files)
             try:
                 return r.json()
             except:
