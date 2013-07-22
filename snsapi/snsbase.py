@@ -432,6 +432,7 @@ class SNSBase(object):
         # We should encode them as exchanging stream (e.g. utf-8)
         # before URL encoding and issue HTTP requests.
         try:
+            self.reqr = None
             for p in params:
                 params[p] = self._unicode_encode(params[p])
             r = requests.get(baseurl, params=params, headers=headers)
@@ -453,6 +454,7 @@ class SNSBase(object):
         :param files {'name_in_form': (filename, data/file/)}
         '''
         try:
+            self.reqr = None
             for p in params:
                 params[p] = self._unicode_encode(params[p])
             r = requests.post(baseurl, params=params, headers=headers, files=files)
