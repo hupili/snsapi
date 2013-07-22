@@ -95,19 +95,10 @@ class SinaWeiboBase(SNSBase):
                        "Referer": referer_url
             }
 
-            #TODO:
-            #    Unify all the urllib, urllib2 invocation to snsbase
-            import urllib2
-            import urllib
             auth_url = "https://api.weibo.com/oauth2/authorize"
             #auth_url = self.auth_info.auth_url
-            req = urllib2.Request(url = auth_url,
-                                  data = urllib.urlencode(postdata),
-                                  headers = headers
-            )
-
-            resp = urllib2.urlopen(req)
-            resp_url = resp.geturl()
+            self._http_post(auth_url, data=postdata, headers=headers)
+            resp_url = self.reqr.url
             logger.debug("response URL from local post: %s", resp_url)
             return resp_url
         except Exception, e:
