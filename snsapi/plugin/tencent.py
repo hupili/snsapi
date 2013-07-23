@@ -153,7 +153,7 @@ class TencentWeiboStatus(SNSBase):
         return statuslist
 
     @require_authed
-    def update(self, text):
+    def update(self, text, pic=None):
         '''update a status
 
            * parameter text: the update message
@@ -162,13 +162,19 @@ class TencentWeiboStatus(SNSBase):
 
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
-        url = "https://open.t.qq.com/api/t/add"
+        if not pic:
+            url = "https://open.t.qq.com/api/t/add"
+        else:
+            url = "https://open.t.qq.com/api/t/add_pic"
         params = {}
         params["content"] = text
         self._attach_authinfo(params)
 
         try:
-            ret = self._http_post(url, params)
+            if pic:
+                ret = self._http_post(url, params, files={'pic': ('pic.jpg', pic)})
+            else:
+                ret = self._http_post(url, params)
             if(ret['msg'] == "ok"):
                 logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
                 return True
