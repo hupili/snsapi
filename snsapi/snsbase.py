@@ -457,7 +457,7 @@ class SNSBase(object):
             self.reqr = None
             for p in params:
                 params[p] = self._unicode_encode(params[p])
-            r = requests.post(baseurl, params=params, headers=headers, files=files)
+            r = requests.post(baseurl, data=params, headers=headers, files=files)
             self.reqr = r
             try:
                 return r.json()
