@@ -13,12 +13,14 @@ if __name__ == '__main__':
     import snstype
     from snstype import BooleanWrappedData
     import utils
+    import time
 else:
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from ..snstype import BooleanWrappedData
     from .. import snstype
     from .. import utils
+    import time
 
 
 logger.debug("%s plugged!", __file__)
@@ -160,7 +162,12 @@ class RenrenFeed(SNSBase):
         kwargs['access_token'] = self.token.access_token
         kwargs['v'] = '1.0'
         kwargs['format'] = 'json'
-        response = self._http_post(RENREN_API_SERVER, kwargs)
+        if '_files' in kwargs:
+            _files = kwargs['_files']
+            del kwargs['_files']
+        else:
+            _files = {}
+        response = self._http_post(RENREN_API_SERVER, kwargs, files=_files)
 
 
         if type(response) is not list and "error_code" in response:
@@ -182,7 +189,8 @@ class RenrenFeed(SNSBase):
                                   "read_user_blog",
                                   "status_update",
                                   "publish_comment",
-                                  "publish_blog"])
+                                  "publish_blog",
+                                  "photo_upload"])
 
         url = RENREN_AUTHORIZATION_URI + "?" + self._urlencode(args)
         self.request_url(url)
@@ -288,9 +296,19 @@ class RenrenFeed(SNSBase):
         ) and \
                 BooleanWrappedData(True) or \
                 BooleanWrappedData(False, {
-                    'errors': ['PLATFORM_'],
+                    'errors': ['PLATFORM_']
                 })
 
+    def _update_photo(self, text, pic):
+        return self.renren_request(
+            method='photos.upload',
+            caption=text,
+            _files={'upload': ('%d.jpg' % int(time.time()), pic)}
+        ) and \
+                BooleanWrappedData(True) or \
+                BooleanWrappedData(False, {
+                    'errors': ['PLATFORM_'],
+                })
 
     def _dummy_update(self, text, **kwargs):
         return False
@@ -300,14 +318,16 @@ class RenrenFeed(SNSBase):
         coder= int(''.join(map(lambda t: str(int(t)),
             [
                 'title' in kwargs,
-                'link' in kwargs
+                'link' in kwargs,
+                'pic' in kwargs
             ][::-1])
         ))
         try:
             update_what = {
                 0: self._update_status,
                 1: self._update_blog,
-                10: self._update_share_link
+                10: self._update_share_link,
+                100: self._update_photo
             }[coder]
         except:
             return BooleanWrappedData(False, {
@@ -455,8 +475,8 @@ class RenrenPhoto(RenrenFeed):
         return RenrenFeed.home_timeline(self, count, type='30,31')
 
     @require_authed
-    def update(self, text, photo=None):
-        return False
+    def update(self, text, pic=None):
+        return self._update_photo(text, pic)
 
 class RenrenShare(RenrenFeed):
     Message = RenrenShareMessage

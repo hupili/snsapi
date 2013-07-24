@@ -10,14 +10,11 @@ if __name__ == '__main__':
     from snslog import SNSLog as logger
     from snsbase import SNSBase, require_authed
     import snstype
-    from utils import console_output
     import utils
 else:
-    import sys
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
-    from ..utils import console_output
     from .. import utils
 
 logger.debug("%s plugged!", __file__)
@@ -95,26 +92,17 @@ class SinaWeiboBase(SNSBase):
                        "Referer": referer_url
             }
 
-            #TODO:
-            #    Unify all the urllib, urllib2 invocation to snsbase
-            import urllib2
-            import urllib
             auth_url = "https://api.weibo.com/oauth2/authorize"
             #auth_url = self.auth_info.auth_url
-            req = urllib2.Request(url = auth_url,
-                                  data = urllib.urlencode(postdata),
-                                  headers = headers
-            )
-
-            resp = urllib2.urlopen(req)
-            resp_url = resp.geturl()
+            self._http_post(auth_url, data=postdata, headers=headers)
+            resp_url = self.reqr.url
             logger.debug("response URL from local post: %s", resp_url)
             return resp_url
         except Exception, e:
             logger.warning("Catch exception: %s", e)
 
     @require_authed
-    def weibo_request(self, name, method, params):
+    def weibo_request(self, name, method, params, files={}):
         '''
         General request method for Weibo V2 Api via OAuth.
 
@@ -144,7 +132,10 @@ class SinaWeiboBase(SNSBase):
                 'GET': self._http_get,
                 'POST': self._http_post
                 }
-        return http_request_funcs[method](full_url, params)
+        if files:
+            return http_request_funcs[method](full_url, params, files=files)
+        else:
+            return http_request_funcs[method](full_url, params)
 
     @require_authed
     def _short_url_weibo(self, url):
@@ -280,7 +271,7 @@ class SinaWeiboStatus(SinaWeiboBase):
         return statuslist
 
     @require_authed
-    def update(self, text):
+    def update(self, text, pic=None):
         '''update a status
 
            * parameter text: the update message
@@ -293,10 +284,18 @@ class SinaWeiboStatus(SinaWeiboBase):
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)], delim='//')
 
         try:
-            ret = self.weibo_request('statuses/update',
+            if not pic:
+                ret = self.weibo_request('statuses/update',
+                        'POST',
+                        {'status': text})
+            else:
+                ret = self.weibo_request(
+                    'statuses/upload',
                     'POST',
-                    {'status': text})
-            status = self.Message(ret)
+                    {'status': text},
+                    files={'pic': ('pic.jpg', pic)}
+                )
+            self.Message(ret)
             logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
             return True
         except Exception as e:

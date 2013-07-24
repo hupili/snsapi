@@ -10,9 +10,10 @@ It provides common authenticate and communicate methods.
 # === system imports ===
 import webbrowser
 from utils import json
+import requests
+from errors import snserror
 import urllib
 import urllib2
-from errors import snserror
 import urlparse
 import subprocess
 import functools
@@ -413,12 +414,14 @@ class SNSBase(object):
         self.jsonconf.app_key = app_key
         self.jsonconf.app_secret = app_secret
 
-    def _http_get(self, baseurl, params):
+    def _http_get(self, baseurl, params={}, headers=None):
         '''Use HTTP GET to request a JSON interface
 
         :param baseurl: Base URL before parameters
 
         :param params: a dict of params (can be unicode)
+
+        :param headers: a dict of params (can be unicode)
 
         :return:
 
@@ -429,30 +432,37 @@ class SNSBase(object):
         # We should encode them as exchanging stream (e.g. utf-8)
         # before URL encoding and issue HTTP requests.
         try:
+            self.reqr = None
             for p in params:
                 params[p] = self._unicode_encode(params[p])
-            uri = urllib.urlencode(params)
-            url = baseurl + "?" + uri
-            resp = urllib.urlopen(url)
-            json_objs = json.loads(resp.read())
-            return json_objs
+            r = requests.get(baseurl, params=params, headers=headers)
+            self.reqr = r
+            try:
+                return r.json()
+            except:
+                return r.text
         except Exception, e:
             # Tolerate communication fault, like network failure.
             logger.warning("_http_get fail: %s", e)
             return {}
 
-    def _http_post(self, baseurl, params):
+    def _http_post(self, baseurl, params={}, headers=None, files=None):
         '''Use HTTP POST to request a JSON interface.
 
         See ``_http_get`` for more info.
+
+        :param files {'name_in_form': (filename, data/file/)}
         '''
         try:
+            self.reqr = None
             for p in params:
                 params[p] = self._unicode_encode(params[p])
-            data = urllib.urlencode(params)
-            resp = urllib.urlopen(baseurl,data)
-            json_objs = json.loads(resp.read())
-            return json_objs
+            r = requests.post(baseurl, data=params, headers=headers, files=files)
+            self.reqr = r
+            try:
+                return r.json()
+            except:
+                return r.text
         except Exception, e:
             logger.warning("_http_post fail: %s", e)
             return {}
@@ -476,14 +486,10 @@ class SNSBase(object):
             like "http://"
         '''
         try:
-            ex_url = urllib.urlopen(url)
-            if ex_url.url == url:
-                return ex_url.url
-            else:
-                return self._expand_url(ex_url.url)
-        except IOError, e:
-            # Deal with "service or name unknow" error
-            logger.warning('Error when expanding URL. Maybe invalid URL: %s', e)
+            self._http_get(url)
+            return self.reqr.url
+        except Exception, e:
+            logger.warning("Unable to expand url: %s" % (str(e)))
             return url
 
     def _cat(self, length, text_list, delim = "||"):
