@@ -55,3 +55,11 @@ class TestRenrenStatus(TestBase):
         eq_(ht[0].parsed['username'], 'user5')
         eq_(ht[0].parsed['userid'], '6666')
 
+    def renren_request_return_api_error(self, **kwargs):
+        raise renren.RenrenAPIError(9999999, 'this is a fake error')
+
+    def test_renren_status_update(self):
+        self._fake_authed()
+        self.channel.renren_request = self.renren_request_return_api_error
+        eq_(self.channel.update('test status'), False)
+
