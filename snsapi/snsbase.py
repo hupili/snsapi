@@ -414,7 +414,7 @@ class SNSBase(object):
         self.jsonconf.app_key = app_key
         self.jsonconf.app_secret = app_secret
 
-    def _http_get(self, baseurl, params={}, headers=None):
+    def _http_get(self, baseurl, params={}, headers=None, json_parse=True):
         '''Use HTTP GET to request a JSON interface
 
         :param baseurl: Base URL before parameters
@@ -431,41 +431,45 @@ class SNSBase(object):
         # Support unicode parameters.
         # We should encode them as exchanging stream (e.g. utf-8)
         # before URL encoding and issue HTTP requests.
+        r= None
         try:
-            self.reqr = None
             for p in params:
                 params[p] = self._unicode_encode(params[p])
             r = requests.get(baseurl, params=params, headers=headers)
-            self.reqr = r
-            try:
+            if json_parse:
                 return r.json()
-            except:
-                return r.text
+            else:
+                return r
         except Exception, e:
             # Tolerate communication fault, like network failure.
             logger.warning("_http_get fail: %s", e)
-            return {}
+            if json_parse:
+                return {}
+            else:
+                return r
 
-    def _http_post(self, baseurl, params={}, headers=None, files=None):
+    def _http_post(self, baseurl, params={}, headers=None, files=None, json_parse=True):
         '''Use HTTP POST to request a JSON interface.
 
         See ``_http_get`` for more info.
 
         :param files {'name_in_form': (filename, data/file/)}
         '''
+        r = None
         try:
-            self.reqr = None
             for p in params:
                 params[p] = self._unicode_encode(params[p])
             r = requests.post(baseurl, data=params, headers=headers, files=files)
-            self.reqr = r
-            try:
+            if json_parse:
                 return r.json()
-            except:
-                return r.text
+            else:
+                return r
         except Exception, e:
             logger.warning("_http_post fail: %s", e)
-            return {}
+            if json_parse:
+                return {}
+            else:
+                return r
 
     def _unicode_encode(self, s):
         """
@@ -486,8 +490,7 @@ class SNSBase(object):
             like "http://"
         '''
         try:
-            self._http_get(url)
-            return self.reqr.url
+            return self._http_get(url, json_parse=False).url
         except Exception, e:
             logger.warning("Unable to expand url: %s" % (str(e)))
             return url

@@ -94,8 +94,7 @@ class SinaWeiboBase(SNSBase):
 
             auth_url = "https://api.weibo.com/oauth2/authorize"
             #auth_url = self.auth_info.auth_url
-            self._http_post(auth_url, data=postdata, headers=headers)
-            resp_url = self.reqr.url
+            resp_url = self._http_post(auth_url, data=postdata, headers=headers, json_parse=False).url
             logger.debug("response URL from local post: %s", resp_url)
             return resp_url
         except Exception, e:
