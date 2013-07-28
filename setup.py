@@ -45,5 +45,8 @@ setup(name='snsapi',
           'Natural Language :: English',
           'Programming Language :: Python :: 2.7',
           'Development Status :: 4 - Beta',
+          'Topic :: Software Development :: Libraries :: Python Modules',
+          'Topic :: Communications :: Chat',
+          'Topic :: Internet',
       ]
      )
