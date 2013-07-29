@@ -14,6 +14,7 @@ if __name__ == '__main__':
     from snstype import BooleanWrappedData
     import utils
     import time
+    import urllib
 else:
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
@@ -21,6 +22,7 @@ else:
     from .. import snstype
     from .. import utils
     import time
+    import urllib
 
 
 logger.debug("%s plugged!", __file__)
@@ -30,6 +32,7 @@ logger.debug("%s plugged!", __file__)
 RENREN_AUTHORIZATION_URI = "http://graph.renren.com/oauth/authorize"
 RENREN_ACCESS_TOKEN_URI = "http://graph.renren.com/oauth/token"
 RENREN_API_SERVER = "https://api.renren.com/restserver.do"
+RENREN_API2_SERVER = "https://api.renren.com/v2/"
 
 # This error is moved back to "renren.py".
 # It's platform specific and we do not expect other
@@ -153,6 +156,30 @@ class RenrenFeed(SNSBase):
         return c
 
     def renren_request(self, method=None, **kwargs):
+        return self._renren_request_v1_no_sig(method, **kwargs)
+
+    def _renren_request_v2_bearer_token(self, method=None, **kwargs):
+        kwargs['access_token'] = self.token.access_token
+        if '_files' in kwargs:
+            _files = kwargs['_files']
+            del kwargs['_files']
+        else:
+            _files = {}
+        if _files:
+            args = urllib.urlencode(kwargs)
+            response = self._http_post(RENREN_API2_SERVER + method + '?' + args, {}, files=_files)
+        else:
+            response = self._http_get(RENREN_API_SERVER + method, kwargs)
+        if response == {} or 'error' in response:
+            if 'error' in response:
+                logger.warning(response['error']['message'])
+            else:
+                logger.warning("error")
+        return response
+
+
+
+    def _renren_request_v1_no_sign(self, method=None, **kwargs):
         '''
         A general purpose encapsulation of renren API.
         It fills in system paramters and compute the signature.

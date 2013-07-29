@@ -423,10 +423,17 @@ class SNSBase(object):
 
         :param headers: a dict of params (can be unicode)
 
+        :param json_parse: whether to parse json (default True)
+
         :return:
 
-           * Success: A JSON compatible structure
-           * Failure: A {}. Warning is logged.
+           * Success: If json_parse is True, a dict of json structure
+             is returned. Otherwise, the response of requests library
+             is returned.
+           * Failure: A warning is logged.
+             If json_parse is True, {} is returned.
+             Otherwise, the response of requests library is returned.
+             (can be None)
         '''
         # Support unicode parameters.
         # We should encode them as exchanging stream (e.g. utf-8)
