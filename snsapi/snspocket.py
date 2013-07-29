@@ -190,7 +190,7 @@ class SNSPocket(dict):
                 logger.warning("can not find platform '%s'", pl)
                 return utils.JsonDict()
         else:
-            _fn_conf = path.join(SNSConf.SNSAPI_DIR_STATIC_DATA, 'init-channel.json.example')
+            _fn_conf = path.join(SNSConf._SNSAPI_DIR_STATIC_DATA, 'init-channel.json.example')
             return utils.JsonDict(json.load(open(_fn_conf)))
 
     def list_platform(self):
