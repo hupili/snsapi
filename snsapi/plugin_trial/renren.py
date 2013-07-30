@@ -179,7 +179,7 @@ class RenrenFeed(SNSBase):
 
 
 
-    def _renren_request_v1_no_sign(self, method=None, **kwargs):
+    def _renren_request_v1_no_sig(self, method=None, **kwargs):
         '''
         A general purpose encapsulation of renren API.
         It fills in system paramters and compute the signature.
