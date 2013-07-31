@@ -427,14 +427,14 @@ class RenrenFeed(SNSBase):
     def forward(self, message, text):
         res = None
         try:
-            if message.parsed.feed_type == 'STATUS':
+            if message.ID.feed_type == 'STATUS':
                 res = self.renren_request(
                     method='status.forward',
                     status=text,
                     forward_id=message.ID.status_id,
                     forward_owner=message.ID.source_user_id,
                 )
-            elif message.parsed.feed_type != 'OTHER':
+            elif message.ID.feed_type != 'OTHER':
                 res = self.renren_request(
                     method='share.share',
                     type=str({
@@ -450,7 +450,8 @@ class RenrenFeed(SNSBase):
                 return BooleanWrappedData(False, {
                     'errors' : ['SNSAPI_NOT_SUPPORTED'],
                 })
-        except:
+        except Exception as e:
+            logger.warning('Catch exception: %s', e)
             return BooleanWrappedData(False, {
                 'errors': ['PLATFORM_'],
             })
