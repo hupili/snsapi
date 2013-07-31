@@ -7,6 +7,6 @@
 from sqlite import SQLite
 from twitter import TwitterStatus
 from emails import Email
-from renren import RenrenFeed, RenrenShare, RenrenBlog, RenrenStatus
+from renren import RenrenFeed, RenrenShare, RenrenBlog, RenrenStatus, RenrenStatusDirect
 from sina_wap import SinaWeiboWapStatus
 from facebook import FacebookFeed
