@@ -549,7 +549,7 @@ class RenrenShare(RenrenFeed):
 
 
 class RenrenStatusDirectMessage(snstype.Message):
-    platform = "RenrenStatusDirectMessage"
+    platform = "RenrenStatusDirect"
 
     def parse(self):
         self.ID.platform = self.platform
