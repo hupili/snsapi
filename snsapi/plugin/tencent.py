@@ -125,6 +125,13 @@ class TencentWeiboStatus(SNSBase):
         params['scope'] = 'all'
         return params
 
+    def tencent_request(self, method, http_method="GET", files={}, **kwargs):
+        self._attach_authinfo(kwargs)
+        if http_method == "GET":
+            return self._http_get("https://open.t.qq.com/api/" + method, params=kwargs)
+        else:
+            return self._http_post("https://open.t.qq.com/api/" + method, params=kwargs, files=files)
+
     @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
@@ -132,12 +139,8 @@ class TencentWeiboStatus(SNSBase):
            * function : get statuses of yours and your friends'
            * parameter count: number of statuses
         '''
-        url = "https://open.t.qq.com/api/statuses/home_timeline"
-        params = {}
-        params['reqnum'] = count
-        self._attach_authinfo(params)
 
-        jsonobj = self._http_get(url, params)
+        jsonobj = self.tencent_request("statuses/home_timeline", reqnum=count)
         #logger.debug("returned: %s", jsonobj)
 
         statuslist = snstype.MessageList()
@@ -163,18 +166,15 @@ class TencentWeiboStatus(SNSBase):
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
         if not pic:
-            url = "https://open.t.qq.com/api/t/add"
+            method = "t/add"
         else:
-            url = "https://open.t.qq.com/api/t/add_pic"
-        params = {}
-        params["content"] = text
-        self._attach_authinfo(params)
+            method = "t/add_pic"
 
         try:
             if pic:
-                ret = self._http_post(url, params, files={'pic': ('pic.jpg', pic)})
+                ret = self.tencent_request(method, "POST", content=text, files={'pic': ('pic.jpg', pic)})
             else:
-                ret = self._http_post(url, params)
+                ret = self.tencent_request(method, "POST", content=text)
             if(ret['msg'] == "ok"):
                 logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
                 return True
@@ -191,13 +191,7 @@ class TencentWeiboStatus(SNSBase):
            * parameter text: the comment text
            * return: success or not
         '''
-        url = "https://open.t.qq.com/api/t/reply"
-        params = {}
-        params["content"] = text
-        params["reid"] = statusID.reid
-        self._attach_authinfo(params)
-
-        ret = self._http_post(url, params)
+        ret = self.tencent_request("t/reply", "POST", content=text, reid=statusID.reid)
         if(ret['msg'] == "ok"):
             return True
         logger.info("Reply '%s' to status '%s' fail: %s", text, self.jsonconf.channel_name, ret)
