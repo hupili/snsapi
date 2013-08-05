@@ -29,3 +29,28 @@ class AsynchronousWithCallBack:
         def func(callback=None, *args, **kwargs):
             AsynchronousThreading(target, callback, args, kwargs).start()
         return func
+
+class AsyncDaemonWithCallBack:
+    def __init__(self, target, args, kwargs, callback, sleepsec):
+        self.target = target
+        self.args = args
+        self.kwargs = kwargs
+        self.callback = callback
+        self.sleepsec = sleepsec
+
+    def start(self):
+        self.started = True
+        self._start()
+
+    def _start(self):
+        AsynchronousThreading(self.target, self.callback_and_sleep, self.args, self.kwargs).start()
+
+    def stop(self):
+        self.started = False
+
+    def callback_and_sleep(self, value):
+        self.callback(value)
+        if self.started:
+            if self.sleepsec > 0:
+                time.sleep(self.sleepsec)
+            self._start()
