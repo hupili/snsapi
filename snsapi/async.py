@@ -6,12 +6,13 @@ import threading
 
 
 class AsynchronousThreading(threading.Thread):
-    def __init__(self, func, callback=None, args=(), kwargs={}):
+    def __init__(self, func, callback=None, args=(), kwargs={}, daemon=False):
         super(AsynchronousThreading, self).__init__()
         self.func = func
         self.args = args
         self.kwargs = kwargs
         self.callback = callback
+        self.daemon = daemon
 
     def run(self):
         ret = self.func(*self.args, **self.kwargs)
@@ -43,7 +44,7 @@ class AsyncDaemonWithCallBack:
         self._start()
 
     def _start(self):
-        AsynchronousThreading(self.target, self.callback_and_sleep, self.args, self.kwargs).start()
+        AsynchronousThreading(self.target, self.callback_and_sleep, self.args, self.kwargs, daemon=True).start()
 
     def stop(self):
         self.started = False
