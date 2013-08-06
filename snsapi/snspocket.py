@@ -48,6 +48,27 @@ class BackgroundOperationPocketWithSQLite:
         self.home_timeline_job.start()
         self.update_job.start()
 
+    def home_timeline(self, count=20):
+        ret = snstype.MessageList()
+        logger.debug("acquiring lock")
+        self.dblock.acquire()
+        try:
+            conn = sqlite3.connect(self.sqlitefile)
+            c = conn.cursor()
+            c.execute("SELECT pickled_object FROM home_timeline ORDER BY time DESC LIMIT 0, %d" % (count,))
+            p = c.fetchall()
+            logger.info("%d messages read from database" % (len(p)))
+            for i in p:
+                ret.append(cPickle.loads(str(i[0])))
+        except Exception, e:
+            logger.warning("Error while reading database: %s" % (str(e)))
+        finally:
+            logger.debug("releasing lock")
+            self.dblock.release()
+            return ret
+
+
+
     def write_timeline_to_db(self, msglist):
         logger.debug("acquiring lock")
         self.dblock.acquire()
