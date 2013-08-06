@@ -55,6 +55,11 @@ such that retrieving new messages from all other platforms are the same:
 
 ### Step 1.
 
+**ATTENTIONI: **
+   * The `redirect_url` in renren.com must be same with the `callback_url`  in your `channel.json`. 
+   * The url above is `http://snsapi.ie.cuhk.edu.hk/aux/auth.php`. It is updated, and users may need to update the configuration of their APP in `renren.com`.
+`.
+
 [Configure a channel.json](https://github.com/hupili/snsapi/wiki/Configurations) file
 with two channels:
 
