@@ -39,7 +39,7 @@ class BackgroundOperationPocketWithSQLite:
             id integer primary key, pickled_object text, digest text, text text, username text, userid text, time integer, isread integer DEFAULT 0
         )""")
         c.execute("""CREATE TABLE IF NOT EXISTS pending_update (
-            id integer primary key, text text, args text, kwargs text
+            id integer primary key, type text, args text, kwargs text
         )""")
         conn.commit()
         c.close()
@@ -66,8 +66,6 @@ class BackgroundOperationPocketWithSQLite:
             logger.debug("releasing lock")
             self.dblock.release()
             return ret
-
-
 
     def write_timeline_to_db(self, msglist):
         logger.debug("acquiring lock")
@@ -99,14 +97,14 @@ class BackgroundOperationPocketWithSQLite:
             logger.debug("releasing lock")
             self.dblock.release()
 
-    def update(self, text, *args, **kwargs):
+    def _update(self, type, args, kwargs):
         logger.debug("acquiring lock")
         self.dblock.acquire()
         try:
             conn = sqlite3.connect(self.sqlitefile)
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO pending_update (text, args, kwargs) VALUES (?, ?, ?)", (
-                cPickle.dumps(text),
+            cursor.execute("INSERT INTO pending_update (type, args, kwargs) VALUES (?, ?, ?)", (
+                type,
                 cPickle.dumps(args),
                 cPickle.dumps(kwargs)
             ))
@@ -120,6 +118,15 @@ class BackgroundOperationPocketWithSQLite:
             logger.debug("releasing lock")
             self.dblock.release()
 
+    def update(self, *args, **kwargs):
+        return self._update('update', args, kwargs)
+
+    def forward(self, *args, **kwargs):
+        return self._update('forward', args, kwargs)
+
+    def reply(self, *args, **kwargs):
+        return self._update('reply', args, kwargs)
+
     def update_func(self):
         logger.debug("acquiring lock")
         self.dblock.acquire()
@@ -132,15 +139,15 @@ class BackgroundOperationPocketWithSQLite:
             if i:
                 j = {
                     'id': str(i['id']),
-                    'text': cPickle.loads(str(i['text'])),
                     'args': cPickle.loads(str(i['args'])),
                     'kwargs': cPickle.loads(str(i['kwargs'])),
+                    'type': str(i['type'])
                 }
-                if self.sp.update(j['text'], *j['args'], **j['kwargs']):
-                    logger.info("updating status %s succeeded" % (str(j['text'])))
+                if getattr(self.sp, j['type'])(*j['args'], **j['kwargs']):
+                    logger.info("%s status succeeded" % (j['type'],))
                     cursor.execute("DELETE FROM pending_update WHERE id = ?", (j['id'], ))
                 else:
-                    logger.warning("updating status %s failed, saved for next retry." % (str(j['text'])))
+                    logger.warning("%s status failed, saved for next retry." % (j['type'], ))
             conn.commit()
             cursor.close()
         except Exception, e:

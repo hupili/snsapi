@@ -55,6 +55,9 @@ class AsyncDaemonWithCallBack:
             except:
                 pass
         if self.started:
-            if self.sleepsec > 0:
-                time.sleep(self.sleepsec)
-            self._start()
+            for i in range(self.sleepsec):
+                time.sleep(1)
+                if not self.started:
+                    break
+            if self.started:
+                self._start()
