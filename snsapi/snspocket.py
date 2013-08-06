@@ -8,6 +8,9 @@ snspocket: the container class for snsapi's
 # === system imports ===
 from utils import json
 from os import path
+import cPickle
+import sqlite3
+import thread
 
 # === snsapi modules ===
 import snstype
@@ -17,11 +20,114 @@ from utils import console_output
 from snslog import SNSLog as logger
 from snsconf import SNSConf
 import platform
+from async import AsyncDaemonWithCallBack
 
 # === 3rd party modules ===
 
 DIR_DEFAULT_CONF_CHANNEL = path.join(SNSConf.SNSAPI_DIR_STORAGE_CONF, 'channel.json')
 DIR_DEFAULT_CONF_POCKET = path.join(SNSConf.SNSAPI_DIR_STORAGE_CONF, 'pocket.json')
+
+
+class BackgroundOperationPocketWithSQLite:
+    def __init__(self, pocket, sqlite):
+        self.sp = pocket
+        self.dblock = thread.allocate_lock()
+        self.sqlitefile = sqlite
+        conn = sqlite3.connect(self.sqlitefile)
+        c = conn.cursor()
+        c.execute("""CREATE TABLE IF NOT EXISTS home_timeline (
+            id integer primary key, pickled_object text, digest text, text text, username text, userid text, time integer, isread integer DEFAULT 0
+        )""")
+        c.execute("""CREATE TABLE IF NOT EXISTS pending_update (
+            id integer primary key, text text, args text, kwargs text
+        )""")
+        conn.commit()
+        c.close()
+        self.home_timeline_job = AsyncDaemonWithCallBack(self.sp.home_timeline, (), {}, self.write_timeline_to_db, 60)
+        self.update_job = AsyncDaemonWithCallBack(self.update_func, (), {}, None, 10)
+        self.home_timeline_job.start()
+        self.update_job.start()
+
+    def write_timeline_to_db(self, msglist):
+        logger.debug("acquiring lock")
+        self.dblock.acquire()
+        try:
+            conn = sqlite3.connect(self.sqlitefile)
+            cursor = conn.cursor()
+            what_to_write = [
+            ]
+            for msg in msglist:
+                try:
+                    pickled_msg = cPickle.dumps(msg)
+                    sig = msg.digest()
+                    cursor.execute("SELECT * FROM home_timeline WHERE digest = ?", (sig,))
+                    if not cursor.fetchone():
+                        what_to_write.append((
+                            pickled_msg, sig, msg.parsed.text, msg.parsed.username, msg.parsed.userid, msg.parsed.time
+                        ))
+                except Exception, e:
+                    logger.warning("Error while checking message: %s" % (str(e)))
+            try:
+                logger.info("Writing %d messages" % (len(what_to_write)))
+                cursor.executemany("INSERT INTO home_timeline (pickled_object, digest, text, username, userid, time) VALUES(?, ?, ?, ?, ?, ?)", what_to_write)
+            except Exception, e:
+                logger.warning("Error %s" % (str(e)))
+            conn.commit()
+            cursor.close()
+        finally:
+            logger.debug("releasing lock")
+            self.dblock.release()
+
+    def update(self, text, *args, **kwargs):
+        logger.debug("acquiring lock")
+        self.dblock.acquire()
+        try:
+            conn = sqlite3.connect(self.sqlitefile)
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO pending_update (text, args, kwargs) VALUES (?, ?, ?)", (
+                cPickle.dumps(text),
+                cPickle.dumps(args),
+                cPickle.dumps(kwargs)
+            ))
+            conn.commit()
+            cursor.close()
+            return True
+        except Exception, e:
+            logger.warning("Error while saving pending_update: %s" % (str(e)))
+            return False
+        finally:
+            logger.debug("releasing lock")
+            self.dblock.release()
+
+    def update_func(self):
+        logger.debug("acquiring lock")
+        self.dblock.acquire()
+        try:
+            conn = sqlite3.connect(self.sqlitefile)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM pending_update")
+            i = cursor.fetchone()
+            if i:
+                j = {
+                    'id': str(i['id']),
+                    'text': cPickle.loads(str(i['text'])),
+                    'args': cPickle.loads(str(i['args'])),
+                    'kwargs': cPickle.loads(str(i['kwargs'])),
+                }
+                if self.sp.update(j['text'], *j['args'], **j['kwargs']):
+                    logger.info("updating status %s succeeded" % (str(j['text'])))
+                    cursor.execute("DELETE FROM pending_update WHERE id = ?", (j['id'], ))
+                else:
+                    logger.warning("updating status %s failed, saved for next retry." % (str(j['text'])))
+            conn.commit()
+            cursor.close()
+        except Exception, e:
+            logger.warning("Error while updating: %s" % (str(e)))
+        finally:
+            logger.debug("releasing lock")
+            self.dblock.release()
+
 
 class SNSPocket(dict):
     """The container class for snsapi's"""

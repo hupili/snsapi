@@ -49,7 +49,11 @@ class AsyncDaemonWithCallBack:
         self.started = False
 
     def callback_and_sleep(self, value):
-        self.callback(value)
+        if self.callback:
+            try:
+                self.callback(value)
+            except:
+                pass
         if self.started:
             if self.sleepsec > 0:
                 time.sleep(self.sleepsec)
