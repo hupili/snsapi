@@ -11,6 +11,7 @@ from os import path
 import cPickle
 import sqlite3
 import thread
+import base64
 
 # === snsapi modules ===
 import snstype
@@ -59,7 +60,7 @@ class BackgroundOperationPocketWithSQLite:
             p = c.fetchall()
             logger.info("%d messages read from database" % (len(p)))
             for i in p:
-                ret.append(cPickle.loads(str(i[0])))
+                ret.append(cPickle.loads(base64.b64decode(str(i[0]))))
         except Exception, e:
             logger.warning("Error while reading database: %s" % (str(e)))
         finally:
@@ -77,12 +78,12 @@ class BackgroundOperationPocketWithSQLite:
             ]
             for msg in msglist:
                 try:
-                    pickled_msg = cPickle.dumps(msg)
-                    sig = msg.digest()
+                    pickled_msg = base64.b64encode(cPickle.dumps(msg))
+                    sig = unicode(msg.digest())
                     cursor.execute("SELECT * FROM home_timeline WHERE digest = ?", (sig,))
                     if not cursor.fetchone():
                         what_to_write.append((
-                            pickled_msg, sig, msg.parsed.text, msg.parsed.username, msg.parsed.userid, msg.parsed.time
+                            unicode(pickled_msg), sig, msg.parsed.text, msg.parsed.username, msg.parsed.userid, msg.parsed.time
                         ))
                 except Exception, e:
                     logger.warning("Error while checking message: %s" % (str(e)))
@@ -137,17 +138,26 @@ class BackgroundOperationPocketWithSQLite:
             cursor.execute("SELECT * FROM pending_update")
             i = cursor.fetchone()
             if i:
+                cursor.execute("DELETE FROM pending_update WHERE id = ?", (i['id'], ))
                 j = {
                     'id': str(i['id']),
                     'args': cPickle.loads(str(i['args'])),
                     'kwargs': cPickle.loads(str(i['kwargs'])),
                     'type': str(i['type'])
                 }
-                if getattr(self.sp, j['type'])(*j['args'], **j['kwargs']):
-                    logger.info("%s status succeeded" % (j['type'],))
-                    cursor.execute("DELETE FROM pending_update WHERE id = ?", (j['id'], ))
-                else:
-                    logger.warning("%s status failed, saved for next retry." % (j['type'], ))
+                res = getattr(self.sp, j['type'])(*j['args'], **j['kwargs'])
+                for i in res:
+                    if res[i]:
+                        logger.info("%s status on %s succeeded" % (j['type'], i))
+                    else:
+                        logger.warning("%s status on %s failed, saved for next retry." % (j['type'], i))
+                        newargs = j['kwargs'].copy()
+                        newargs['channel'] = i
+                        cursor.execute("INSERT INTO pending_update (args, kwargs, type) VALUES(?, ?, ?)", (
+                            unicode(cPickle.dumps(j['args'])),
+                            unicode(cPickle.dumps(newargs)),
+                            unicode(j['type'])
+                        ))
             conn.commit()
             cursor.close()
         except Exception, e:
