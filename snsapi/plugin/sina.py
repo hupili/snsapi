@@ -264,6 +264,7 @@ class SinaWeiboStatus(SinaWeiboBase):
                         platform = self.jsonconf['platform'],\
                         channel = self.jsonconf['channel_name']\
                         ))
+            logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
         except Exception, e:
             logger.warning("Catch exception: %s", e)
 
