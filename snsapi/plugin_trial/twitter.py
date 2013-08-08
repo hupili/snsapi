@@ -73,6 +73,7 @@ class TwitterStatus(SNSBase):
                 status_list.append(self.Message(s.AsDict(),\
                         self.jsonconf['platform'],\
                         self.jsonconf['channel_name']))
+            logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
         except Exception, e:
             logger.warning("Catch expection: %s", e)
         return status_list
