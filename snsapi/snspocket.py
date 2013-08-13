@@ -8,16 +8,14 @@ snspocket: the container class for snsapi's
 # === system imports ===
 from utils import json
 from os import path
-import cPickle
 import sqlite3
 import thread
-import base64
 
 # === snsapi modules ===
 import snstype
 import utils
 from errors import snserror
-from utils import console_output
+from utils import console_output, obj2str, str2obj
 from snslog import SNSLog as logger
 from snsconf import SNSConf
 import platform
@@ -60,7 +58,7 @@ class BackgroundOperationPocketWithSQLite:
             p = c.fetchall()
             logger.info("%d messages read from database" % (len(p)))
             for i in p:
-                ret.append(cPickle.loads(base64.b64decode(str(i[0]))))
+                ret.append(str2obj(str(i[0])))
         except Exception, e:
             logger.warning("Error while reading database: %s" % (str(e)))
         finally:
@@ -78,7 +76,7 @@ class BackgroundOperationPocketWithSQLite:
             ]
             for msg in msglist:
                 try:
-                    pickled_msg = base64.b64encode(cPickle.dumps(msg))
+                    pickled_msg = obj2str(msg)
                     sig = unicode(msg.digest())
                     cursor.execute("SELECT * FROM home_timeline WHERE digest = ?", (sig,))
                     if not cursor.fetchone():
@@ -106,8 +104,8 @@ class BackgroundOperationPocketWithSQLite:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO pending_update (type, args, kwargs) VALUES (?, ?, ?)", (
                 type,
-                cPickle.dumps(args),
-                cPickle.dumps(kwargs)
+                obj2str(args),
+                obj2str(kwargs)
             ))
             conn.commit()
             cursor.close()
@@ -141,8 +139,8 @@ class BackgroundOperationPocketWithSQLite:
                 cursor.execute("DELETE FROM pending_update WHERE id = ?", (i['id'], ))
                 j = {
                     'id': str(i['id']),
-                    'args': cPickle.loads(str(i['args'])),
-                    'kwargs': cPickle.loads(str(i['kwargs'])),
+                    'args': str2obj(str(i['args'])),
+                    'kwargs': str2obj(str(i['kwargs'])),
                     'type': str(i['type'])
                 }
                 res = getattr(self.sp, j['type'])(*j['args'], **j['kwargs'])
@@ -154,8 +152,8 @@ class BackgroundOperationPocketWithSQLite:
                         newargs = j['kwargs'].copy()
                         newargs['channel'] = i
                         cursor.execute("INSERT INTO pending_update (args, kwargs, type) VALUES(?, ?, ?)", (
-                            unicode(cPickle.dumps(j['args'])),
-                            unicode(cPickle.dumps(newargs)),
+                            unicode(obj2str(j['args'])),
+                            unicode(obj2str(newargs)),
                             unicode(j['type'])
                         ))
             conn.commit()
