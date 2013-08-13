@@ -41,7 +41,7 @@ class BackgroundOperationPocketWithSQLite:
             id integer primary key, pickled_object text, digest text, text text, username text, userid text, time integer, isread integer DEFAULT 0
         )""")
         c.execute("""CREATE TABLE IF NOT EXISTS pending_update (
-            id integer primary key, type text, args text, kwargs text
+            id integer primary key, callback text, type text, args text, kwargs text
         )""")
         conn.commit()
         c.close()
@@ -150,10 +150,11 @@ class BackgroundOperationPocketWithSQLite:
                     'args': str2obj(str(i['args'])),
                     'kwargs': str2obj(str(i['kwargs'])),
                     'type': str(i['type']),
-                    'callback': str2obj(str(i['type']))
+                    'callback': str2obj(str(i['callback']))
                 }
                 res = getattr(self.sp, j['type'])(*j['args'], **j['kwargs'])
-                j['callback'](self, res)
+                if j['callback']:
+                    j['callback'](self, res)
             conn.commit()
             cursor.close()
         except Exception, e:
