@@ -27,8 +27,11 @@ DIR_DEFAULT_CONF_CHANNEL = path.join(SNSConf.SNSAPI_DIR_STORAGE_CONF, 'channel.j
 DIR_DEFAULT_CONF_POCKET = path.join(SNSConf.SNSAPI_DIR_STORAGE_CONF, 'pocket.json')
 
 
+def _default_callback(pocket, res):
+    pass
+
 class BackgroundOperationPocketWithSQLite:
-    def __init__(self, pocket, sqlite):
+    def __init__(self, pocket, sqlite, callback=_default_callback):
         self.sp = pocket
         self.dblock = thread.allocate_lock()
         self.sqlitefile = sqlite
@@ -102,8 +105,13 @@ class BackgroundOperationPocketWithSQLite:
         try:
             conn = sqlite3.connect(self.sqlitefile)
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO pending_update (type, args, kwargs) VALUES (?, ?, ?)", (
+            callback = None
+            if 'callback' in kwargs:
+                callback = kwargs['callback']
+                del kwargs['callback']
+            cursor.execute("INSERT INTO pending_update (type, callback, args, kwargs) VALUES (?, ?, ?, ?)", (
                 type,
+                obj2str(callback),
                 obj2str(args),
                 obj2str(kwargs)
             ))
@@ -141,21 +149,11 @@ class BackgroundOperationPocketWithSQLite:
                     'id': str(i['id']),
                     'args': str2obj(str(i['args'])),
                     'kwargs': str2obj(str(i['kwargs'])),
-                    'type': str(i['type'])
+                    'type': str(i['type']),
+                    'callback': str2obj(str(i['type']))
                 }
                 res = getattr(self.sp, j['type'])(*j['args'], **j['kwargs'])
-                for i in res:
-                    if res[i]:
-                        logger.info("%s status on %s succeeded" % (j['type'], i))
-                    else:
-                        logger.warning("%s status on %s failed, saved for next retry." % (j['type'], i))
-                        newargs = j['kwargs'].copy()
-                        newargs['channel'] = i
-                        cursor.execute("INSERT INTO pending_update (args, kwargs, type) VALUES(?, ?, ?)", (
-                            unicode(obj2str(j['args'])),
-                            unicode(obj2str(newargs)),
-                            unicode(j['type'])
-                        ))
+                j['callback'](self, res)
             conn.commit()
             cursor.close()
         except Exception, e:
