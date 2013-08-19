@@ -427,14 +427,14 @@ class RenrenFeed(SNSBase):
     def forward(self, message, text):
         res = None
         try:
-            if message.parsed.feed_type == 'STATUS':
+            if message.ID.feed_type == 'STATUS':
                 res = self.renren_request(
                     method='status.forward',
                     status=text,
                     forward_id=message.ID.status_id,
                     forward_owner=message.ID.source_user_id,
                 )
-            elif message.parsed.feed_type != 'OTHER':
+            elif message.ID.feed_type != 'OTHER':
                 res = self.renren_request(
                     method='share.share',
                     type=str({
@@ -450,7 +450,8 @@ class RenrenFeed(SNSBase):
                 return BooleanWrappedData(False, {
                     'errors' : ['SNSAPI_NOT_SUPPORTED'],
                 })
-        except:
+        except Exception as e:
+            logger.warning('Catch exception: %s', e)
             return BooleanWrappedData(False, {
                 'errors': ['PLATFORM_'],
             })
@@ -546,3 +547,84 @@ class RenrenShare(RenrenFeed):
         if not link:
             link = text
             return RenrenFeed._update_share_link(self, text, link)
+
+
+class RenrenStatusDirectMessage(snstype.Message):
+    platform = "RenrenStatusDirect"
+
+    def parse(self):
+        self.ID.platform = self.platform
+        self._parse(self.raw)
+
+    def _parse(self, dct):
+        self.ID.status_id = dct['status_id']
+        self.ID.source_user_id = dct['uid']
+        self.ID.feed_type = 'STATUS'
+
+        self.parsed.userid = str(dct['uid'])
+        self.parsed.username = dct['name']
+        self.parsed.time = utils.str2utc(dct['time'], " +08:00")
+        self.parsed.text = dct['message']
+
+class RenrenStatusDirect(RenrenFeed):
+    Message = RenrenStatusDirectMessage
+
+    def __init__(self, channel=None):
+        super(RenrenStatusDirect, self).__init__(channel)
+
+    @staticmethod
+    def new_channel(full=False):
+        c = RenrenFeed.new_channel(full)
+        c['platform'] = 'RenrenStatusDirect'
+        c['friend_list'] = [
+                    {
+                    "username": "Name",
+                    "userid": "ID"
+                    }
+                ]
+        return c
+
+    @require_authed
+    def update(self, text):
+        return RenrenFeed._update_status(self, text)
+
+    def _get_user_status_list(self, count, userid, username):
+        try:
+            jsonlist = self.renren_request(
+                method="status.gets",
+                page=1,
+                count=count,
+                uid = userid,
+            )
+        except RenrenAPIError, e:
+            logger.warning("RenrenAPIError, %s", e)
+            return snstype.MessageList()
+
+        statuslist = snstype.MessageList()
+        for j in jsonlist:
+            try:
+                j['name'] = username
+                statuslist.append(self.Message(
+                    j,
+                    platform = self.jsonconf['platform'],
+                    channel = self.jsonconf['channel_name']
+                ))
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+        return statuslist
+
+    @require_authed
+    def home_timeline(self, count=20):
+        '''
+        Return count ``Message`` for each uid configured.
+
+        Configure 'friend_list' in your ``channel.json`` first.
+        Or, it returns your own status list by default.
+        '''
+        statuslist = snstype.MessageList()
+        for user in self.jsonconf['friend_list']:
+            userid = user['userid']
+            username = user['username']
+            statuslist.extend(self._get_user_status_list(count, userid, username))
+        logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
+        return statuslist

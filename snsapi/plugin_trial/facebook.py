@@ -146,7 +146,7 @@ class FacebookFeed(SNSBase):
                         self.jsonconf['channel_name']))
             except Exception, e:
                 logger.warning("Catch expection: %s", e)
-        logger.info("FB '%s' read '%d' statuses", self.jsonconf.channel_name, len(status_list))
+        logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
         return status_list
 
     @require_authed
