@@ -3,6 +3,7 @@
 import types
 import time
 import threading
+from snslog import SNSLog as logger
 
 
 class AsynchronousThreading(threading.Thread):
@@ -53,8 +54,8 @@ class AsyncDaemonWithCallBack:
         if self.callback:
             try:
                 self.callback(value)
-            except:
-                pass
+            except Exception as e:
+                logger.warning("Error while executing callback %s" % (str(e)))
         if self.started:
             for i in range(self.sleepsec):
                 time.sleep(1)

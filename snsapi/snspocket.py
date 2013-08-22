@@ -31,7 +31,7 @@ def _default_callback(pocket, res):
     pass
 
 class BackgroundOperationPocketWithSQLite:
-    def __init__(self, pocket, sqlite, callback=_default_callback):
+    def __init__(self, pocket, sqlite, callback=_default_callback, timeline_sleep=60, update_sleep=10):
         self.sp = pocket
         self.dblock = thread.allocate_lock()
         self.sqlitefile = sqlite
@@ -45,8 +45,8 @@ class BackgroundOperationPocketWithSQLite:
         )""")
         conn.commit()
         c.close()
-        self.home_timeline_job = AsyncDaemonWithCallBack(self.sp.home_timeline, (), {}, self.write_timeline_to_db, 60)
-        self.update_job = AsyncDaemonWithCallBack(self.update_func, (), {}, None, 10)
+        self.home_timeline_job = AsyncDaemonWithCallBack(self.sp.home_timeline, (), {}, self.write_timeline_to_db, timeline_sleep)
+        self.update_job = AsyncDaemonWithCallBack(self.update_func, (), {}, None, update_sleep)
         self.home_timeline_job.start()
         self.update_job.start()
 

@@ -9,6 +9,7 @@ except ImportError:
 
 from snsconf import SNSConf
 from snslog import SNSLog as logger
+import multiprocessing
 
 '''
 utilities for snsapi
@@ -285,6 +286,48 @@ def report_time(func):
 @report_time
 def _test_report_time(i):
     print "your number: %d" % i
+
+
+class TimeoutException(Exception):
+    pass
+
+class RunnableProcess(multiprocessing.Process):
+    def __init__(self, func, *args, **kwargs):
+        self.queue = multiprocessing.Queue(maxsize=1)
+        args = (func, ) + args
+        multiprocessing.Process.__init__(self, target=self.execute_func, args=args, kwargs=kwargs)
+
+    def execute_func(self, func, *args, **kwargs):
+        try:
+            r = func(*args, **kwargs)
+            self.queue.put((True, r))
+        except Exception as e:
+            self.queue.put((False, e))
+
+    def is_finished(self):
+        return self.queue.full()
+
+    def get_result(self):
+        return self.queue.get()
+
+def timeout(secs):
+    def wrapper(function):
+        def _func(*args, **kwargs):
+            proc = RunnableProcess(function, *args, **kwargs)
+            proc.start()
+            proc.join(secs)
+            if proc.is_alive():
+                proc.terminate()
+                raise TimeoutException("timed out when running %s" % (str(function)))
+            assert proc.is_finished()
+            ok, res = proc.get_result()
+            if ok:
+                return res
+            else:
+                raise res
+        return _func
+    return wrapper
+
 
 if __name__ == '__main__':
     u = time.time()
