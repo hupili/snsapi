@@ -227,8 +227,8 @@ class SinaWeiboStatusMessage(snstype.Message):
             self.parsed.text_orig = dct['retweeted_status']['text']
             self.parsed.text_trace = dct['text']
             self.parsed.text = self.parsed.text_trace \
-                    + " || " + "@" + self.parsed.username_orig \
-                    + " : " + self.parsed.text_orig
+                    + "//@" + self.parsed.username_orig \
+                    + ": " + self.parsed.text_orig
         else:
             self.parsed.text_orig = dct['text']
             self.parsed.text_trace = None
