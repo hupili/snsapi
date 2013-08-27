@@ -169,7 +169,8 @@ class RenrenFeed(SNSBase):
             args = urllib.urlencode(kwargs)
             response = self._http_post(RENREN_API2_SERVER + method + '?' + args, {}, files=_files)
         else:
-            response = self._http_get(RENREN_API_SERVER + method, kwargs)
+            response = self._http_get(RENREN_API2_SERVER + method, kwargs)
+        #logger.debug('response: %s', response)
         if response == {} or 'error' in response:
             if 'error' in response:
                 logger.warning(response['error']['message'])
