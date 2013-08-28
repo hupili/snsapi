@@ -155,9 +155,20 @@ class RSS(SNSBase):
         # This platform does not have token expire issue.
         return -1
 
+_LINK_PREFIX = 'http://message/'
+
+def link2obj(link):
+    return utils.str2obj(link[len(_LINK_PREFIX):])
+
+def obj2link(obj):
+    return _LINK_PREFIX + utils.obj2str(obj)
+
+
 class RSS2RWMessage(RSSMessage):
     platform = "RSS2RW"
     def parse(self):
+        #import pprint
+        #pprint.pprint(self.raw)
         super(RSS2RWMessage, self).parse()
         self.ID.platform = self.platform
 
@@ -165,6 +176,11 @@ class RSS2RWMessage(RSSMessage):
         # It does not have to digest RSS entry as is in RSSStatus.
         # The 'title' field is the place where we put our messages.
         self.parsed.text = self.parsed.title
+
+        if self.parsed.link:
+            self.original_message = link2obj(self.parsed.link)
+        else:
+            self.original_message = None
 
 class RSS2RW(RSS):
     '''
@@ -199,7 +215,25 @@ class RSS2RW(RSS):
             # Default entry timeout in seconds (1 hour)
             self.jsonconf['entry_timeout'] = 3600
 
-    def update(self, message):
+    def forward(self, message, text):
+        if not message.platform == self.platform:
+            return super(RSS2RW, self).forward(message, text)
+        else:
+            original_message = message.original_message
+            #original_message = message.parsed.get('link', None)
+            #print message
+            #print message.parsed
+            #print message.raw
+            if original_message:
+                # following forwarding
+                return self.update(text + u'//@' + message.parsed.username + u':' + message.parsed.text,
+                            obj2link(original_message))
+            else:
+                # first forwarding
+                return self.update(text + u'//@' + message.parsed.username + u':' + message.parsed.text,
+                            obj2link(message))
+
+    def update(self, message, link=None):
         '''
         :type message: ``Message`` or ``str``
         :param message:
@@ -218,6 +252,11 @@ class RSS2RW(RSS):
             msg.parsed.username = self.jsonconf.author
             msg.parsed.userid = self.jsonconf.author
             msg.parsed.time = self.time()
+            msg.parsed.link = link
+            #if link:
+            #    msg.parsed.link = link
+            #else:
+            #    msg.parsed.link = None
         return self._update(msg)
 
     def _make_link(self, msg):
@@ -230,11 +269,12 @@ class RSS2RW(RSS):
         Towards this end, we use this function to generate unique links
         for each message.
         '''
-        _link = msg.parsed.get('link', 'http://goo.gl/7aokV')
-        # No link or the link is our official stub
-        if _link is None or _link.find('http://goo.gl/7aokV') != -1:
-            _link = 'http://goo.gl/7aokV#' + msg.digest()
-        return _link
+        #_link = msg.parsed.get('link', 'http://goo.gl/7aokV')
+        ## No link or the link is our official stub
+        #if _link is None or _link.find('http://goo.gl/7aokV') != -1:
+        #    _link = 'http://goo.gl/7aokV#' + msg.digest()
+        #return _link
+        return msg.parsed.link
 
     def _update(self, message):
         '''
@@ -294,10 +334,8 @@ class RSS2RW(RSS):
             items = items
             )
 
-        try:
-            rss.write_xml(open(self.jsonconf.url, "w"))
-        except Exception as e:
-            raise snserror.op.write(str(e))
+        with open(self.jsonconf.url, "w") as fp:
+            rss.write_xml(fp)
 
         return True
 
