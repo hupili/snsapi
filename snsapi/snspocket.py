@@ -38,10 +38,21 @@ class BackgroundOperationPocketWithSQLite:
         conn = sqlite3.connect(self.sqlitefile)
         c = conn.cursor()
         c.execute("""CREATE TABLE IF NOT EXISTS home_timeline (
-            id integer primary key, pickled_object text, digest text, text text, username text, userid text, time integer, isread integer DEFAULT 0
+            id integer primary key,
+            pickled_object text,
+            digest text,
+            text text,
+            username text,
+            userid text,
+            time integer,
+            isread integer DEFAULT 0
         )""")
         c.execute("""CREATE TABLE IF NOT EXISTS pending_update (
-            id integer primary key, callback text, type text, args text, kwargs text
+            id integer primary key,
+            callback text,
+            type text,
+            args text,
+            kwargs text
         )""")
         conn.commit()
         c.close()

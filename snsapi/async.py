@@ -22,6 +22,9 @@ class AsynchronousThreading(threading.Thread):
 
 
 class AsynchronousWithCallBack:
+    '''
+    Example of using this one?
+    '''
     def __init__(self, instance):
         self._p = instance
         for i in filter(lambda t: type(getattr(self._p, t)) == types.MethodType, dir(self._p)):
@@ -57,7 +60,7 @@ class AsyncDaemonWithCallBack:
             except Exception as e:
                 logger.warning("Error while executing callback %s" % (str(e)))
         if self.started:
-            for i in range(self.sleepsec):
+            for i in xrange(self.sleepsec):
                 time.sleep(1)
                 if not self.started:
                     break
