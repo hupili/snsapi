@@ -4,7 +4,7 @@
 Tencent Weibo Client
 '''
 
-from ..snslog import SNSLog as logger 
+from ..snslog import SNSLog as logger
 from ..snsbase import SNSBase, require_authed
 from .. import snstype
 from .. import utils
@@ -22,10 +22,10 @@ class TencentWeiboStatusMessage(snstype.Message):
         #      In SinaAPI, 'created_at' is a string
         #      In TecentWeibo, 'created_at' is an int
         #Proposal:
-        #      1. Store a copy of dct object in the Status object. 
-        #         Derived class of TecentWeibo or SinaAPI can extract 
-        #         other fields for future use. 
-        #      2. Defaultly convert every fields into unicode string. 
+        #      1. Store a copy of dct object in the Status object.
+        #         Derived class of TecentWeibo or SinaAPI can extract
+        #         other fields for future use.
+        #      2. Defaultly convert every fields into unicode string.
         #         Upper layer can tackle with a unified interface
 
         self.ID.reid = dct['id']
@@ -34,7 +34,7 @@ class TencentWeiboStatusMessage(snstype.Message):
         self.parsed.userid = dct['name']
         self.parsed.username = dct['nick']
 
-        # The 'origtext' field is plaintext. 
+        # The 'origtext' field is plaintext.
         # URLs in 'text' field is parsed to HTML tag
         self.parsed.reposts_count = dct['count']
         self.parsed.comments_count = dct['mcount']
@@ -81,16 +81,16 @@ class TencentWeiboStatus(SNSBase):
         c['app_secret'] = ''
         c['platform'] = 'TencentWeiboStatus'
         c['auth_info'] = {
-                "save_token_file": "(default)", 
-                "cmd_request_url": "(default)", 
-                "callback_url": "http://snsapi.sinaapp.com/auth.php", 
-                "cmd_fetch_code": "(default)" 
-                } 
+                "save_token_file": "(default)",
+                "cmd_request_url": "(default)",
+                "callback_url": "http://snsapi.sinaapp.com/auth.php",
+                "cmd_fetch_code": "(default)"
+                }
 
         return c
 
     def read_channel(self, channel):
-        super(TencentWeiboStatus, self).read_channel(channel) 
+        super(TencentWeiboStatus, self).read_channel(channel)
 
         if not "auth_url" in self.auth_info:
             self.auth_info.auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
@@ -100,7 +100,7 @@ class TencentWeiboStatus(SNSBase):
         # Tencent limit is a little more than 140.
         # We just use 140, which is a global industrial standard.
         self.jsonconf['text_length_limit'] = 140
-        
+
         #if not 'platform_prefix' in self.jsonconf:
         #    self.jsonconf['platform_prefix'] = u'腾讯'
 
@@ -116,7 +116,7 @@ class TencentWeiboStatus(SNSBase):
         except Exception, e:
             logger.warning("Auth second fail. Catch exception: %s", e)
             self.token = None
-        
+
     def _attach_authinfo(self, params):
         params['access_token'] = self.token.access_token
         params['openid'] = self.token.openid
@@ -125,6 +125,13 @@ class TencentWeiboStatus(SNSBase):
         params['scope'] = 'all'
         return params
 
+    def tencent_request(self, method, http_method="GET", files={}, **kwargs):
+        self._attach_authinfo(kwargs)
+        if http_method == "GET":
+            return self._http_get("https://open.t.qq.com/api/" + method, params=kwargs)
+        else:
+            return self._http_post("https://open.t.qq.com/api/" + method, params=kwargs, files=files)
+
     @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
@@ -132,14 +139,10 @@ class TencentWeiboStatus(SNSBase):
            * function : get statuses of yours and your friends'
            * parameter count: number of statuses
         '''
-        url = "https://open.t.qq.com/api/statuses/home_timeline"
-        params = {}
-        params['reqnum'] = count
-        self._attach_authinfo(params)
-        
-        jsonobj = self._http_get(url, params)
+
+        jsonobj = self.tencent_request("statuses/home_timeline", reqnum=count)
         #logger.debug("returned: %s", jsonobj)
-        
+
         statuslist = snstype.MessageList()
         try:
             for j in jsonobj['data']['info']:
@@ -151,9 +154,9 @@ class TencentWeiboStatus(SNSBase):
             logger.warning("Catch exception: %s", e)
             return []
         return statuslist
-    
+
     @require_authed
-    def update(self, text):
+    def update(self, text, pic=None):
         '''update a status
 
            * parameter text: the update message
@@ -162,33 +165,35 @@ class TencentWeiboStatus(SNSBase):
 
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
 
-        url = "https://open.t.qq.com/api/t/add"
-        params = {}
-        params["content"] = text
-        self._attach_authinfo(params)
-        
-        ret = self._http_post(url, params)
-        if(ret['msg'] == "ok"):
-            logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
-            return True
-        return ret
-        
+        if not pic:
+            method = "t/add"
+        else:
+            method = "t/add_pic"
+
+        try:
+            if pic:
+                ret = self.tencent_request(method, "POST", content=text, files={'pic': ('pic.jpg', pic)})
+            else:
+                ret = self.tencent_request(method, "POST", content=text)
+            if(ret['msg'] == "ok"):
+                logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
+                return True
+            else:
+                return ret
+        except Exception, e:
+            logger.warning("Catch Exception: %s", e)
+            return False
+
     @require_authed
     def reply(self, statusID, text):
         '''reply to a status
-        
+
            * parameter text: the comment text
            * return: success or not
         '''
-        url = "https://open.t.qq.com/api/t/reply"
-        params = {}
-        params["content"] = text
-        params["reid"] = statusID.reid
-        self._attach_authinfo(params)
-        
-        ret = self._http_post(url, params)
+        ret = self.tencent_request("t/reply", "POST", content=text, reid=statusID.reid)
         if(ret['msg'] == "ok"):
             return True
         logger.info("Reply '%s' to status '%s' fail: %s", text, self.jsonconf.channel_name, ret)
         return ret
-        
+

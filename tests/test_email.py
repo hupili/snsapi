@@ -8,13 +8,15 @@ __maintainer__ = 'hupili'
 __email__ = 'hpl1989@gmail.com'
 __status__ = 'development'
 
-from nose.tools import ok_
-from nose.tools import eq_
 from test_config import *
 from test_utils import *
+
+from snsapi import snstype
 from snsapi.plugin_trial.emails import Email
 
-class TestSNSBase(TestBase):
+sys.path = [DIR_TEST] + sys.path
+
+class TestEmail(TestBase):
 
     def setup(self):
         self.channel = Email(get_data('email-channel-conf.json.test'))
@@ -65,7 +67,7 @@ class TestSNSBase(TestBase):
 
     def test_email_home_timeline_not_authed(self):
         # All plugin public interfaces do not raise error.
-        # Return 'None' when the platform has not been authed. 
+        # Return 'None' when the platform has not been authed.
         eq_(self.channel.home_timeline(), None)
 
     def _timeline_with_malformed_email_raw_data(self, field, value):
@@ -74,11 +76,10 @@ class TestSNSBase(TestBase):
         self.channel._receive = lambda *al, **ad: [d]
         return self.channel.home_timeline(1)
 
-    def test_email_home_timeline_empty(self):
+    def test_email_home_timeline_malform(self):
         # All plugin public interfaces do not raise error.
-        # Return [] if no messages can be parsed. 
+        # Return [] if no messages can be parsed.
         self._fake_authed()
-        # Can not parse: return []
-        eq_(self._timeline_with_malformed_email_raw_data('Date', None), [])
         # Irrelevant field: normally return one Message
-        eq_(len(self._timeline_with_malformed_email_raw_data('_irrelevant', None)), 1)
+        ml = self._timeline_with_malformed_email_raw_data('_irrelevant', None)
+        eq_(len(ml), 1)

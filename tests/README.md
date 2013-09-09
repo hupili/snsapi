@@ -1,10 +1,9 @@
 Unit Test Suite of SNSAPI
 ====
 
-This is the Unit Test (UT) of SNSAPI. 
-
-To run the UT, you need `nose` package. 
-Then issue the command at the **CURRENT** directory of snsapi:
+To test SNSAPI, you need `nose` package. 
+Then issue the command **in this directory**: 
+(avoid running other files while appears like "tests" for nose)
 
 ```
 nosetests -sv

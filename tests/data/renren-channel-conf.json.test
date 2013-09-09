@@ -1,0 +1,16 @@
+{
+  "channel_name": "renren", 
+  "open": "yes", 
+  "platform": "RenrenStatus", 
+  "app_key": "YOUR APP KEY", 
+  "app_secret": "YOUR APP SECRET",
+  "user_id": "",
+  "user_name": "",
+  "auth_info":
+  {
+    "callback_url": "YOUR CALL BACK URL",
+    "cmd_fetch_code": "(console_input)",
+    "cmd_request_url": "(console_output)",
+    "save_token_file": "(default)"
+  }
+}

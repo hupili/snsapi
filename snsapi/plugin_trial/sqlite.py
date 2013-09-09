@@ -1,9 +1,9 @@
 #-*- encoding: utf-8 -*-
 
 '''
-sqlite 
+sqlite
 
-We use sqlite3 as the backend. 
+We use sqlite3 as the backend.
 '''
 
 from ..snslog import SNSLog
@@ -43,9 +43,9 @@ class SQLite(SNSBase):
         c['platform'] = 'SQLite'
         c['url'] = ''
         return c
-        
+
     def read_channel(self, channel):
-        super(SQLite, self).read_channel(channel) 
+        super(SQLite, self).read_channel(channel)
 
         if not 'username' in self.jsonconf:
             self.jsonconf['username'] = 'snsapi_sqlite_username'
@@ -54,38 +54,38 @@ class SQLite(SNSBase):
 
     def _create_schema(self):
         cur = self.con.cursor()
-       
+
         try:
             cur.execute("create table meta (time integer, path text)")
             cur.execute("insert into meta values (?,?)", (int(self.time()), self.jsonconf.url))
             self.con.commit()
         except sqlite3.OperationalError, e:
             if e.message == "table meta already exists":
-                return 
+                return
             else:
                 raise e
 
         cur.execute("""
         CREATE TABLE message (
-        id INTEGER PRIMARY KEY, 
-        time INTEGER, 
+        id INTEGER PRIMARY KEY,
+        time INTEGER,
         text TEXT,
-        userid TEXT, 
-        username TEXT, 
-        mid TEXT, 
-        digest TEXT, 
-        digest_parsed TEXT, 
+        userid TEXT,
+        username TEXT,
+        mid TEXT,
+        digest TEXT,
+        digest_parsed TEXT,
         digest_full TEXT,
-        parsed TEXT, 
-        full TEXT 
+        parsed TEXT,
+        full TEXT
         )
         """)
         self.con.commit()
 
     def _connect(self):
         '''
-        Connect to SQLite3 database and create cursor. 
-        Also initialize the schema if necessary. 
+        Connect to SQLite3 database and create cursor.
+        Also initialize the schema if necessary.
 
         '''
         url = self.jsonconf.url
@@ -95,12 +95,12 @@ class SQLite(SNSBase):
 
     def auth(self):
         '''
-        SQLite3 do not need auth. 
+        SQLite3 do not need auth.
 
         We define the "auth" procedure to be:
 
            * Close previously connected database.
-           * Reconnect database using current config. 
+           * Reconnect database using current config.
 
         '''
         logger.info("SQLite3 channel do not need auth. Try connecting to DB...")
@@ -108,7 +108,7 @@ class SQLite(SNSBase):
             self.con.close()
             self.con = None
         self._connect()
-        
+
     def auth_first(self):
         logger.info("%s platform do not need auth_first!", self.platform)
 
@@ -121,7 +121,7 @@ class SQLite(SNSBase):
         try:
             cur = self.con.cursor()
             r = cur.execute('''
-            SELECT time,userid,username,text FROM message  
+            SELECT time,userid,username,text FROM message
             ORDER BY time DESC LIMIT ?
             ''', (count,))
             for m in r:
@@ -187,5 +187,5 @@ class SQLite(SNSBase):
             return False
 
     def expire_after(self, token = None):
-        # This platform does not have token expire issue. 
+        # This platform does not have token expire issue.
         return -1

@@ -1,0 +1,8 @@
+from snslog import SNSLog
+def set_custom_conf(conf):
+    conf.SNSAPI_LOG_INIT_LEVEL = SNSLog.DEBUG
+    conf.SNSAPI_LOG_INIT_VERBOSE = True
+    #conf.SNSAPI_LOG_INIT_LOGFILE = './snsapi.log'
+    # See also the followings for more config options:
+    #    * snsconf.SNSConf
+    #    * https://snsapi.readthedocs.org/en/latest/snsapi.html#snsapi.snsconf.SNSConf

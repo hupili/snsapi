@@ -1,9 +1,9 @@
 #-*-coding:utf-8-*-
 
 """
-Nosetest configs 
+Nosetest configs
 
-The layout of nosetest is learned from: 
+The layout of nosetest is learned from:
    wong2/xiaohuangji-new
 """
 
@@ -11,13 +11,16 @@ import os
 import glob
 import sys
 import json
+import shutil
 
 DIR_TEST = os.path.abspath(os.path.dirname(__file__))
+DIR_TMP = os.path.join(DIR_TEST, "tmp")
 DIR_TEST_DATA = os.path.join(DIR_TEST, "data")
 DIR_ROOT = os.path.dirname(DIR_TEST)
 DIR_CONF = os.path.join(DIR_ROOT, "conf")
 DIR_SNSAPI = os.path.join(DIR_ROOT, "snsapi")
 DIR_PLUGIN = os.path.join(DIR_SNSAPI, "plugin")
+sys.path.append(DIR_ROOT)
 
 sys.path = [DIR_TEST, DIR_ROOT] + sys.path
 
@@ -38,6 +41,9 @@ class TestBase(object):
     @classmethod
     def setup_class(klass):
         sys.stderr.write("\nRunning %s\n" % klass)
+        if not os.path.isdir(DIR_TMP):
+            print "makedirs"
+            os.makedirs(DIR_TMP)
 
     @classmethod
     def teardown_class(klass):
@@ -45,15 +51,16 @@ class TestBase(object):
         klass.clean_up(DIR_SNSAPI, "*.py?")
         klass.clean_up(DIR_PLUGIN, "*.py?")
         klass.clean_up(DIR_ROOT, "*.py?")
+        shutil.rmtree(DIR_TMP)
 
 # ===== old funcs from testUtils.py ======
-    
+
 def get_config_paths():
     '''
-    How to get the path of config.json in test directory, Use this. 
+    How to get the path of config.json in test directory, Use this.
     '''
     paths = {
-            'channel': os.path.join(DIR_CONF, 'channel.json'), 
+            'channel': os.path.join(DIR_CONF, 'channel.json'),
             'snsapi': os.path.join(DIR_CONF, 'snsapi.json')
             }
     return paths
@@ -62,11 +69,11 @@ def get_channel(platform):
     paths = get_config_paths()
     with open(paths['channel']) as fp:
         channel = json.load(fp)
-        
+
     for site in channel:
         if site['platform'] == platform:
             return site
-        
+
     raise TestInitNoSuchPlatform(platform)
 
 def clean_saved_token():
@@ -88,7 +95,7 @@ class TestInitNoSuchPlatform(TestInitError):
         if self.platform is not None:
             print "Test init error -- No such platform : %s. " \
             "Please check your channel.json config. " % self.platform
-        
+
 if __name__ == '__main__':
     print DIR_TEST
     print DIR_ROOT
