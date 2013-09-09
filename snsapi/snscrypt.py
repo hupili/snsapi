@@ -14,7 +14,7 @@ class SNSCrypto(object):
 
     def __init_crypt(self):
         """
-        Init the crypto utility which will be called by 
+        Init the crypto utility which will be called by
         __encrypt and __decrypt.
 
         """
@@ -24,39 +24,39 @@ class SNSCrypto(object):
 
     def __encrypt(self, string):
         """
-        The delegate for encrypt utility. 
+        The delegate for encrypt utility.
         e.g. You can change the following use of pyDes
-        to openssl if you have it. We use pyDes for by 
+        to openssl if you have it. We use pyDes for by
         Default because we don't want o bother the user
-        to install other softwares. 
+        to install other softwares.
 
         See also, __init_crypt, __encrypt, __decrypt
-        
+
         """
         return self.crypt.encrypt(string)
 
     def __decrypt(self, string):
         """
-        The delegate for decrypt utility. 
+        The delegate for decrypt utility.
 
         See also, __init_crypt, __encrypt, __decrypt
-        
+
         """
         return self.crypt.decrypt(string)
 
-        
+
     def encrypt(self, string):
         """
         INPUT: any string
         OUTPUT: hexadecimal string of encrypt output
 
-        The input string will first be encoded by BASE-64. 
+        The input string will first be encoded by BASE-64.
         This is to make sure the intermediate value is a
-        printable string. It will be easier to change 
-        pyDes to other crypto utilities. After actual 
-        encryption delegated to other modules, the final 
-        output is also base64 encrypted, this makes it 
-        printable. 
+        printable string. It will be easier to change
+        pyDes to other crypto utilities. After actual
+        encryption delegated to other modules, the final
+        output is also base64 encrypted, this makes it
+        printable.
 
         """
         tmp1 = base64.encodestring(string)
@@ -70,7 +70,7 @@ class SNSCrypto(object):
         OUTPUT: any string
 
         Reverse process of decrypt
-        
+
         """
         tmp1 = base64.decodestring(string)
         tmp2 = self.__decrypt(tmp1)

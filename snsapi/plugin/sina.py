@@ -10,14 +10,11 @@ if __name__ == '__main__':
     from snslog import SNSLog as logger
     from snsbase import SNSBase, require_authed
     import snstype
-    from utils import console_output
     import utils
 else:
-    import sys
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
-    from ..utils import console_output
     from .. import utils
 
 logger.debug("%s plugged!", __file__)
@@ -35,16 +32,16 @@ class SinaWeiboBase(SNSBase):
         c['app_secret'] = ''
         c['platform'] = 'SinaWeiboStatus'
         c['auth_info'] = {
-                "save_token_file": "(default)", 
-                "cmd_request_url": "(default)", 
-                "callback_url": "http://snsapi.sinaapp.com/auth.php", 
-                "cmd_fetch_code": "(default)" 
-                } 
+                "save_token_file": "(default)",
+                "cmd_request_url": "(default)",
+                "callback_url": "http://snsapi.sinaapp.com/auth.php",
+                "cmd_fetch_code": "(default)"
+                }
 
         return c
 
     def read_channel(self, channel):
-        super(SinaWeiboBase, self).read_channel(channel) 
+        super(SinaWeiboBase, self).read_channel(channel)
 
         if not "auth_url" in self.auth_info:
             self.auth_info.auth_url = "https://api.weibo.com/oauth2/"
@@ -54,13 +51,13 @@ class SinaWeiboBase(SNSBase):
         # According to our test, it is 142 unicode character
         # We also use 140 by convention
         self.jsonconf['text_length_limit'] = 140
-        
+
         #if not 'platform_prefix' in self.jsonconf:
         #    self.jsonconf['platform_prefix'] = u'新浪'
 
     def need_auth(self):
         return True
-        
+
     def auth_first(self):
         self._oauth2_first()
 
@@ -95,30 +92,20 @@ class SinaWeiboBase(SNSBase):
                        "Referer": referer_url
             }
 
-            #TODO:
-            #    Unify all the urllib, urllib2 invocation to snsbase
-            import urllib2
-            import urllib
             auth_url = "https://api.weibo.com/oauth2/authorize"
             #auth_url = self.auth_info.auth_url
-            req = urllib2.Request(url = auth_url,
-                                  data = urllib.urlencode(postdata),
-                                  headers = headers
-            )
-            
-            resp = urllib2.urlopen(req)
-            resp_url = resp.geturl()
+            resp_url = self._http_post(auth_url, data=postdata, headers=headers, json_parse=False).url
             logger.debug("response URL from local post: %s", resp_url)
             return resp_url
         except Exception, e:
             logger.warning("Catch exception: %s", e)
-        
-    @require_authed
-    def weibo_request(self, name, method, params):
-        '''
-        General request method for Weibo V2 Api via OAuth. 
 
-        :param name: 
+    @require_authed
+    def weibo_request(self, name, method, params, files={}):
+        '''
+        General request method for Weibo V2 Api via OAuth.
+
+        :param name:
             The Api name shown on main page
             (http://open.weibo.com/wiki/API%E6%96%87%E6%A1%A3_V2).
             e.g. ``friendships/create`` (no "2/" prefix)
@@ -127,8 +114,8 @@ class SinaWeiboBase(SNSBase):
             HTTP request method: 'GET' or 'POST'
 
         :param params:
-            Parameters from Api doc. 
-            No need to manually put ``access_token`` in. 
+            Parameters from Api doc.
+            No need to manually put ``access_token`` in.
 
         :return:
             The http response from SinaWeibo (a JSON compatible structure).
@@ -144,13 +131,16 @@ class SinaWeiboBase(SNSBase):
                 'GET': self._http_get,
                 'POST': self._http_post
                 }
-        return http_request_funcs[method](full_url, params)
+        if files:
+            return http_request_funcs[method](full_url, params, files=files)
+        else:
+            return http_request_funcs[method](full_url, params)
 
     @require_authed
     def _short_url_weibo(self, url):
         try:
-            results = self.weibo_request('short_url/shorten', 
-                    'GET', 
+            results = self.weibo_request('short_url/shorten',
+                    'GET',
                     {'url_long': url})
             logger.debug("URL shortening response: %s", results)
             u = results["urls"][0]
@@ -170,9 +160,9 @@ class SinaWeiboBase(SNSBase):
         import re
         #TODO:
         #    1) This regex needs upgrade.
-        #       Is it better to match only http(s):// prefix? 
+        #       Is it better to match only http(s):// prefix?
         #    2) A better place to locate the pattern is the upper level dir,
-        #       e.g. snstype.py. URL matching pattern is universal for all 
+        #       e.g. snstype.py. URL matching pattern is universal for all
         #       platforms. Placing it at a common area and making the pattern
         #       testable is favourable.
         p = re.compile("[a-zA-z]+://[^\s]*")
@@ -201,7 +191,7 @@ class SinaWeiboStatusMessage(snstype.Message):
             self.parsed.userid = "unknown"
             self.parsed.text = "unknown"
             self.deleted = True
-            return 
+            return
 
         self.ID.id = dct["id"]
 
@@ -210,9 +200,26 @@ class SinaWeiboStatusMessage(snstype.Message):
         self.parsed.userid = dct['user']['id']
         self.parsed.reposts_count = dct['reposts_count']
         self.parsed.comments_count = dct['comments_count']
-        
+        if 'pic_urls' in dct:
+            for pic in dct['pic_urls']:
+                self.parsed.attachments.append(
+                {
+                    'type': 'picture',
+                    'format': ['link'],
+                    'data': pic['thumbnail_pic'].replace('/thumbnail/', '/woriginal/')
+                })
+
         if 'retweeted_status' in dct:
             self.parsed.username_orig = "unknown"
+            if 'pic_urls' in dct['retweeted_status']:
+                for pic in dct['retweeted_status']['pic_urls']:
+                    self.parsed.attachments.append(
+                        {
+                            'type': 'picture',
+                            'format': ['link'],
+                            'data': pic['thumbnail_pic'].replace('/thumbnail/', '/woriginal/')
+                        })
+
             try:
                 self.parsed.username_orig = dct['retweeted_status']['user']['name']
             except KeyError:
@@ -220,30 +227,30 @@ class SinaWeiboStatusMessage(snstype.Message):
             self.parsed.text_orig = dct['retweeted_status']['text']
             self.parsed.text_trace = dct['text']
             self.parsed.text = self.parsed.text_trace \
-                    + " || " + "@" + self.parsed.username_orig \
-                    + " : " + self.parsed.text_orig
+                    + "//@" + self.parsed.username_orig \
+                    + ": " + self.parsed.text_orig
         else:
-            self.parsed.text_orig = dct['text'] 
+            self.parsed.text_orig = dct['text']
             self.parsed.text_trace = None
             self.parsed.text = self.parsed.text_orig
 
 class SinaWeiboStatus(SinaWeiboBase):
-    
+
     Message = SinaWeiboStatusMessage
 
     def __init__(self, channel = None):
         super(SinaWeiboStatus, self).__init__(channel)
-        
+
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
-        
+
     @require_authed
     def home_timeline(self, count=20):
         '''Get home timeline
 
         :param count: number of statuses
         '''
-        
+
         statuslist = snstype.MessageList()
         try:
             jsonobj = self.weibo_request('statuses/home_timeline',
@@ -264,29 +271,37 @@ class SinaWeiboStatus(SinaWeiboBase):
         return statuslist
 
     @require_authed
-    def update(self, text):
+    def update(self, text, pic=None):
         '''update a status
 
            * parameter text: the update message
            * return: success or not
         '''
         # NOTE:
-        #     * With this pre-shortening, we can post potentially longer messages. 
-        #     * It consumes one more API quota. 
+        #     * With this pre-shortening, we can post potentially longer messages.
+        #     * It consumes one more API quota.
         text = self._replace_with_short_url(text)
         text = self._cat(self.jsonconf['text_length_limit'], [(text,1)], delim='//')
 
         try:
-            ret = self.weibo_request('statuses/update',
+            if not pic:
+                ret = self.weibo_request('statuses/update',
+                        'POST',
+                        {'status': text})
+            else:
+                ret = self.weibo_request(
+                    'statuses/upload',
                     'POST',
-                    {'status': text})
-            status = self.Message(ret)
+                    {'status': text},
+                    files={'pic': ('pic.jpg', pic)}
+                )
+            self.Message(ret)
             logger.info("Update status '%s' on '%s' succeed", text, self.jsonconf.channel_name)
             return True
         except Exception as e:
             logger.warning("Update status fail. Message: %s", e)
             return False
-        
+
     @require_authed
     def reply(self, statusID, text):
         '''reply to a status
@@ -307,18 +322,18 @@ class SinaWeiboStatus(SinaWeiboBase):
     @require_authed
     def forward(self, message, text):
         '''
-        Forward a status on SinaWeibo: 
+        Forward a status on SinaWeibo:
 
-           * If message is from the same platform, forward it 
-             using special interface. 
+           * If message is from the same platform, forward it
+             using special interface.
            * Else, route the request
              to a general forward method of ``SNSBase``.
            * Decorate the text with previous comment sequence.
 
-        :param message: 
+        :param message:
             An ``snstype.Message`` object to forward
 
-        :param text: 
+        :param text:
             Append comment text
 
         :return: Success or not
@@ -331,8 +346,8 @@ class SinaWeiboStatus(SinaWeiboBase):
             if not message.parsed['text_trace'] is None:
                 #origin_sequence = u'@' + m.raw['user']['name'] + u'：' + m.raw['text'])
                 origin_sequence = u'@' + message.parsed['username'] + u'：' + message.parsed['text_trace']
-                decorated_text = self._cat(self.jsonconf['text_length_limit'], 
-                        [(text,2), (origin_sequence, 1)], 
+                decorated_text = self._cat(self.jsonconf['text_length_limit'],
+                        [(text,2), (origin_sequence, 1)],
                         delim='//')
             else:
                 decorated_text = text
@@ -357,7 +372,7 @@ class SinaWeiboStatus(SinaWeiboBase):
                         self.jsonconf.channel_name, mID, text, ret)
                 return False
         except Exception as e:
-            logger.warning("'%s' forward status '%s' with comment '%s' fail: %s", 
+            logger.warning("'%s' forward status '%s' with comment '%s' fail: %s",
                     self.jsonconf.channel_name, mID, text, e)
             return False
 
