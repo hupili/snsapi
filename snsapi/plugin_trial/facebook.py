@@ -1,13 +1,11 @@
 #-*- encoding: utf-8 -*-
 
-import json
-import urllib2
 import time
+import re
 from ..snslog import SNSLog
 logger = SNSLog
 from ..snsbase import SNSBase, require_authed
 from .. import snstype
-from ..utils import console_output
 from .. import utils
 
 from ..third import facebook
@@ -26,14 +24,32 @@ class FacebookFeedMessage(snstype.Message):
         self.parsed.time = utils.str2utc(dct['created_time'])
         self.parsed.username = dct['from']['name']
         self.parsed.userid = dct['from']['id']
+        self.parsed.attachments = []
         resmsg = []
         logger.debug('%s', str(dct))
         if 'message' in dct:
             resmsg.append(dct['message'])
         if 'story' in dct:
             resmsg.append(dct['story'])
-        if 'picture' in dct:
-            resmsg.append(dct['picture'])
+        if dct['type'] == 'photo':
+            self.parsed.attachments.append({
+                'type': 'picture',
+                'format': ['link'],
+                #NOTE: replace _s to _n will get the original picture
+                'data': re.sub(r'_[a-z](\.[^.]*)$', r'_n\1', dct['picture'])
+            })
+        if dct['type'] == 'video':
+            self.parsed.attachments.append({
+                'type': 'video',
+                'format': ['link'],
+                'data': dct['link']
+            })
+        if dct['type'] == 'link':
+            self.parsed.attachments.append({
+                'type': 'link',
+                'format': ['link'],
+                'data': dct['link']
+            })
         self.parsed.text = '\n'.join(resmsg)
 
 
@@ -74,8 +90,6 @@ class FacebookFeed(SNSBase):
                 "&redirect_uri=" + \
                 self.auth_info['callback_url'] + \
                 "&response_type=token&scope=read_stream,publish_stream"
-        #console_output("Please open " + url + '\n')
-        #console_output("Please input token: ")
         self.request_url(url)
 
     def auth_second(self):
@@ -108,7 +122,6 @@ class FacebookFeed(SNSBase):
 
 
     def auth(self):
-        #FIXME: This is not a real authentication, just refresh token, and save
         if self.get_saved_token():
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             return True
@@ -126,15 +139,15 @@ class FacebookFeed(SNSBase):
     @require_authed
     def home_timeline(self, count=20):
         status_list = snstype.MessageList()
-        try:
-            statuses = self.graph.get_connections("me", "home", limit=count)
-            for s in statuses['data']:
+        statuses = self.graph.get_connections("me", "home", limit=count)
+        for s in statuses['data']:
+            try:
                 status_list.append(self.Message(s,\
                         self.jsonconf['platform'],\
                         self.jsonconf['channel_name']))
-        except Exception, e:
-            logger.warning("Catch expection: %s", e)
-        logger.info("FB '%s' read '%d' statuses", self.jsonconf.channel_name, len(status_list))
+            except Exception, e:
+                logger.warning("Catch expection: %s", e)
+        logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
         return status_list
 
     @require_authed

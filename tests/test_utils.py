@@ -1,10 +1,15 @@
 #-*-coding:utf-8-*-
 
 """
-Nosetest configs 
+Test utils
+
+   * Original nose tools
+     https://nose.readthedocs.org/en/latest/testing_tools.html
+   * We provide other shortcuts in this module.
+   * Other test_xxx.py should use this module as the entry to tools.
 """
 
-from nose.tools import ok_
+from nose.tools import ok_, eq_, raises
 from test_config import NO_SUCH_KEY_ERROR_TEMPLATE
 from test_config import DIR_TEST_DATA
 from test_config import WRONG_RESULT_ERROR
@@ -14,9 +19,9 @@ import os.path
 def in_(k, dct):
     '''
     Helper function to assert a key is in a dict. The naming
-    is following nose's format. 
+    is following nose's format.
 
-    :param k: Key 
+    :param k: Key
     :type k: str
     :param dct: Dict
     :type dct: dict

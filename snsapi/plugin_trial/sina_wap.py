@@ -9,26 +9,21 @@ if __name__ == '__main__':
     import urllib2
     import urllib
     import re
-    import lxml.html
+    import lxml.html, lxml.etree
     import time
     sys.path.append('..')
     from snslog import SNSLog as logger
     from snsbase import SNSBase, require_authed
     import snstype
-    from utils import console_output
-    import utils
 else:
-    import sys
     import urllib2
     import urllib
     import re
-    import lxml.html
+    import lxml.html, lxml.etree
     import time
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
-    from ..utils import console_output
-    from .. import utils
 
 
 logger.debug("%s plugged!", __file__)
@@ -48,6 +43,24 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         if u'分钟前' in self.parsed.time:
             self.parsed.time = time.time() - 60 * \
                     int(self.parsed.time[0:self.parsed.time.find(u'分钟前')])
+            pp = time.localtime(self.parsed.time)
+            # FIXME:
+            # approximate time aligned to minute
+            # if your request is at different minute from
+            # the server's response. You might get ONE minute's
+            # difference.
+            if pp.tm_sec > 0:
+                self.parsed.time = 60 + \
+                        time.mktime((
+                            pp.tm_year,
+                            pp.tm_mon,
+                            pp.tm_mday,
+                            pp.tm_hour,
+                            pp.tm_min,
+                            0,
+                            pp.tm_wday,
+                            pp.tm_yday,
+                            pp.tm_isdst))
         elif u'今天' in self.parsed.time:
             minute, second = map(int, re.search('([0-9]*):([0-9]*)', self.parsed.time).groups())
             today = time.gmtime(time.time() + 28800)
@@ -83,6 +96,12 @@ class SinaWeiboWapStatusMessage(snstype.Message):
         else:
             self.parsed.has_orig = False
         self.ID.id = dct['id']
+        if 'attachment_img' in dct:
+            self.parsed.attachments.append({
+                'type': 'picture',
+                'format': ['link'],
+                'data': dct['attachment_img']
+                })
 
 
 class SinaWeiboWapStatus(SNSBase):
@@ -221,47 +240,53 @@ class SinaWeiboWapStatus(SNSBase):
         h = lxml.html.fromstring(m)
         weibos = []
         for i in h.find_class('c'):
-            if i.get('id') and i.get('id')[0:2] == 'M_':
-                weibo = None
-                if i.find_class('cmt'): # 转发微博
-                    weibo = {
-                            'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
-                            'author' : i.find_class('nk')[0].text,
-                            'id': i.get('id')[2:],
-                            'time': i.find_class('ct')[0].text.encode('utf-8').strip(' ').split(' ')[0].decode('utf-8'),
-                            'text' : None,
-                            'orig' : {
-                                'text': i.find_class('ctt')[0].text_content(),
-                                'author': re.search(u'转发了\xa0(.*)\xa0的微博', i.find_class('cmt')[0].text_content()).group(1),
+            try:
+                if i.get('id') and i.get('id')[0:2] == 'M_':
+                    weibo = None
+                    if i.find_class('cmt'): # 转发微博
+                        weibo = {
+                                'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
+                                'author' : i.find_class('nk')[0].text,
+                                'id': i.get('id')[2:],
+                                'time': i.find_class('ct')[0].text.encode('utf-8').strip(' ').split(' ')[0].decode('utf-8'),
+                                'text' : None,
+                                'orig' : {
+                                    'text': unicode(i.find_class('ctt')[0].text_content()),
+                                    'author': re.search(u'转发了\xa0(.*)\xa0的微博', i.find_class('cmt')[0].text_content()).group(1),
+                                    'comments_count' : 0,
+                                    'reposts_count' : 0
+                                    },
                                 'comments_count' : 0,
                                 'reposts_count' : 0
-                                },
-                            'comments_count' : 0,
-                            'reposts_count' : 0
-                            }
-                    parent = i.find_class('cmt')[-1].getparent()
-                    retweet_reason = re.sub(r'转发理由:(.*)赞\[[0-9]*\] 转发\[[0-9]*\] 评论\[[0-9]*\] 收藏.*$', r'\1', parent.text_content().encode('utf-8'))
-                    weibo['text'] = retweet_reason.decode('utf-8')
-                    zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', parent.text_content().encode('utf-8'))
-                    if zf:
-                        weibo['comments_count'] = int(zf.group(3))
-                        weibo['reposts_count'] = int(zf.group(2))
-                    zf = re.search(r'赞\[([0-9]*)\] 原文转发\[([0-9]*)\] 原文评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
-                    if zf:
-                        weibo['orig']['comments_count'] = int(zf.group(3))
-                        weibo['orig']['reposts_count'] = int(zf.group(2))
-                else:
-                    weibo = {'author' : i.find_class('nk')[0].text,
-                            'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
-                             'text': i.find_class('ctt')[0].text_content()[1:],
-                            'id': i.get('id')[2:],
-                            'time': i.find_class('ct')[0].text.encode('utf-8').strip(' ').split(' ')[0].decode('utf-8')
-                            }
-                    zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
-                    if zf:
-                        weibo['comments_count'] = int(zf.group(3))
-                        weibo['reposts_count'] = int(zf.group(2))
-                weibos.append(weibo)
+                                }
+                        parent = i.find_class('cmt')[-1].getparent()
+                        retweet_reason = re.sub(r'转发理由:(.*)赞\[[0-9]*\] 转发\[[0-9]*\] 评论\[[0-9]*\] 收藏.*$', r'\1', parent.text_content().encode('utf-8'))
+                        weibo['text'] = retweet_reason.decode('utf-8')
+                        zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', parent.text_content().encode('utf-8'))
+                        if zf:
+                            weibo['comments_count'] = int(zf.group(3))
+                            weibo['reposts_count'] = int(zf.group(2))
+                        zf = re.search(r'赞\[([0-9]*)\] 原文转发\[([0-9]*)\] 原文评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
+                        if zf:
+                            weibo['orig']['comments_count'] = int(zf.group(3))
+                            weibo['orig']['reposts_count'] = int(zf.group(2))
+                    else:
+                        weibo = {'author' : i.find_class('nk')[0].text,
+                                'uid' : self._get_uid_by_pageurl(i.find_class('nk')[0].attrib['href'], self.jsonconf['uidtype']),
+                                'text': i.find_class('ctt')[0].text_content()[1:],
+                                'id': i.get('id')[2:],
+                                'time': i.find_class('ct')[0].text.encode('utf-8').strip(' ').split(' ')[0].decode('utf-8')
+                                }
+                        zf = re.search(r'赞\[([0-9]*)\] 转发\[([0-9]*)\] 评论\[([0-9]*)\]', i.text_content().encode('utf-8'))
+                        if zf:
+                            weibo['comments_count'] = int(zf.group(3))
+                            weibo['reposts_count'] = int(zf.group(2))
+                    if i.find_class('ib'):
+                        #FIXME: Still not able to process a collections of pictures
+                        weibo['attachment_img'] = i.find_class('ib')[0].get('src').replace('wap128', 'woriginal')
+                    weibos.append(weibo)
+            except Exception, e:
+                logger.warning("Catch exception: %s" % (str(e)))
         statuslist = snstype.MessageList()
         for i in weibos:
             statuslist.append(self.Message(i, platform = self.jsonconf['platform'],

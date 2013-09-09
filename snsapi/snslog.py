@@ -8,21 +8,21 @@ import logging
 import inspect
 import os.path
 
-#Test piece. 
+#Test piece.
 #This lambda expression does not "inline" into
-#the caller file. The filename and funcname 
+#the caller file. The filename and funcname
 #reported in log is still in 'snslog.py'
 #mylog = lambda *x: logging.info(*x)
 
 class SNSLog(object):
     """
-    Provide the unified entry to write logs 
-    
-    The current backend is Python's logging module. 
+    Provide the unified entry to write logs
+
+    The current backend is Python's logging module.
     """
 
     #Static variables
-    DEBUG = logging.DEBUG 
+    DEBUG = logging.DEBUG
     INFO = logging.INFO
     WARNING = logging.WARNING
     ERROR = logging.ERROR
@@ -37,19 +37,19 @@ class SNSLog(object):
     @staticmethod
     def init(logfile = None, level = WARNING, verbose = True):
         """
-        Init the log basic configurations. It should 
-        be called only once over the entire execution. 
-        
-        If you invoke it for multiple times, only the 
-        first one effects. This is the behaviour of 
-        logging module. 
-        
+        Init the log basic configurations. It should
+        be called only once over the entire execution.
+
+        If you invoke it for multiple times, only the
+        first one effects. This is the behaviour of
+        logging module.
+
         """
 
         # Debug information writes to log using SNSLog.debug().
-        # How do you debug the logger itself...? 
-        # Here it is... 
-        # We fall back to the print. 
+        # How do you debug the logger itself...?
+        # Here it is...
+        # We fall back to the print.
         # They should be comment out to make the screen clean.
         #print "=== init log ==="
         #print "logfile:%s" % logfile
@@ -101,7 +101,7 @@ class SNSLog(object):
     @staticmethod
     def error(fmt, *args):
         logging.error(SNSLog.__env_info() + fmt, *args)
-        
+
     @staticmethod
     def critical(fmt, *args):
         logging.critical(SNSLog.__env_info() + fmt, *args)
@@ -114,7 +114,7 @@ class SNSLogNoInstantiation(Exception):
     def __str__(self):
         return "You can not instantiate SNSLog. "\
                 "Call its static methods directly!"
-       
+
 
 if __name__ == '__main__':
     #SNSLog.init(level = SNSLog.DEBUG, verbose = False)

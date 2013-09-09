@@ -1,10 +1,15 @@
 #-*- encoding: utf-8 -*-
+import inspect
+import os
+import glob
+import snsapi.snsbase
 
-from tencent import TencentWeiboStatus
-from sina import SinaWeiboStatus
-from renren import RenrenStatus
-from renren import RenrenShare
-from renren import RenrenBlog
-from rss import RSS
-from rss import RSS2RW
-from rss import RSSSummary
+
+fpath = os.path.abspath(__file__)
+for i in glob.glob(os.path.dirname(fpath) + "/*.py"):
+    if i[-11:] == "__init__.py":
+        continue
+    ss = __import__(__name__ + '.' + i[:-3].split('/')[-1], fromlist=["*"])
+    for i in dir(ss):
+        if inspect.isclass(getattr(ss, i)) and issubclass(getattr(ss, i), snsapi.snsbase.SNSBase) and getattr(ss, i) != snsapi.snsbase.SNSBase:
+            globals()[i] = getattr(ss, i)

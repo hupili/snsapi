@@ -8,8 +8,6 @@ __maintainer__ = 'hupili'
 __email__ = 'hpl1989@gmail.com'
 __status__ = 'development'
 
-from nose.tools import ok_
-from nose.tools import eq_
 from test_config import *
 from test_utils import *
 
@@ -69,7 +67,7 @@ class TestEmail(TestBase):
 
     def test_email_home_timeline_not_authed(self):
         # All plugin public interfaces do not raise error.
-        # Return 'None' when the platform has not been authed. 
+        # Return 'None' when the platform has not been authed.
         eq_(self.channel.home_timeline(), None)
 
     def _timeline_with_malformed_email_raw_data(self, field, value):
@@ -80,7 +78,7 @@ class TestEmail(TestBase):
 
     def test_email_home_timeline_malform(self):
         # All plugin public interfaces do not raise error.
-        # Return [] if no messages can be parsed. 
+        # Return [] if no messages can be parsed.
         self._fake_authed()
         # Irrelevant field: normally return one Message
         ml = self._timeline_with_malformed_email_raw_data('_irrelevant', None)

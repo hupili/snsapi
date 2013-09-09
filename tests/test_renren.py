@@ -8,11 +8,9 @@ __maintainer__ = 'hupili'
 __email__ = 'hpl1989@gmail.com'
 __status__ = 'development'
 
-from nose.tools import ok_
-from nose.tools import eq_
 from test_config import *
 from test_utils import *
-from snsapi.plugin import renren
+from snsapi.plugin_trial import renren
 
 sys.path = [DIR_TEST] + sys.path
 
@@ -45,7 +43,7 @@ class TestRenrenStatus(TestBase):
 
     def test_renren_home_timeline_abnormal(self):
         # feed type=10 should not return this data structure.
-        # There was no such structure when we initiated snsapi. 
+        # There was no such structure when we initiated snsapi.
         # The bug was found on June 22, 2013.
         # 'renren-feed-status-2.json.test' contains such a case.
         # We have to make the message parse more robust.
@@ -53,7 +51,15 @@ class TestRenrenStatus(TestBase):
         self._fake_http_json_api_response(get_data('renren-feed-status-2.json.test'))
         ht = self.channel.home_timeline()
         eq_(len(ht), 1)
-        eq_(ht[0].parsed['text'], 'message')
+        eq_(ht[0].parsed['text'], 'message "title" ')
         eq_(ht[0].parsed['username'], 'user5')
         eq_(ht[0].parsed['userid'], '6666')
+
+    def renren_request_return_api_error(self, **kwargs):
+        raise renren.RenrenAPIError(9999999, 'this is a fake error')
+
+    def test_renren_status_update(self):
+        self._fake_authed()
+        self.channel.renren_request = self.renren_request_return_api_error
+        eq_(self.channel.update('test status'), False)
 

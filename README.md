@@ -175,7 +175,7 @@ Please join us!
    or send pull request to [website repo](https://github.com/hupili/snsapi-website) directly.
    * [SNSApi Website (CN)](http://snsapi.sinaapp.com/):
    maintained by [@xuanqinanhai](https://github.com/xuanqinanhai).
-   * [SNSApi doc](http://snsapi.ie.cuhk.edu.hk/doc/):
+   * [SNSApi doc](https://snsapi.readthedocs.org/en/latest/):
    automatically generated from code using Sphinx;
    also available as inline doc using `help(XXX)` from Python shell.
    * [SNSApi Github Wiki](https://github.com/hupili/snsapi/wiki):
@@ -199,3 +199,9 @@ except for the followings:
 ## Other
 
    * Old version of this readme [in Chinese](https://github.com/hupili/snsapi/blob/master/doc/snsapi-old-readme-cn.md)
+
+## Build Status
+
+   * master: ![master](https://travis-ci.org/hupili/snsapi.png?branch=master)
+   * dev: ![dev](https://travis-ci.org/hupili/snsapi.png?branch=dev)
+

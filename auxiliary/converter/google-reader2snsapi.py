@@ -4,7 +4,7 @@
 # You can download your subscription data from Google Takeout:
 #
 #    * https://www.google.com/takeout
-# 
+#
 
 from lxml import etree
 import json
@@ -18,10 +18,10 @@ def gr2snsapi(gr_str):
         if e.get('type', None):
             ret.append({
                 'platform': 'RSS',
-                'open': 'yes', 
+                'open': 'yes',
                 'url': e.get('xmlUrl'),
-                'channel_name': 'ch%d. %s' % (num, e.get('title')), 
-                '__other__info': { 
+                'channel_name': 'ch%d. %s' % (num, e.get('title')),
+                '__other__info': {
                     'html_url': e.get('htmlUrl'),
                     'text': e.get('text')
                     }
@@ -39,10 +39,10 @@ if __name__ == '__main__':
     import argparse
     import sys
     parser = argparse.ArgumentParser(description="Convert Google Reader subscription.xml to SNSAPI's channel.json")
-    parser.add_argument('-i', metavar='INPUT', type=str, 
+    parser.add_argument('-i', metavar='INPUT', type=str,
             help='filename of input (e.g. subscription.xml)',
             default=sys.stdin)
-    parser.add_argument('-o', metavar='OUTPUT', type=str, 
+    parser.add_argument('-o', metavar='OUTPUT', type=str,
             help='filename of output (e.g. channel.json)',
             default=sys.stdout)
     args = parser.parse_args()
