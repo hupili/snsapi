@@ -1,19 +1,10 @@
 *.py[co]
 
-# cookies
-cookies.txt
-
 # temporary file
 *~
 
-# configurations
+# Filled configurations
 *.json
-
-# app_key
-config.json
-
-# access_token
-*.token.save
 
 # Eclipse
 .pydevproject
@@ -32,6 +23,7 @@ var
 sdist
 develop-eggs
 .installed.cfg
+MANIFEST
 
 # Installer logs
 pip-log.txt
@@ -45,3 +37,9 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+# MAC
+.DS_Store
+
+# development files
+back

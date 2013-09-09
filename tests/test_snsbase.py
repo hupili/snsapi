@@ -8,10 +8,10 @@ __maintainer__ = 'hupili'
 __email__ = 'hpl1989@gmail.com'
 __status__ = 'development'
 
-from nose.tools import ok_
-from nose.tools import eq_
 from test_config import *
 from test_utils import *
+
+import snsapi
 from snsapi.snsbase import SNSBase
 
 sys.path = [DIR_TEST] + sys.path
@@ -32,11 +32,13 @@ class TestSNSBase(TestBase):
 
     def test_snsbase_new_channel_full(self):
         nc = SNSBase.new_channel(full=True)
-        eq_(4, len(nc), WRONG_RESULT_ERROR)
+        eq_(7, len(nc), WRONG_RESULT_ERROR)
         in_('channel_name', nc)
         in_('open', nc)
         in_('description', nc)
         in_('methods', nc)
+        in_('user_name', nc)
+        in_('user_id', nc)
 
     def _build_sns_with_token(self, seconds_after_current_time):
         from snsapi.utils import JsonDict
@@ -59,7 +61,7 @@ class TestSNSBase(TestBase):
         eq_(self._build_sns_with_token(-20).expire_after(), 0)
 
     def test_snsbase_expire_after_3(self):
-        # Token not exist, consider as expired. 
+        # Token not exist, consider as expired.
         eq_(SNSBase().expire_after(), 0)
 
     def test_snsbase_is_expired(self):
@@ -81,16 +83,17 @@ class TestSNSBase(TestBase):
         self._parse_code_ok('http://copy.the.code.to.client/?code=b5ffaed78a284a55e81ffe142c4771d9', 'b5ffaed78a284a55e81ffe142c4771d9')
         # Tencent example
         self._parse_code_ok('http://copy.the.code.to.client/?code=fad92807419b5aac433c4128A05e1Cad&openid=921CFC3AF04d76FE59D98a2029D0B978&openkey=6C2FCABD153B18625BAAB1BA206EF2C6', 'fad92807419b5aac433c4128A05e1Cad')
-    
+
     def _expand_url_ok(self, url, expected_url):
         sns = SNSBase()
         ex_url = sns._expand_url(url)
         eq_(ex_url, expected_url)
-    
+
     def test__expand_url(self):
+        SNSAPI_GH_URL = 'https://github.com/hupili/snsapi'
         # Sina short url
-        self._expand_url_ok("http://t.cn/h51yw", "http://www.google.com.hk/")
+        self._expand_url_ok('http://t.cn/zQvXHkz', SNSAPI_GH_URL)
         # Renren short url
-        self._expand_url_ok("http://rrurl.cn/f3oFox", "http://www.google.com.hk/")
+        self._expand_url_ok('http://rrurl.cn/6Apm7B', SNSAPI_GH_URL)
         # Tencent short url
-        self._expand_url_ok("http://url.cn/1TTspM", "http://www.google.com.hk/")
+        self._expand_url_ok('http://url.cn/IM0GaW', SNSAPI_GH_URL)

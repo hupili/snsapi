@@ -5,18 +5,24 @@ forwarder (SNSAPI Sample Application)
 introduction placeholder
 '''
 
+import sys
+from os.path import dirname, abspath
+sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
+
+
 import time
 from os.path import abspath
 
 import snsapi
-from snsapi import errors 
+from snsapi import errors
 from snsapi import utils as snsapi_utils
-from snsapi.utils import json
+from snsapi.utils import json, obj2str, str2obj
 from snsapi.snspocket import SNSPocket
 from snsapi.snslog import SNSLog as logger
+from snsapi.snstype import Message
 
 class Forwarder(object):
-    def __init__(self, fn_channel = "conf/channel.json", 
+    def __init__(self, fn_channel = "conf/channel.json",
             fn_forwarder = "conf/forwarder.json",
             fn_message = "messages.json"):
         super(Forwarder, self).__init__()
@@ -55,14 +61,15 @@ class Forwarder(object):
                 'time': msg.parsed.time,
                 'username': msg.parsed.username,
                 'text': msg.parsed.text,
-                'success': {"__null": "yes"}
+                'success': {"__null": "yes"},
+                'obj': obj2str(msg)
             }
 
     def db_get_message(self):
         '''
-        Pick one message that is not forwarded (successfully). Returen a 
-        list of <channel_name, msg> pairs. If the intended out channel is  
-        limited in quota, we do not append it. 
+        Pick one message that is not forwarded (successfully). Returen a
+        list of <channel_name, msg> pairs. If the intended out channel is
+        limited in quota, we do not append it.
         '''
         ret = []
         for (sig, msg) in self.messages.iteritems():
@@ -71,7 +78,7 @@ class Forwarder(object):
                     pass
                 else:
                     if quota > 0:
-                        self.jsonconf['quota'][cn] -= 1 
+                        self.jsonconf['quota'][cn] -= 1
                         ret.append((cn, msg))
         return ret
 
@@ -115,24 +122,53 @@ class Forwarder(object):
         return self.sp_out.update(*args, **kargs)
 
     def format_msg(self, msg):
-        return "[%s] at %s \n %s (fwd at:%s)"  % (msg['username'], msg['time'], msg['text'], time.time())
+        return "%s (fwd from: %s)"  % (msg['text'], msg['username'])
+        #return "%s (fwd from: %s at %s)"  % (msg['text'], msg['username'], snsapi_utils.utc2str(msg['time']), )
+        #return "[%s] at %s \n %s (fwd at:%s)"  % (msg['username'], msg['time'], msg['text'], time.time())
 
-    def forward(self):
+    def forward(self, forward_predicate):
         sl = self.home_timeline()
+        if forward_predicate:
+            sl = filter(forward_predicate, sl)
         for s in sl:
             self.db_add(s)
         for (cn, msg) in self.db_get_message():
-            text = self.format_msg(msg) 
-            r = self.sp_out[cn].update(text)
+            text = self.format_msg(msg)
+            #r = self.sp_out[cn].update(text)
+            r = self.sp_out[cn].forward(str2obj(msg['obj']), u'')
             msg['success'][cn] = "yes" if r else "no"
             logger.info("forward '%s' -- %s", text, r)
-                
+
+def sample_forward_predicate(m):
+    '''
+    Forward predicate.
+    Return True or False whether to forward this message.
+
+    :param m:
+        A ``Message`` object.
+        See the doc of ``snsapi.snstype`` for useful fields.
+    '''
+    return m.parsed.username==u"hpl"
+
 if __name__ == "__main__":
-    fwd = Forwarder()
-    fwd.auth()
-    #print fwd.home_timeline()
-    #print fwd.update('hello')
-    #print fwd.sp_out.home_timeline()
-    #print fwd.jsonconf
-    fwd.forward()
-    fwd.db_save()
+    import time
+
+    try:
+        from strategy import forward_predicate
+        logger.info("Use customized strategy")
+    except:
+        logger.info("Do not find customized strategy. Use default")
+        forward_predicate = sample_forward_predicate
+
+    while True:
+        logger.info("Start forward")
+        try:
+            fwd = Forwarder()
+            fwd.auth()
+            fwd.forward(forward_predicate=forward_predicate)
+            fwd.db_save()
+            del fwd
+        except Exception as e:
+            logger.warning('Catch exception: %s', e)
+        logger.info("End forward. Sleep 300 sconds for next round.")
+        time.sleep(300)

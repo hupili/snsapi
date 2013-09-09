@@ -47,14 +47,19 @@ import tkMessageBox
 import tkSimpleDialog
 import webbrowser
 from ConfigParser import ConfigParser
+import os
+
+import snsapi
 from snsapi.snspocket import SNSPocket
 from snsapi.utils import utc2str
 
 
 # supported platform
-EMAIL = 'Email' # gmail only
+EMAIL = 'Email'
 RSS = 'RSS'
 RSS_RW = 'RSS2RW'
+RSS_SUMMARY = 'RSSSummary'
+RENREN_BLOG = 'RenrenBlog'
 RENREN_SHARE = 'RenrenShare'
 RENREN_STATUS = 'RenrenStatus'
 SQLITE = 'SQLite'
@@ -64,7 +69,7 @@ TWITTER = 'TwitterStatus'
 
 
 TITLE = 'snsapi'
-CONFILE = 'conf/snsgui.ini'
+CONFILE = os.path.join(snsapi._dir_static_data, 'snsgui.ini')
 
 
 sp = SNSPocket()
@@ -105,7 +110,7 @@ class NewChannel(tkSimpleDialog.Dialog):
     def body(self, master):
         row = self.textField(master, 0, 'Channel Name:', 'channel_name')
 
-        if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO, TWITTER):
+        if self.platform in (RENREN_BLOG, RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO, TWITTER):
             row = self.textField(master, row, 'App Key:', 'app_key')
             row = self.textField(master, row, 'App Secret:', 'app_secret')
 
@@ -126,10 +131,10 @@ class NewChannel(tkSimpleDialog.Dialog):
             row = self.textField(master, row, 'Access Key:', 'access_key')
             row = self.textField(master, row, 'Access Secret:', 'access_secret')
 
-        if self.platform in (RSS, RSS_RW, SQLITE):
+        if self.platform in (RSS, RSS_RW, RSS_SUMMARY, SQLITE):
             row = self.textField(master, row, 'Url:', 'url')
 
-        if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
+        if self.platform in (RENREN_BLOG, RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
             auth_info = Tkinter.LabelFrame(master, text = 'Auth info')
 
             self.textField(auth_info, 0, 'Callback Url:', 'callback_url')
@@ -144,7 +149,7 @@ class NewChannel(tkSimpleDialog.Dialog):
         if not self.channel_name.get():
             return False
 
-        if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO, TWITTER):
+        if self.platform in (RENREN_BLOG, RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO, TWITTER):
             if not self.app_key.get() or not self.app_secret.get():
                 return False
 
@@ -160,11 +165,11 @@ class NewChannel(tkSimpleDialog.Dialog):
             if not self.access_key.get() or not self.access_secret.get():
                 return False
 
-        if self.platform in (RSS, RSS_RW, SQLITE):
+        if self.platform in (RSS, RSS_RW, RSS_SUMMARY, SQLITE):
             if not self.url.get():
                 return False
 
-        if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
+        if self.platform in (RENREN_BLOG, RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
             if not self.callback_url.get() or not self.cmd_request_url.get() or not self.cmd_fetch_code.get() or not self.save_token_file.get():
                 return False
 
@@ -175,7 +180,7 @@ class NewChannel(tkSimpleDialog.Dialog):
         channel['channel_name'] = self.channel_name.get()
 
         # app_key and app_secret
-        if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO, TWITTER):
+        if self.platform in (RENREN_BLOG, RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO, TWITTER):
             channel['app_key'] = self.app_key.get()
             channel['app_secret'] = self.app_secret.get()
 
@@ -205,11 +210,11 @@ class NewChannel(tkSimpleDialog.Dialog):
             channel['access_secret'] = self.access_secret.get()
 
         # url
-        if self.platform in (RSS, RSS_RW, SQLITE):
+        if self.platform in (RSS, RSS_RW, RSS_SUMMARY, SQLITE):
             channel['url'] = self.url.get()
 
         # auth_info
-        if self.platform in (RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
+        if self.platform in (RENREN_BLOG, RENREN_SHARE, RENREN_STATUS, SINA_WEIBO, TENCENT_WEIBO):
             channel['auth_info']['callback_url'] = self.callback_url.get()
             channel['auth_info']['cmd_request_url'] = self.cmd_request_url.get()
             channel['auth_info']['cmd_fetch_code'] = self.cmd_fetch_code.get()
@@ -373,6 +378,8 @@ class SNSGui(Tkinter.Frame):
         'email': EMAIL,
         'rss': RSS,
         'rss rw': RSS_RW,
+        'rss summary': RSS_SUMMARY,
+        'renren blog': RENREN_BLOG,
         'renren share': RENREN_SHARE,
         'renren status': RENREN_STATUS,
         'sqlite': SQLITE,
@@ -478,7 +485,7 @@ by Alex.wang(iptux7#gmail.com)''')
         if not self.channel:
             tkMessageBox.showwarning(TITLE, 'switch to a channel first')
             return
-        if sp[self.channel].platform == RSS:
+        if sp[self.channel].platform in (RSS, RSS_SUMMARY):
             tkMessageBox.showwarning(TITLE, 'cannot post to RSS channel')
             return
 
