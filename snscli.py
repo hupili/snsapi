@@ -1,4 +1,4 @@
-#!/usr/bin/env python -i
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import snsapi
@@ -357,3 +357,6 @@ print helpdoc
 load_config()
 list_channel()
 auth()
+
+import code
+code.interact(local=locals())
