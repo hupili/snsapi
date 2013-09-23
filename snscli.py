@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import snsapi
-from snsapi import snstype
 from snsapi.utils import console_output, console_input
 from snsapi.snspocket import SNSPocket
 from snsapi.snslog import SNSLog as logger
@@ -351,12 +349,13 @@ Section 10. Closing Remarks
 tut = SNSAPITutorial()
 
 
-#==== default initialization one may like ====
+if __name__ == '__main__':
+    #==== default initialization one may like ====
+    print helpdoc
+    load_config()
+    list_channel()
+    auth()
 
-print helpdoc
-load_config()
-list_channel()
-auth()
-
-import code
-code.interact(local=locals())
+    logger.info("Ready to drop into the interactive shell of SNSCLI!")
+    import code
+    code.interact(local=locals())
