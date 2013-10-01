@@ -1,4 +1,4 @@
-SNSAPI 0.6.5
+SNSAPI 0.7.0
 ============
 
 Version string convention: `x.y.z`
@@ -6,6 +6,21 @@ Version string convention: `x.y.z`
    * `x`: Major version with architectural upgrades.
    * `y`: Minor version with functional extension.
    * `z`: Micro version with small fix.
+
+0.7.0
+-----
+
+Architecture upgrade:
+
+   * Attachment support, e.g. pic, link, etc.
+   The update() of Renren and SinaWeibo support image upload.
+   * Asynchronous I/O.
+   See the snscli-async for how to use it.
+
+New platforms:
+
+   * RenrenFeed.
+   A merge of several RenrenXXX platforms.
 
 0.6.x
 -----
