@@ -126,21 +126,26 @@ Enther the interactive shell by  `python -i snscli.py`.
 Get the supported platforms as follows:
 
 ```
->>> lsp()
-
 Supported platforms:
    * Email
+   * FacebookFeed
    * RSS
    * RSS2RW
    * RSSSummary
    * RenrenBlog
+   * RenrenFeed
+   * RenrenPhoto
    * RenrenShare
    * RenrenStatus
+   * RenrenStatusDirect
    * SQLite
+   * SinaWeiboBase
    * SinaWeiboStatus
+   * SinaWeiboWapStatus
    * TencentWeiboStatus
    * TwitterStatus
-   ...
+   * ...
+
 ```
 
 More platforms are coming!
