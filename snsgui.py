@@ -313,6 +313,7 @@ class StatusList(Tkinter.Text):
         mark_start = mark + '.start'
         mark_end = mark + '.end'
         tag_text = mark + '.text'
+        tag_link = mark + '.link'
         tag_forward = mark + '.forward'
         tag_reply = mark + '.reply'
         self.tag_config(tag_forward, foreground = config.getcolor('button'))
@@ -335,11 +336,10 @@ class StatusList(Tkinter.Text):
             text = data.title
         except:
             text = data.text
+        self.insert(mark_end, text, 'text')
         if data.has_key('link'):
-            self.insert(mark_end, text, (tag_text, 'link'))
-            self.tag_bind(tag_text, '<Button-1>', lambda e, link = data.link: webbrowser.open(link))
-        else:
-            self.insert(mark_end, text, 'text')
+            self.insert(mark_end, '[link]', (tag_link, 'link'))
+            self.tag_bind(tag_link, '<Button-1>', lambda e, link = data.link: webbrowser.open(link))
         self.insert(mark_end, '\n', 'text')
 
         # action buttons
