@@ -75,7 +75,7 @@ To start your new journey, type "print tut"
 
 Tutorial of SNSCLI:
 
-   * https://github.com/hupili/snsapi/wiki/Tutorial-of-snscli
+   * https://github.com/hpili/snsapi/wiki/Tutorial-of-snscli
 """
 
 if __name__ == '__main__':
