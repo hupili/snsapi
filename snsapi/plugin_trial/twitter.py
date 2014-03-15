@@ -144,3 +144,43 @@ class TwitterStatus(SNSBase):
     def expire_after(self, token = None):
         # This platform does not have token expire issue.
         return -1
+
+class TwitterSearchMessage(TwitterStatusMessage):
+    platform = "TwitterSearch"
+
+class TwitterSearch(TwitterStatus):
+    Message = TwitterSearchMessage
+
+    @staticmethod
+    def new_channel(full=False):
+        c = TwitterStatus.new_channel(full)
+        c['platform'] = 'TwitterSearch'
+        c['term'] = 'snsapi'
+        c['include_entities'] = True
+        return c
+
+    def __init__(self, channel = None):
+        super(TwitterSearch, self).__init__(channel)
+        self.platform = self.__class__.__name__
+
+        self.api = twitter.Api(consumer_key=self.jsonconf['app_key'],\
+                consumer_secret=self.jsonconf['app_secret'],\
+                access_token_key=self.jsonconf['access_key'],\
+                access_token_secret=self.jsonconf['access_secret'])
+
+    def home_timeline(self, count = 100):
+        status_list = snstype.MessageList()
+        try:
+            #statuses = self.api.GetHomeTimeline(count = count)
+            statuses = self.api.GetSearch(term=self.jsonconf['term'],
+                            include_entities=self.jsonconf['include_entities'],
+                            count=count)
+            for s in statuses:
+                status_list.append(self.Message(s.AsDict(),\
+                        self.jsonconf['platform'],\
+                        self.jsonconf['channel_name']))
+            logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
+        except Exception, e:
+            logger.warning("Catch expection: %s", e)
+        return status_list
+
