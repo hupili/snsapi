@@ -205,8 +205,7 @@ except for the followings:
 
    * Old version of this readme [in Chinese](https://github.com/hupili/snsapi/blob/master/doc/snsapi-old-readme-cn.md)
 
-## Build Status
-
-   * master: ![master](https://travis-ci.org/hupili/snsapi.png?branch=master)
-   * dev: ![dev](https://travis-ci.org/hupili/snsapi.png?branch=dev)
+![master](https://travis-ci.org/hupili/snsapi.png?branch=master)
+![dev](https://travis-ci.org/hupili/snsapi.png?branch=dev)
+[![Analytics](https://ga-beacon.appspot.com/UA-37311363-5/hupili/snsapi)](https://github.com/igrigorik/ga-beacon)
 
