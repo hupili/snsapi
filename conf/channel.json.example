@@ -7,12 +7,12 @@
     "app_secret": "FILL THIS BY YOUR OWN APP_SECRET OF SinaWeibo",
     "user_id": "",
     "user_name": "",
-    "auth_info":
-    {
-      "callback_url": "http://snsapi.sinaapp.com/auth.php",
-      "cmd_fetch_code": "(default)",
-      "cmd_request_url": "(default)",
-      "save_token_file": "(default)"
-    }
+      "auth_info":
+      {
+        "callback_url": "http://snsapi.sinaapp.com/auth.php",
+        "cmd_fetch_code": "(default)",
+        "cmd_request_url": "(default)",
+        "save_token_file": "(default)"
+      }
   }
 ]
