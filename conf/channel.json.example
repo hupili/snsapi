@@ -1,18 +1,18 @@
 [
   {
-    "channel_name": "sina_account_1", 
-    "open": "yes", 
-    "platform": "SinaWeiboStatus", 
-    "app_key": "FILL THIS BY YOUR OWN APP_KEY OF SinaWeibo", 
+    "channel_name": "sina_account_1",
+    "open": "yes",
+    "platform": "SinaWeiboStatus",
+    "app_key": "FILL THIS BY YOUR OWN APP_KEY OF SinaWeibo",
     "app_secret": "FILL THIS BY YOUR OWN APP_SECRET OF SinaWeibo",
     "user_id": "",
     "user_name": "",
-	"auth_info":
-	{
-	  "callback_url": "http://snsapi.sinaapp.com/auth.php",
-	  "cmd_fetch_code": "(default)",
-	  "cmd_request_url": "(default)",
-	  "save_token_file": "(default)"
-	}
+      "auth_info":
+      {
+        "callback_url": "http://snsapi.sinaapp.com/auth.php",
+        "cmd_fetch_code": "(default)",
+        "cmd_request_url": "(default)",
+        "save_token_file": "(default)"
+      }
   }
 ]
