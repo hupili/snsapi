@@ -22,7 +22,7 @@ from .. import snstype
 from ..utils import console_output
 from .. import utils
 from ..utils import json
-
+import quopri
 import time
 import email
 from email.mime.text import MIMEText
@@ -43,8 +43,10 @@ class EmailMessage(snstype.Message):
 
     def _decode_header(self, header_value):
         ret = unicode()
-        #print decode_header(header_value)
+        
         for (s,e) in decode_header(header_value):
+	    if e and e.lower() == "gb2312":
+		e = "gbk"
             ret += s.decode(e) if e else s
         return ret
 
@@ -68,11 +70,14 @@ class EmailMessage(snstype.Message):
         #
         #     I prefer 2. at present. Our Message objects are designed
         #     to be able to digest themselves.
-
-        self.parsed.title = self._decode_header(dct.get('Subject'))
-        self.parsed.text = dct.get('body')
+        try:
+            self.parsed.title = self._decode_header(dct.get('Subject'))
+            self.parsed.text = dct.get('body')
+	
+        except Exception, e:
+	    logger.warning("I caught you%s",type(e))
         self.parsed.time = utils.str2utc(dct.get('Date'))
-
+        
         sender = dct.get('From')
         r = re.compile(r'^(.+)<(.+@.+\..+)>$', re.IGNORECASE)
         m = r.match(sender)
@@ -82,14 +87,13 @@ class EmailMessage(snstype.Message):
         else:
             self.parsed.username = sender
             self.parsed.userid = sender
-
+        
         #TODO:
         #    The following is just temporary method to enable reply email.
         #    See the above TODO for details. The following information
         #    suffices to reply email. However, they do not form a real ID.
         self.ID.title = self.parsed.title
         self.ID.reply_to = dct.get('Reply-To', self.parsed.userid)
-
 class Email(SNSBase):
 
     Message = EmailMessage
@@ -124,9 +128,11 @@ class Email(SNSBase):
         ret = payload
         if 'Content-Transfer-Encoding' in msg:
             transfer_enc = msg['Content-Transfer-Encoding'].strip()
-            if transfer_enc == "base64":
+	    if transfer_enc == "quoted-printable":
+		ret = quopri.decodestring(ret)
+            elif transfer_enc == "base64":
                 ret = base64.decodestring(ret)
-            elif transfer_enc == "7bit":
+            elif transfer_enc in ("7bit", "8bit"):
                 #TODO:
                 #    It looks like 7bit is just ASCII standard.
                 #    Do nothing.
@@ -178,7 +184,8 @@ class Email(SNSBase):
         tp = None
         if not msg.is_multipart():
             if msg.get_content_type() == 'text/plain':
-                tp = msg
+                print "text found!"
+		tp = msg
             else:
                 return u"No text/plain found"
         else:
@@ -195,7 +202,7 @@ class Email(SNSBase):
         '''
         Some text/plain message is sent from email services.
         The formatting is not SNSAPI flavoured. To work around
-        this and enable unified view, we use this function
+        this and enable unified vi`ew, we use this function
         to do post-formatting.
 
         '''
@@ -233,6 +240,7 @@ class Email(SNSBase):
                     if isinstance(response_part, tuple):
                         msg = email.message_from_string(response_part[1])
                         text = self._extract_body(msg.get_payload(), msg)
+			print msg
                         logger.debug("Extract part text: %s", text.rstrip())
                         try:
                             self.buddy_list.update(json.loads(text))
@@ -297,7 +305,7 @@ class Email(SNSBase):
         '''
         #self.buddy_list.append({"userid": address, "username": nickname})
         self.buddy_list[address] = {"userid": address, "username": nickname}
-        self._update_buddy_list()
+	self._update_buddy_list()
 
     def _receive(self, count = 20):
         #TODO:
@@ -312,17 +320,19 @@ class Email(SNSBase):
 
         # Check out all the email IDs
         conn = self.imap
-        conn.select('INBOX')
-        typ, data = conn.search(None, 'ALL')
-        #logger.debug("read message IDs: %s", data)
-
-        # We assume ID is in chronological order and filter
-        # the count number of latest messages.
-        latest_messages = sorted(data[0].split(), key = lambda x: int(x), reverse = True)[0:count]
-        #logger.debug("selected message IDs: %s", latest_messages)
-
-        message_list = []
         try:
+		conn.select('INBOX')
+        	typ, data = conn.search(None, 'ALL')
+        	#logger.debug("read message IDs: %s", data)
+
+        	# We assume ID is in chronological order and filter
+        	# the count number of latest messages.
+        	latest_messages = sorted(data[0].split(), key = lambda x: int(x), reverse = True)[0:count]
+        	#logger.debug("selected message IDs: %s", latest_messages)
+	except Exception, e:
+		logger.warning(e)
+        message_list = []
+	try:
             #for num in data[0].split():
             for num in latest_messages:
                 typ, msg_data = conn.fetch(num, '(RFC822)')
@@ -429,7 +439,6 @@ class Email(SNSBase):
                 self.auth()
             logger.warning("Catch exception: %s", e)
             return snstype.MessageList()
-
         message_list = snstype.MessageList()
         try:
             for m in r:
@@ -440,7 +449,6 @@ class Email(SNSBase):
                         ))
         except Exception, e:
             logger.warning("Catch expection: %s", e)
-
         logger.info("Read %d statuses from '%s'", len(message_list), self.jsonconf.channel_name)
         return message_list
 
