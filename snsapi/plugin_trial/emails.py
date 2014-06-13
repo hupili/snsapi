@@ -75,7 +75,7 @@ class EmailMessage(snstype.Message):
             self.parsed.text = dct.get('body')
 	
         except Exception, e:
-	    logger.warning("I caught you%s",type(e))
+            logger.warning("I caught you%s",type(e))
         self.parsed.time = utils.str2utc(dct.get('Date'))
         
         sender = dct.get('From')
@@ -128,8 +128,8 @@ class Email(SNSBase):
         ret = payload
         if 'Content-Transfer-Encoding' in msg:
             transfer_enc = msg['Content-Transfer-Encoding'].strip()
-	    if transfer_enc == "quoted-printable":
-		ret = quopri.decodestring(ret)
+                if transfer_enc == "quoted-printable":
+                    ret = quopri.decodestring(ret)
             elif transfer_enc == "base64":
                 ret = base64.decodestring(ret)
             elif transfer_enc in ("7bit", "8bit"):
@@ -319,18 +319,18 @@ class Email(SNSBase):
         # Check out all the email IDs
         conn = self.imap
         try:
-		    conn.select('INBOX')
-        	typ, data = conn.search(None, 'ALL')
-        	#logger.debug("read message IDs: %s", data)
+            conn.select('INBOX')
+            typ, data = conn.search(None, 'ALL')
+            #logger.debug("read message IDs: %s", data)
 
-        	# We assume ID is in chronological order and filter
-        	# the count number of latest messages.
-        	latest_messages = sorted(data[0].split(), key = lambda x: int(x), reverse = True)[0:count]
-        	#logger.debug("selected message IDs: %s", latest_messages)
+            # We assume ID is in chronological order and filter
+            # the count number of latest messages.
+            latest_messages = sorted(data[0].split(), key = lambda x: int(x), reverse = True)[0:count]
+            #logger.debug("selected message IDs: %s", latest_messages)
         except Exception, e:
-		    logger.warning(e)
-            message_list = []
-	    try:
+            logger.warning(e)
+        message_list = []
+        try:
             #for num in data[0].split():
             for num in latest_messages:
                 typ, msg_data = conn.fetch(num, '(RFC822)')
