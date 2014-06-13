@@ -184,8 +184,7 @@ class Email(SNSBase):
         tp = None
         if not msg.is_multipart():
             if msg.get_content_type() == 'text/plain':
-                print "text found!"
-		tp = msg
+		        tp = msg
             else:
                 return u"No text/plain found"
         else:
@@ -202,7 +201,7 @@ class Email(SNSBase):
         '''
         Some text/plain message is sent from email services.
         The formatting is not SNSAPI flavoured. To work around
-        this and enable unified vi`ew, we use this function
+        this and enable unified view, we use this function
         to do post-formatting.
 
         '''
@@ -240,7 +239,6 @@ class Email(SNSBase):
                     if isinstance(response_part, tuple):
                         msg = email.message_from_string(response_part[1])
                         text = self._extract_body(msg.get_payload(), msg)
-			print msg
                         logger.debug("Extract part text: %s", text.rstrip())
                         try:
                             self.buddy_list.update(json.loads(text))
