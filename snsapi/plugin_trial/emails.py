@@ -69,13 +69,9 @@ class EmailMessage(snstype.Message):
         #       this is account-dependent or not.
         #
         #     I prefer 2. at present. Our Message objects are designed
-        #     to be able to digest themselves.
-        try:
-            self.parsed.title = self._decode_header(dct.get('Subject'))
-            self.parsed.text = dct.get('body')
-	
-        except Exception, e:
-            logger.warning("I caught you%s",type(e))
+        #     to be able to digest 
+        self.parsed.title = self._decode_header(dct.get('Subject'))
+        self.parsed.text = dct.get('body')
         self.parsed.time = utils.str2utc(dct.get('Date'))
         
         sender = dct.get('From')
