@@ -184,7 +184,7 @@ class Email(SNSBase):
         tp = None
         if not msg.is_multipart():
             if msg.get_content_type() == 'text/plain':
-			    tp = msg
+                tp = msg
             else:
                 return u"No text/plain found"
         else:
@@ -303,7 +303,7 @@ class Email(SNSBase):
         '''
         #self.buddy_list.append({"userid": address, "username": nickname})
         self.buddy_list[address] = {"userid": address, "username": nickname}
-		self._update_buddy_list()
+        self._update_buddy_list()
 
     def _receive(self, count = 20):
         #TODO:
