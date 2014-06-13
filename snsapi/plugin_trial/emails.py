@@ -45,8 +45,8 @@ class EmailMessage(snstype.Message):
         ret = unicode()
         
         for (s,e) in decode_header(header_value):
-	    if e and e.lower() == "gb2312":
-		e = "gbk"
+            if e and e.lower() == "gb2312":
+                e = "gbk"
             ret += s.decode(e) if e else s
         return ret
 
@@ -128,8 +128,8 @@ class Email(SNSBase):
         ret = payload
         if 'Content-Transfer-Encoding' in msg:
             transfer_enc = msg['Content-Transfer-Encoding'].strip()
-                if transfer_enc == "quoted-printable":
-                    ret = quopri.decodestring(ret)
+            if transfer_enc == "quoted-printable":
+                ret = quopri.decodestring(ret)
             elif transfer_enc == "base64":
                 ret = base64.decodestring(ret)
             elif transfer_enc in ("7bit", "8bit"):
