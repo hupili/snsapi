@@ -184,7 +184,7 @@ class Email(SNSBase):
         tp = None
         if not msg.is_multipart():
             if msg.get_content_type() == 'text/plain':
-		        tp = msg
+			    tp = msg
             else:
                 return u"No text/plain found"
         else:
@@ -303,7 +303,7 @@ class Email(SNSBase):
         '''
         #self.buddy_list.append({"userid": address, "username": nickname})
         self.buddy_list[address] = {"userid": address, "username": nickname}
-	self._update_buddy_list()
+		self._update_buddy_list()
 
     def _receive(self, count = 20):
         #TODO:
@@ -319,7 +319,7 @@ class Email(SNSBase):
         # Check out all the email IDs
         conn = self.imap
         try:
-		conn.select('INBOX')
+		    conn.select('INBOX')
         	typ, data = conn.search(None, 'ALL')
         	#logger.debug("read message IDs: %s", data)
 
@@ -327,10 +327,10 @@ class Email(SNSBase):
         	# the count number of latest messages.
         	latest_messages = sorted(data[0].split(), key = lambda x: int(x), reverse = True)[0:count]
         	#logger.debug("selected message IDs: %s", latest_messages)
-	except Exception, e:
-		logger.warning(e)
-        message_list = []
-	try:
+        except Exception, e:
+		    logger.warning(e)
+            message_list = []
+	    try:
             #for num in data[0].split():
             for num in latest_messages:
                 typ, msg_data = conn.fetch(num, '(RFC822)')
