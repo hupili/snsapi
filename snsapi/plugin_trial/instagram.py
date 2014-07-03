@@ -33,7 +33,7 @@ class InstagramMessage(snstype.Message):
         self.ID.status_id = data['id']
         self.ID.id = data['id']
         self.ID.source_user_id = self.parsed.userid = str(data['user']['id'])
-        self.parsed.time = str(data['created_time'])
+        self.parsed.time = float(data['created_time'])
         self.parsed.attachments.append(
                     {
                         'type': 'picture',
@@ -53,7 +53,7 @@ class InstagramMessage(snstype.Message):
         try:
             self.parsed.text = data['caption']['text']
         except Exception,e :
-            pass
+            self.parsed.text = ""
 
 class InstagramFeed(SNSBase):
 

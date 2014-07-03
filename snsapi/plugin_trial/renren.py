@@ -55,7 +55,7 @@ class RenrenFeedMessage(snstype.Message):
         self.parsed.username = dct['sourceUser']['name']
         self.parsed.time = utils.str2utc(dct['time'], " +08:00")
         self.parsed.text = ""
-           self.ID.feed_type = self.parsed.feed_type = dct['type']
+        self.ID.feed_type = self.parsed.feed_type = dct['type']
     #self.ID.feed_type = self.parsed.feed_type = {
         #   10: 'STATUS',
         #    11: 'STATUS',
@@ -211,7 +211,7 @@ class RenrenFeed(SNSBase):
         if type(response) is not list and "error" in response:
             logger.warning(response)
             raise RenrenAPIError(response["error_code"], response["error_msg"])
-    return response['response']
+        return response['response']
     
     def _renren_request_v1_no_sig(self, method=None, **kwargs):
         '''
