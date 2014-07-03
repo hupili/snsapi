@@ -103,7 +103,7 @@ class RenrenFeedMessage(snstype.Message):
                 if str(at['type']) == 'PHOTO':
                     if ('rawImageUrl' in at and at['rawImageUrl']):
                         data = at['rawImageUrl']
-		    else:
+					else:
                         data = at['orginalUrl']
                         
                     self.parsed.attachments.append(
@@ -203,15 +203,15 @@ class RenrenFeed(SNSBase):
             del kwargs['_files']
         else:
             _files = {}
-	if method == "feed/list":
-	        response = self._http_get(RENREN_API2_SERVER + method, kwargs)
-	else:
-        	response = self._http_post(RENREN_API2_SERVER + method, kwargs, files=_files)
-		
-        if type(response) is not list and "error_code" in response:
+        if method == "feed/list":
+            response = self._http_get(RENREN_API2_SERVER + method, kwargs)
+        else:
+            response = self._http_post(RENREN_API2_SERVER + method, kwargs, files=_files)
+        
+        if type(response) is not list and "error" in response:
             logger.warning(response)
             raise RenrenAPIError(response["error_code"], response["error_msg"])
-	return response['response']
+    return response['response']
     
     def _renren_request_v1_no_sig(self, method=None, **kwargs):
         '''
@@ -253,9 +253,9 @@ class RenrenFeed(SNSBase):
                                   "status_update",
                                   "publish_comment",
                                   "publish_blog",
-								  "publish_share",
-								  "publish_feed",
-								  "status_update",
+                                  "publish_share",
+                                  "publish_feed",
+                                  "status_update",
                                   "photo_upload"])
 
         url = RENREN_AUTHORIZATION_URI + "?" + self._urlencode(args)
@@ -274,7 +274,7 @@ class RenrenFeed(SNSBase):
             args["code"] = self.token.code
             args["grant_type"] = "authorization_code"
             self.token.update(self._http_get(RENREN_ACCESS_TOKEN_URI, args))
-	    if hasattr(self.token, "expires_in"):
+            if hasattr(self.token, "expires_in"):
                 self.token.expires_in = self.token.expires_in + self.time()
             else:
                 self.token.expires_in = self.time() + 60 * 60 * 7 * 24
@@ -318,8 +318,8 @@ class RenrenFeed(SNSBase):
         except RenrenAPIError, e:
             logger.warning("RenrenAPIError, %s", e)
             return snstype.MessageList()
-	statuslist = snstype.MessageList()
-	for j in jsonlist:
+        statuslist = snstype.MessageList()
+        for j in jsonlist:
             try:
                 statuslist.append(self.Message(
                     j,
