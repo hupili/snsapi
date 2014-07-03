@@ -195,84 +195,36 @@ class InstagramFeed(SNSBase):
     @require_authed
     def reply(self, statusID, text):
         try:
-            status = self.api.PostUpdate(text, in_reply_to_status_id=statusID.id)
+            result = self.instagram_request(
+                    resource="media/" + statusID + "/comments",
+                    method="post",
+                    text=text
+                )
             #TODO:
             #     Find better indicator for status update success
-            if status:
-                return True
-            else:
-                return False
+            return True
         except Exception, e:
             logger.warning('update Instagram failed: %s', str(e))
             return False
+            
     @require_authed
     def like(self, message):
-        if str(message.parsed.liked).lower() == "true"
+        if str(message.parsed.liked).lower() == "true":
             logger.warning("You have liked this message before")
             return True
-        else
+        else:
             try:
                 jsonlist = self.instagram_request(
                     resource="media/" + message.ID.id + "/likes",
                     method="post"
                 )
-				return True
+                return True
             except Exception, e:
                 logger.warning("InstagramAPIError, %s", e)
-				return False
+                return False
+                
     def forward(self, message, text):
         logger.warning("Instagram does not support update()!")
         return False
-
-class InstagramSearchMessage(InstagramMessage):
-    platform = "InstagramSearch"
-
-class InstagramSearch(InstagramFeed):
-    Message = InstagramSearchMessage
-
-    @staticmethod
-    def new_channel(full=False):
-        c = InstagramFeed.new_channel(full)
-        c['platform'] = 'InstagramSearch'
-        c['term'] = 'snsapi'
-        c['include_entities'] = True
-        return c
-
-    def __init__(self, channel = None):
-        super(InstagramSearch, self).__init__(channel)
-        self.platform = self.__class__.__name__
-
-        self.api = InstagramAPI(client_id=self.jsonconf["app_key"],\
-                                client_secret=self.jsonconf["secret"],\
-                                redirect_uri=self.jsonconf["auth_info"]["callback_url"])
-
-    def home_timeline(self, count = 20):
-        status_list = snstype.MessageList()
-        try:
-            #statuses = self.api.GetHomeTimeline(count = count)
-            statuses = self.api.GetSearch(term=self.jsonconf['term'],
-                            include_entities=self.jsonconf['include_entities'],
-                            count=count)
-            for s in statuses:
-                status_list.append(self.Message(s.AsDict(),\
-                        self.jsonconf['platform'],\
-                        self.jsonconf['channel_name']))
-            logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
-        except Exception, e:
-            logger.warning("Catch expection: %s", e)
-        return status_list
-        
-if __name__ == '__main__':
-
-    nc = InstagramFeed.new_channel()
-    nc["app_key"] = "7e6bee26ee644ae3b1ba3e3f6dfd8995"
-    nc["app_secret"] = "8187653262324c339cc2cce80ff2f114"
-    nc["auth_info"]["callback_url"] = "http://snsapi.sinaapp.com/auth.php"
-    nc["platform"] = "RenrenFeed"
-    nc["channel_name"] = "wcyz"
-    insta = InstagramFeed(nc)
-    insta.auth()
-
-    print s
 
     
