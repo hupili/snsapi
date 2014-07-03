@@ -145,7 +145,7 @@ class FacebookFeed(SNSBase):
                         self.jsonconf['platform'],\
                         self.jsonconf['channel_name']))
             except Exception, e:
-                logger.warning("Catch expection: %s", e)
+                logger.warning("Catch expection: %s", type(e))
         logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
         return status_list
 
@@ -215,7 +215,7 @@ class FacebookFeed(SNSBase):
                     return False
             return True
         except Exception, e:
-            logger.warning("Catch Exception: %s", e)
+            logger.warning("Catch Exception: %s",type(e))
             return False
 
     def expire_after(self, token = None):

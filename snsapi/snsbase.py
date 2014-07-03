@@ -254,7 +254,7 @@ class SNSBase(object):
 
     def _token_filename(self):
         import os
-        _dir_save = os.path.join(SNSConf.SNSAPI_DIR_STORAGE_ROOT, 'save')
+        _dir_save = os.path.join(os.getcwd(), 'save')
         if not os.path.isdir(_dir_save):
             try:
                 os.mkdir(_dir_save)
