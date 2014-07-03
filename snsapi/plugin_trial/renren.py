@@ -55,8 +55,8 @@ class RenrenFeedMessage(snstype.Message):
         self.parsed.username = dct['sourceUser']['name']
         self.parsed.time = utils.str2utc(dct['time'], " +08:00")
         self.parsed.text = ""
-       	self.ID.feed_type = self.parsed.feed_type = dct['type']
-	#self.ID.feed_type = self.parsed.feed_type = {
+           self.ID.feed_type = self.parsed.feed_type = dct['type']
+    #self.ID.feed_type = self.parsed.feed_type = {
         #   10: 'STATUS',
         #    11: 'STATUS',
         #    20: 'BLOG',
@@ -80,7 +80,7 @@ class RenrenFeedMessage(snstype.Message):
         #    55: 'SHARE'
         #}[dct['feed_type']]
         ORIG_USER = 'orig'
-	
+    
         if 'attachment' in dct and dct['attachment']:
             for at in dct['attachment']:
                 if 'ownerId' in at and at['ownerId']:
@@ -103,7 +103,7 @@ class RenrenFeedMessage(snstype.Message):
                 if str(at['type']) == 'PHOTO':
                     if ('rawImageUrl' in at and at['rawImageUrl']):
                         data = at['rawImageUrl']
-					else:
+                    else:
                         data = at['orginalUrl']
                         
                     self.parsed.attachments.append(
@@ -125,7 +125,7 @@ class RenrenFeedMessage(snstype.Message):
                             'data': at['url']
                         })
 
-	
+    
 class RenrenStatusMessage(RenrenFeedMessage):
     platform = 'RenrenStatus'
 
