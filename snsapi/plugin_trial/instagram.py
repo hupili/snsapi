@@ -20,6 +20,7 @@ else:
     import time
     import urllib
     from ..third import instagram
+    
 INSTAGRAM_API1_SERVER = "https://api.instagram.com/v1/"
 
 class InstagramMessage(snstype.Message):
@@ -28,20 +29,31 @@ class InstagramMessage(snstype.Message):
         self.ID.platform = self.platform
         self._parse(self.raw)
 
-    def _parse(self, dct):
-        self.ID.id = dct['id']
-
-        self.parsed.time = utils.str2utc(dct['created_at'])
+    def _parse(self, data):
+        self.ID.status_id = data['id']
+        self.ID.id = data['id']
+        self.ID.source_user_id = self.parsed.userid = str(data['user']['id'])
+        self.parsed.time = str(data['created_time'])
+        self.parsed.attachments.append(
+                    {
+                        'type': 'picture',
+                        'format': ['link'],
+                        #FIXME: page photo don't have raw_src
+                        'data': data["images"]["standard_resolution"]["url"]
+                    }
+                )
         #NOTE:
         #   * dct['user']['screen_name'] is the path part of user's profile URL.
         #   It is actually in a position of an id. You should @ this string in
         #   order to mention someone.
         #   * dct['user']['name'] is actually a nick name you can set. It's not
         #   permanent.
-        self.parsed.username = dct['user']['screen_name']
-        self.parsed.userid = dct['user']['id']
-        self.parsed.text = dct['text']
-
+        self.parsed.username = data['user']['username']
+        self.parsed.liked = data["user_has_liked"]
+        try:
+            self.parsed.text = data['caption']['text']
+        except Exception,e :
+            pass
 
 class InstagramFeed(SNSBase):
 
@@ -118,7 +130,7 @@ class InstagramFeed(SNSBase):
 
     def need_auth(self):
         return True
-		
+        
     def instagram_request(self, resource, method="get", **kwargs):
         return self._instagram_request_v1(resource, method.lower(), **kwargs)
 
@@ -132,13 +144,15 @@ class InstagramFeed(SNSBase):
 
         kwargs['access_token'] = self.token.access_token
         response = eval("self._http_" + method)(INSTAGRAM_API1_SERVER + resource, kwargs)
-        logger.warning(str(response))
         
-        if type(response) is not list and "error_type" in response:
-            logger.warning(response)
-            self.auth()
-            return self._instagram_request_v1(method, resource, kwargs)
-        return response
+        if "error_type" in response['meta']:
+            if response['meta']["error_type"] == "OAuthParameterException":
+                logger.warning(response)
+                self.auth()
+                return self._instagram_request_v1(method, resource, kwargs)
+            else:
+                raise Exception(response['meta']["error_message"])
+        return response 
     
      
     @require_authed
@@ -160,19 +174,19 @@ class InstagramFeed(SNSBase):
         except Exception, e:
             logger.warning("InstagramAPIError, %s", e)
             return snstype.MessageList()
-        #statuslist = snstype.MessageList()
-        #for j in jsonlist:
-        #    try:
-        #        statuslist.append(self.Message(
-        #            j,
-        #            platform = self.jsonconf['platform'],
-        #            channel = self.jsonconf['channel_name']
-        #        ))
-        #    except Exception, e:
-        #        logger.warning("Catch exception: %s", e)
-        #
-        #logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
-        #return statuslist
+        statuslist = snstype.MessageList()
+        for j in jsonlist["data"]:
+            try:
+                statuslist.append(self.Message(
+                    j,
+                    platform = self.jsonconf['platform'],
+                    channel = self.jsonconf['channel_name']
+                ))
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+        
+        logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
+        return statuslist
 
     def update(self, text):
         logger.warning("Instagram does not support update()!")
@@ -180,10 +194,8 @@ class InstagramFeed(SNSBase):
         
     @require_authed
     def reply(self, statusID, text):
-        text = self._cat(self.jsonconf['text_length_limit'], [(text, 1)])
         try:
-            status = self.api.PostUpdate(text,
-                                         in_reply_to_status_id=statusID.id)
+            status = self.api.PostUpdate(text, in_reply_to_status_id=statusID.id)
             #TODO:
             #     Find better indicator for status update success
             if status:
@@ -193,14 +205,24 @@ class InstagramFeed(SNSBase):
         except Exception, e:
             logger.warning('update Instagram failed: %s', str(e))
             return False
-
+    @require_authed
+    def like(self, message):
+        if str(message.parsed.liked).lower() == "true"
+            logger.warning("You have liked this message before")
+            return True
+        else
+            try:
+                jsonlist = self.instagram_request(
+                    resource="media/" + message.ID.id + "/likes",
+                    method="post"
+                )
+				return True
+            except Exception, e:
+                logger.warning("InstagramAPIError, %s", e)
+				return False
     def forward(self, message, text):
         logger.warning("Instagram does not support update()!")
         return False
-        
-    def expire_after(self, token = None):
-        # This platform does not have token expire issue.
-        return -1
 
 class InstagramSearchMessage(InstagramMessage):
     platform = "InstagramSearch"
@@ -250,6 +272,7 @@ if __name__ == '__main__':
     nc["channel_name"] = "wcyz"
     insta = InstagramFeed(nc)
     insta.auth()
-    insta.home_timeline()
+
+    print s
 
     
