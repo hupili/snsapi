@@ -10,7 +10,7 @@ if __name__ == '__main__':
     import utils
     import time
     import urllib
-    from third import instagram
+    from third import instagram as insta
 else:
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
@@ -19,9 +19,17 @@ else:
     from .. import utils
     import time
     import urllib
-    from ..third import instagram
+    from ..third import instagram as insta
 
 INSTAGRAM_API1_SERVER = "https://api.instagram.com/v1/"
+
+# This error is moved back to "Instagram.py".
+# It's platform specific and we do not expect other
+# file to raise this error.
+class InstagramAPIError(Exception):
+    def __init__(self, code, message):
+        super(InstagramAPIError, self).__init__(message)
+        self.code = code
 
 
 class InstagramMessage(snstype.Message):
@@ -67,7 +75,7 @@ class InstagramFeed(SNSBase):
         super(InstagramFeed, self).__init__(channel)
         self.platform = self.__class__.__name__
 
-        self.api = instagram.InstagramAPI(client_id=self.jsonconf["app_key"],
+        self.api = insta.InstagramAPI(client_id=self.jsonconf["app_key"],
                                 client_secret=self.jsonconf["app_secret"],
                                 redirect_uri=self.jsonconf["auth_info"]["callback_url"])
 
@@ -155,7 +163,7 @@ class InstagramFeed(SNSBase):
                 self.auth()
                 return self._instagram_request_v1(method, resource, kwargs)
             else:
-                raise Exception(response['meta']["error_message"])
+                raise InstagramAPIError(response['meta']["error_message"])
         return response
 
     @require_authed
@@ -195,6 +203,11 @@ class InstagramFeed(SNSBase):
         logger.warning("Instagram does not support update()!")
         return False
 
+    # NOTE:
+    # Comments function will be blocked by Instagram defaultly.
+    # Anyone who would like to use this function must
+    # apply for authorization first. Refer to the following website:
+    # https://help.instagram.com/contact/185819881608116
     @require_authed
     def reply(self, statusID, text):
         try:

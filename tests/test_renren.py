@@ -3,8 +3,8 @@
 __author__ = 'hupili'
 __copyright__ = 'Unlicensed'
 __license__ = 'Unlicensed'
-__version__ = '0.1'
-__maintainer__ = 'hupili'
+__version__ = '0.2'
+__maintainer__ = 'hupili, wcyz666'
 __email__ = 'hpl1989@gmail.com'
 __status__ = 'development'
 
@@ -51,7 +51,6 @@ class TestRenrenFeed(TestBase):
         self._fake_http_json_api_response(get_data('renren-feed-status-2.json.test'))
         ht = self.channel.home_timeline()
         eq_(len(ht), 1)
-        print(str(ht[0].parsed))
         eq_(ht[0].parsed['text'], 'nice "good" http://photo.renren.com/photo/544815307/album')
         eq_(ht[0].parsed['username'], 'wcyz666')
         eq_(ht[0].parsed['userid'], '544815307')
