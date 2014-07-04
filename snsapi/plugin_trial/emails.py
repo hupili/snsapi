@@ -201,7 +201,7 @@ class Email(SNSBase):
         '''
         Some text/plain message is sent from email services.
         The formatting is not SNSAPI flavoured. To work around
-        this and enable unified vi`ew, we use this function
+        this and enable unified view, we use this function
         to do post-formatting.
 
         '''
