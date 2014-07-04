@@ -1,4 +1,4 @@
-SNSAPI 0.7.0
+SNSAPI 0.7.1
 ============
 
 Version string convention: `x.y.z`
@@ -6,6 +6,11 @@ Version string convention: `x.y.z`
    * `x`: Major version with architectural upgrades.
    * `y`: Minor version with functional extension.
    * `z`: Micro version with small fix.
+
+0.7.1
+-----
+
+   * Add Twitter Search channel.
 
 0.7.0
 -----
