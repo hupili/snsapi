@@ -1,11 +1,11 @@
 [
-  {
+{
   "lbs": null,
   "resource": {
     "content": null,
     "url": "http://photo.renren.com/photo/544815307/album-902561641",
     "id": 902561641,
-    "title": "\u5feb\u901f\u4e0a\u4f20"
+    "title": "good"
   },
   "type": "PUBLISH_ONE_PHOTO",
   "comments": null,
@@ -21,11 +21,11 @@
     }
   ],
   "time": "2014-06-23 17:43",
-  "message": "\u4e0a\u4f20\u4e861\u5f20\u7167\u7247",
+  "message": "nice",
   "thumbnailUrl": "http://fmn.rrfmn.com/fmn061/20140623/1740/main_zreZ_76900000b5a0118c.jpg",
   "sourceUser": {
     "star": 0,
-    "name": "\u5f20\u745e",
+    "name": "wcyz666",
     "basicInformation": null,
     "emotionalState": null,
     "work": null,
@@ -40,5 +40,5 @@
     "like": null
   },
   "id": 25424612946
-  }
+}
 ]

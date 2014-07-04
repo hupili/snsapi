@@ -20,11 +20,14 @@ else:
     import time
     import urllib
     from ..third import instagram
-    
+
 INSTAGRAM_API1_SERVER = "https://api.instagram.com/v1/"
 
+
 class InstagramMessage(snstype.Message):
+
     platform = "InstagramFeed"
+
     def parse(self):
         self.ID.platform = self.platform
         self._parse(self.raw)
@@ -38,12 +41,12 @@ class InstagramMessage(snstype.Message):
                     {
                         'type': 'picture',
                         'format': ['link'],
-                        #FIXME: page photo don't have raw_src
+                        # FIXME: page photo don't have raw_src
                         'data': data["images"]["standard_resolution"]["url"]
                     }
                 )
-        #NOTE:
-        #   * dct['user']['screen_name'] is the path part of user's profile URL.
+        # NOTE:
+        #   * dct['user']['screen_name'] is the path part of user's profile URL
         #   It is actually in a position of an id. You should @ this string in
         #   order to mention someone.
         #   * dct['user']['name'] is actually a nick name you can set. It's not
@@ -52,24 +55,24 @@ class InstagramMessage(snstype.Message):
         self.parsed.liked = data["user_has_liked"]
         try:
             self.parsed.text = data['caption']['text']
-        except Exception,e :
+        except Exception, e:
             self.parsed.text = ""
+
 
 class InstagramFeed(SNSBase):
 
     Message = InstagramMessage
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(InstagramFeed, self).__init__(channel)
         self.platform = self.__class__.__name__
 
-        self.api = instagram.InstagramAPI(client_id=self.jsonconf["app_key"],\
-                                client_secret=self.jsonconf["app_secret"],\
+        self.api = instagram.InstagramAPI(client_id=self.jsonconf["app_key"],
+                                client_secret=self.jsonconf["app_secret"],
                                 redirect_uri=self.jsonconf["auth_info"]["callback_url"])
 
-
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = SNSBase.new_channel(full)
 
         c['platform'] = 'InstagramFeed'
@@ -92,8 +95,9 @@ class InstagramFeed(SNSBase):
         docstring placeholder
         '''
 
-        redirect_uri = self.api.get_authorize_login_url(scope = ["basic", "comments", "likes"])
+        redirect_uri = self.api.get_authorize_login_url(scope=["basic", "comments", "likes"])
         self.request_url(redirect_uri)
+
     def auth_second(self):
         '''
         docstring placeholder
@@ -125,12 +129,12 @@ class InstagramFeed(SNSBase):
             self.save_token()
             logger.debug("Authorized! access token is " + str(self.token))
             logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
-        except Exception,e:
+        except Exception, e:
             logger.warning("Auth second fail. Catch exception: %s", e)
 
     def need_auth(self):
         return True
-        
+
     def instagram_request(self, resource, method="get", **kwargs):
         return self._instagram_request_v1(resource, method.lower(), **kwargs)
 
@@ -144,7 +148,7 @@ class InstagramFeed(SNSBase):
 
         kwargs['access_token'] = self.token.access_token
         response = eval("self._http_" + method)(INSTAGRAM_API1_SERVER + resource, kwargs)
-        
+
         if "error_type" in response['meta']:
             if response['meta']["error_type"] == "OAuthParameterException":
                 logger.warning(response)
@@ -152,11 +156,10 @@ class InstagramFeed(SNSBase):
                 return self._instagram_request_v1(method, resource, kwargs)
             else:
                 raise Exception(response['meta']["error_message"])
-        return response 
-    
-     
+        return response
+
     @require_authed
-    def home_timeline(self, count = 20):
+    def home_timeline(self, count=20):
         '''
         NOTE: this does not include your re-tweeted statuses.
         It's another interface to get re-tweeted status on Tiwtter.
@@ -164,7 +167,7 @@ class InstagramFeed(SNSBase):
         Deprecate the use of retweets.
         See reply and forward of this platform for more info.
         '''
- 
+
         try:
             jsonlist = self.instagram_request(
                 resource="users/self/feed",
@@ -179,19 +182,19 @@ class InstagramFeed(SNSBase):
             try:
                 statuslist.append(self.Message(
                     j,
-                    platform = self.jsonconf['platform'],
-                    channel = self.jsonconf['channel_name']
+                    platform=self.jsonconf['platform'],
+                    channel=self.jsonconf['channel_name']
                 ))
             except Exception, e:
                 logger.warning("Catch exception: %s", e)
-        
+
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
         return statuslist
 
     def update(self, text):
         logger.warning("Instagram does not support update()!")
         return False
-        
+
     @require_authed
     def reply(self, statusID, text):
         try:
@@ -200,13 +203,13 @@ class InstagramFeed(SNSBase):
                     method="post",
                     text=text
                 )
-            #TODO:
+            # TODO:
             #     Find better indicator for status update success
             return True
         except Exception, e:
             logger.warning('update Instagram failed: %s', str(e))
             return False
-            
+
     @require_authed
     def like(self, message):
         if str(message.parsed.liked).lower() == "true":
@@ -222,9 +225,7 @@ class InstagramFeed(SNSBase):
             except Exception, e:
                 logger.warning("InstagramAPIError, %s", e)
                 return False
-                
+
     def forward(self, message, text):
         logger.warning("Instagram does not support update()!")
         return False
-
-    
