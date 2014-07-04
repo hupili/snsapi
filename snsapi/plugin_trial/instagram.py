@@ -110,7 +110,11 @@ class InstagramFeed(SNSBase):
         '''
         docstring placeholder
         '''
-
+        # NOTE:
+        # Instagram API will not return any info related to the 
+        # expiration data. Accordian to its document, the expiration
+        # data is uncertain. Instagram makes no guarantee on it thus
+        # we set it to two weeks (86400 * 14)
         try:
             url = self.fetch_code()
             code = self._parse_code(url)
@@ -148,7 +152,7 @@ class InstagramFeed(SNSBase):
 
     def _instagram_request_v1(self, resource, method="get", **kwargs):
         '''
-        A general purpose encapsulation of renren API.
+        A general purpose encapsulation of instagram API.
         It fills in system paramters and compute the signature.
         Return a list on success
         raise Exception on error
@@ -168,13 +172,6 @@ class InstagramFeed(SNSBase):
 
     @require_authed
     def home_timeline(self, count=20):
-        '''
-        NOTE: this does not include your re-tweeted statuses.
-        It's another interface to get re-tweeted status on Tiwtter.
-        We'd better save a call.
-        Deprecate the use of retweets.
-        See reply and forward of this platform for more info.
-        '''
 
         try:
             jsonlist = self.instagram_request(
