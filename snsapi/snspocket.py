@@ -244,6 +244,7 @@ class SNSPocket(dict):
             setattr(c, m, self.__dummy_method(channel, m))
 
     def add_channel(self, jsonconf):
+        logger.debug(json.dumps(jsonconf))
         cname = jsonconf['channel_name']
 
         if cname in self:
@@ -501,20 +502,19 @@ class SNSPocket(dict):
         forward a message
 
         """
-        re = []
+        re = {}
         if channel:
-            for ch in channel:
-                if ch in self:
-                    if self[ch].is_expired():
-                        logger.warning("channel '%s' is expired. Do nothing.", ch)
-                    else:
-                        re.append(self[ch].forward(message, text))
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
                 else:
-                    logger.warning("channel '%s' is not in pocket. Do nothing.", ch)
+                    re = self[channel].forward(message, text)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'forward') and not c.is_expired():
-                    re.append(c.forward(message, text))
+                    re[c.jsonconf['channel_name']] = c.forward(message, text)
 
         logger.info("Forward status '%s' with text '%s'. Result: %s",\
                 message.digest(), text, re)

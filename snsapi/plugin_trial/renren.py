@@ -230,7 +230,7 @@ class RenrenFeed(SNSBase):
             del kwargs['_files']
         else:
             _files = {}
-        response= self._http_post(RENREN_API_SERVER, kwargs, files=_files)
+        response = self._http_post(RENREN_API_SERVER, kwargs, files=_files)
 
 
         if type(response) is not list and "error_code" in response:
@@ -278,8 +278,9 @@ class RenrenFeed(SNSBase):
                 self.token.expires_in = self.token.expires_in + self.time()
             else:
                 self.token.expires_in = self.time() + 60 * 60 * 7 * 24
+            # In case that no "expires_in" property is returned.
         except Exception, e:
-            logger.warning("Auth second fail. Catch exception: %s", str(type(e)))
+            logger.warning("Auth second fail. Catch exception: %s", str(e))
             self.token = None
 
     def auth(self):
