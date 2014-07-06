@@ -1,4 +1,4 @@
-#-*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
 '''
 Renren Client
@@ -24,7 +24,6 @@ else:
     import time
     import urllib
 
-
 logger.debug("%s plugged!", __file__)
 
 # Inteface URLs.
@@ -37,12 +36,17 @@ RENREN_API2_SERVER = "https://api.renren.com/v2/"
 # This error is moved back to "renren.py".
 # It's platform specific and we do not expect other
 # file to raise this error.
+
+
 class RenrenAPIError(Exception):
+
     def __init__(self, code, message):
         super(RenrenAPIError, self).__init__(message)
         self.code = code
 
+
 class RenrenFeedMessage(snstype.Message):
+
     platform = "RenrenFeed"
 
     def parse(self):
@@ -56,7 +60,7 @@ class RenrenFeedMessage(snstype.Message):
         self.parsed.time = utils.str2utc(dct['time'], " +08:00")
         self.parsed.text = ""
         self.ID.feed_type = self.parsed.feed_type = dct['type']
-    #self.ID.feed_type = self.parsed.feed_type = {
+    # self.ID.feed_type = self.parsed.feed_type = {
         #   10: 'STATUS',
         #    11: 'STATUS',
         #    20: 'BLOG',
@@ -78,9 +82,9 @@ class RenrenFeedMessage(snstype.Message):
         #    53: 'SHARE',
         #    54: 'SHARE',
         #    55: 'SHARE'
-        #}[dct['feed_type']]
+        # }[dct['feed_type']]
         ORIG_USER = 'orig'
-    
+
         if 'attachment' in dct and dct['attachment']:
             for at in dct['attachment']:
                 if 'ownerId' in at and at['ownerId']:
@@ -105,12 +109,12 @@ class RenrenFeedMessage(snstype.Message):
                         data = at['rawImageUrl']
                     else:
                         data = at['orginalUrl']
-                        
+
                     self.parsed.attachments.append(
                         {
                             'type': 'picture',
                             'format': ['link'],
-                            #FIXME: page photo don't have raw_src
+                            # FIXME: page photo don't have raw_src
                             'data': data
                         }
                     )
@@ -125,17 +129,24 @@ class RenrenFeedMessage(snstype.Message):
                             'data': at['url']
                         })
 
-    
+
 class RenrenStatusMessage(RenrenFeedMessage):
+
     platform = 'RenrenStatus'
 
+
 class RenrenShareMessage(RenrenFeedMessage):
+
     platform = 'RenRenShare'
 
+
 class RenrenBlogMessage(RenrenFeedMessage):
+
     platform = 'RenrenBlog'
 
+
 class RenrenPhotoMessage(RenrenFeedMessage):
+
     platform = 'RenrenPhoto'
 
 
@@ -143,12 +154,12 @@ class RenrenFeed(SNSBase):
 
     Message = RenrenFeedMessage
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(RenrenFeed, self).__init__(channel)
         self.platform = self.__class__.__name__
 
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = SNSBase.new_channel(full)
 
         c['app_key'] = ''
@@ -177,16 +188,13 @@ class RenrenFeed(SNSBase):
             response = self._http_post(RENREN_API2_SERVER + method + '?' + args, {}, files=_files)
         else:
             response = self._http_get(RENREN_API2_SERVER + method, kwargs)
-        #logger.debug('response: %s', response)
+        # logger.debug('response: %s', response)
         if response == {} or 'error' in response:
             if 'error' in response:
                 logger.warning(response['error']['message'])
             else:
                 logger.warning("error")
         return response
-
-
-
 
     def _renren_request_v2(self, method=None, **kwargs):
         '''
@@ -207,12 +215,12 @@ class RenrenFeed(SNSBase):
             response = self._http_get(RENREN_API2_SERVER + method, kwargs)
         else:
             response = self._http_post(RENREN_API2_SERVER + method, kwargs, files=_files)
-        
+
         if type(response) is not list and "error" in response:
             logger.warning(response)
             raise RenrenAPIError(response["error_code"], response["error_msg"])
         return response['response']
-    
+
     def _renren_request_v1_no_sig(self, method=None, **kwargs):
         '''
         A general purpose encapsulation of renren API.
@@ -232,12 +240,10 @@ class RenrenFeed(SNSBase):
             _files = {}
         response = self._http_post(RENREN_API_SERVER, kwargs, files=_files)
 
-
         if type(response) is not list and "error_code" in response:
             logger.warning(response["error_msg"])
             raise RenrenAPIError(response["error_code"], response["error_msg"])
         return response
-
 
     def auth_first(self):
         '''
@@ -269,7 +275,7 @@ class RenrenFeed(SNSBase):
         try:
             url = self.fetch_code()
             self.token = self._parse_code(url)
-            args = dict(client_id=self.jsonconf.app_key, redirect_uri = self.auth_info.callback_url)
+            args = dict(client_id=self.jsonconf.app_key, redirect_uri=self.auth_info.callback_url)
             args["client_secret"] = self.jsonconf.app_secret
             args["code"] = self.token.code
             args["grant_type"] = "authorization_code"
@@ -305,8 +311,8 @@ class RenrenFeed(SNSBase):
 
     @require_authed
     def home_timeline(self, count=20, **kwargs):
-        #FIXME: automatic paging for count > 100
-        ttype='ALL'
+        # FIXME: automatic paging for count > 100
+        ttype = 'ALL'
         if 'type' in kwargs:
             ttype = kwargs['type']
         try:
@@ -324,8 +330,8 @@ class RenrenFeed(SNSBase):
             try:
                 statuslist.append(self.Message(
                     j,
-                    platform = self.jsonconf['platform'],
-                    channel = self.jsonconf['channel_name']
+                    platform=self.jsonconf['platform'],
+                    channel=self.jsonconf['channel_name']
                 ))
             except Exception, e:
                 logger.warning("Catch exception: %s", e)
@@ -337,14 +343,13 @@ class RenrenFeed(SNSBase):
         try:
             self.renren_request(
                 method='status/put',
-                content = text
+                content=text
             )
             return BooleanWrappedData(True)
         except:
             return BooleanWrappedData(False, {
                 'errors': ['PLATFORM_'],
             })
-
 
     def _update_blog(self, text, title):
         try:
@@ -359,7 +364,6 @@ class RenrenFeed(SNSBase):
                 'errors': ['PLATFORM_'],
             })
 
-
     def _update_share_link(self, text, link):
         try:
             self.renren_request(
@@ -370,7 +374,7 @@ class RenrenFeed(SNSBase):
             )
             return BooleanWrappedData(True)
         except:
-            return    BooleanWrappedData(False, {
+            return BooleanWrappedData(False, {
                 'errors': ['PLATFORM_']
             })
 
@@ -392,7 +396,7 @@ class RenrenFeed(SNSBase):
 
     @require_authed
     def update(self, text, **kwargs):
-        coder= int(''.join(map(lambda t: str(int(t)),
+        coder = int(''.join(map(lambda t: str(int(t)),
                                [
                                    'title' in kwargs,
                                    'link' in kwargs,
@@ -408,14 +412,14 @@ class RenrenFeed(SNSBase):
             }[coder]
         except:
             return BooleanWrappedData(False, {
-                'errors' : ['SNSAPI_NOT_SUPPORTED'],
+                'errors': ['SNSAPI_NOT_SUPPORTED'],
             })
         return update_what(text, **kwargs)
 
     @require_authed
     def reply(self, statusId, text):
-        #NOTE: you can mix API1 and API2.
-        #NOTE: API2 is more better on comment
+        # NOTE: you can mix API1 and API2.
+        # NOTE: API2 is more better on comment
         res = None
         try:
             if statusId.feed_type == 'STATUS':
@@ -436,7 +440,7 @@ class RenrenFeed(SNSBase):
                 res = self.renren_request(
                     method='blog.addComment',
                     id=statusId.status_id,
-                    #FIXME: page_id, uid
+                    # FIXME: page_id, uid
                     uid=statusId.source_user_id,
                     content=text
                 )
@@ -445,12 +449,12 @@ class RenrenFeed(SNSBase):
                     method='photos.addComment',
                     uid=statusId.source_user_id,
                     content=text,
-                    #FIXME: aid, pid
+                    # FIXME: aid, pid
                     pid=statusId.status_id
                 )
             else:
                 return BooleanWrappedData(False, {
-                    'errors' : ['SNSAPI_NOT_SUPPORTED'],
+                    'errors': ['SNSAPI_NOT_SUPPORTED'],
                 })
         except:
             return BooleanWrappedData(False, {
@@ -460,7 +464,7 @@ class RenrenFeed(SNSBase):
             return BooleanWrappedData(True)
         else:
             return BooleanWrappedData(False, {
-                'errors' : ['PLATFORM_'],
+                'errors': ['PLATFORM_'],
             })
 
     @require_authed
@@ -488,7 +492,7 @@ class RenrenFeed(SNSBase):
                 )
             else:
                 return BooleanWrappedData(False, {
-                    'errors' : ['SNSAPI_NOT_SUPPORTED'],
+                    'errors': ['SNSAPI_NOT_SUPPORTED'],
                 })
         except Exception as e:
             logger.warning('Catch exception: %s', e)
@@ -499,11 +503,12 @@ class RenrenFeed(SNSBase):
             return BooleanWrappedData(True)
         else:
             return BooleanWrappedData(False, {
-                'errors' : ['PLATFORM_'],
+                'errors': ['PLATFORM_'],
             })
 
 
 class RenrenStatus(RenrenFeed):
+
     Message = RenrenStatusMessage
 
     def __init__(self, channel=None):
@@ -525,6 +530,7 @@ class RenrenStatus(RenrenFeed):
 
 
 class RenrenBlog(RenrenFeed):
+
     Message = RenrenBlogMessage
 
     def __init__(self, channel=None):
@@ -538,7 +544,7 @@ class RenrenBlog(RenrenFeed):
 
     @require_authed
     def home_timeline(self, count=20):
-       return RenrenFeed.home_timeline(self, count, type='PUBLISH_BLOG,SHARE_BLOG')
+        return RenrenFeed.home_timeline(self, count, type='PUBLISH_BLOG,SHARE_BLOG')
 
     @require_authed
     def update(self, text, title=None):
@@ -546,7 +552,9 @@ class RenrenBlog(RenrenFeed):
             title = text.split('\n')[0]
             return RenrenFeed._update_blog(self, text, title)
 
+
 class RenrenPhoto(RenrenFeed):
+
     Message = RenrenPhotoMessage
 
     def __init__(self, channel=None):
@@ -566,7 +574,9 @@ class RenrenPhoto(RenrenFeed):
     def update(self, text, pic=None):
         return self._update_photo(text, pic)
 
+
 class RenrenShare(RenrenFeed):
+
     Message = RenrenShareMessage
 
     def __init__(self, channel=None):
@@ -590,6 +600,7 @@ class RenrenShare(RenrenFeed):
 
 
 class RenrenStatusDirectMessage(snstype.Message):
+
     platform = "RenrenStatusDirect"
 
     def parse(self):
@@ -606,7 +617,9 @@ class RenrenStatusDirectMessage(snstype.Message):
         self.parsed.time = utils.str2utc(dct['time'], " +08:00")
         self.parsed.text = dct['message']
 
+
 class RenrenStatusDirect(RenrenFeed):
+
     Message = RenrenStatusDirectMessage
 
     def __init__(self, channel=None):
@@ -634,7 +647,7 @@ class RenrenStatusDirect(RenrenFeed):
                 method="status.gets",
                 page=1,
                 count=count,
-                uid = userid,
+                uid=userid,
             )
         except RenrenAPIError, e:
             logger.warning("RenrenAPIError, %s", e)
@@ -646,8 +659,8 @@ class RenrenStatusDirect(RenrenFeed):
                 j['name'] = username
                 statuslist.append(self.Message(
                     j,
-                    platform = self.jsonconf['platform'],
-                    channel = self.jsonconf['channel_name']
+                    platform=self.jsonconf['platform'],
+                    channel=self.jsonconf['channel_name']
                 ))
             except Exception, e:
                 logger.warning("Catch exception: %s", e)
