@@ -1,7 +1,7 @@
 {
-  "channel_name": "renren", 
+  "channel_name": "Instagram", 
   "open": "yes", 
-  "platform": "RenrenFeed", 
+  "platform": "InstagramFeed", 
   "app_key": "YOUR APP KEY", 
   "app_secret": "YOUR APP SECRET",
   "user_id": "",
