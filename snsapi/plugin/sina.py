@@ -375,6 +375,10 @@ class SinaWeiboStatus(SinaWeiboBase):
             logger.warning("'%s' forward status '%s' with comment '%s' fail: %s",
                     self.jsonconf.channel_name, mID, text, e)
             return False
+			
+	@require_authed
+	def like(self, message):
+		
 
 if __name__ == '__main__':
     print '\n\n\n'

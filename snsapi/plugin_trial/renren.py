@@ -200,7 +200,7 @@ class RenrenFeed(SNSBase):
             response = self._http_get(RENREN_API2_SERVER + method, kwargs)
         else:
             response = self._http_post(RENREN_API2_SERVER + method, kwargs, files=_files)
-
+        logger.warning(json.dumps(response))
         if type(response) is not list and "error" in response:
             raise RenrenAPIError(response["error"]["code"], response["error"]["message"])
         return response['response']
@@ -246,7 +246,8 @@ class RenrenFeed(SNSBase):
                                   "publish_share",
                                   "publish_feed",
                                   "status_update",
-                                  "photo_upload"])
+                                  "photo_upload",
+                                  "operate_like"])
 
         url = RENREN_AUTHORIZATION_URI + "?" + self._urlencode(args)
         self.request_url(url)
@@ -278,8 +279,8 @@ class RenrenFeed(SNSBase):
         docstring placeholder
         '''
 
-        if self.get_saved_token():
-            return
+        #if self.get_saved_token():
+        #    return
 
         logger.info("Try to authenticate '%s' using OAuth2", self.jsonconf.channel_name)
         self.auth_first()
@@ -404,14 +405,13 @@ class RenrenFeed(SNSBase):
 
     @require_authed
     def reply(self, statusId, text):
-
         res = None
         flag = False
         try:
             # The order in the bracket is important since there
             # exists "SHARE_XXXX" type. In order to figure out
             # the actual type, SHARE must be put in the first position.
-            for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "STATUS"]:
+            for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "STATUS", "VIDEO"]:
                 if msg_type in statusId.feed_type:
                     flag = True
                     break
@@ -453,7 +453,7 @@ class RenrenFeed(SNSBase):
                 )
 
             elif message.ID.feed_type != 'OTHER':
-                for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM"]:
+                for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "VIDEO"]:
                     if msg_type in message.ID.feed_type:
                         break
                 # The order in the bracket is important since there
@@ -483,7 +483,42 @@ class RenrenFeed(SNSBase):
             return BooleanWrappedData(False, {
                 'errors': ['PLATFORM_'],
             })
-
+    
+    @require_authed
+    def like(self, message):
+        res = None
+        flag = False
+        try:
+            # The order in the bracket is important since there
+            # exists "SHARE_XXXX" type. In order to figure out
+            # the actual type, SHARE must be put in the first position.
+            for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "STATUS", "VIDEO"]:
+                if msg_type in message.ID.feed_type:
+                    flag = True
+                    break
+            if flag:
+                res = self.renren_request(
+                    method="like/ugc/put",
+                    ugcOwnerId=message.ID.source_user_id,
+                    likeUGCType="TYPE_" + msg_type,
+                    ugcId=message.ID.resource_id
+                )
+            else:
+                return BooleanWrappedData(False, {
+                    'errors': ['SNSAPI_NOT_SUPPORTED'],
+                })
+            
+        except Exception as e:
+            logger.warning('Catch exception: %s', type(e))
+            return BooleanWrappedData(False, {
+                'errors': ['PLATFORM_'],
+            })
+        if res:
+            return BooleanWrappedData(True)
+        else:
+            return BooleanWrappedData(False, {
+                'errors': ['PLATFORM_'],
+            })
 
 class RenrenStatus(RenrenFeed):
 
