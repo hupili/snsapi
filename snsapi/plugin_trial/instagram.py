@@ -201,7 +201,7 @@ class InstagramFeed(SNSBase):
         return False
 
     # NOTE:
-    # Comments function will be blocked by Instagram defaultly.
+    # Comments function will be blocked by Instagram by default.
     # Anyone who would like to use this function must
     # apply for authorization first. Refer to the following website:
     # https://help.instagram.com/contact/185819881608116
@@ -231,6 +231,24 @@ class InstagramFeed(SNSBase):
                     resource="media/" + message.ID.id + "/likes",
                     method="post"
                 )
+                message.parsed.liked = True
+                return True
+            except Exception, e:
+                logger.warning("InstagramAPIError, %s", e)
+                return False
+
+    @require_authed
+    def unlike(self, message):
+        if str(message.parsed.liked).lower() == "false":
+            logger.warning("You have never liked this message before")
+            return True
+        else:
+            try:
+                jsonlist = self.instagram_request(
+                    resource="media/" + message.ID.id + "/likes",
+                    method="delete"
+                )
+                message.parsed.liked = False
                 return True
             except Exception, e:
                 logger.warning("InstagramAPIError, %s", e)
