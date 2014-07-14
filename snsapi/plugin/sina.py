@@ -1,4 +1,4 @@
-#-*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
 '''
 Sina Weibo client
@@ -19,13 +19,14 @@ else:
 
 logger.debug("%s plugged!", __file__)
 
+
 class SinaWeiboBase(SNSBase):
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(SinaWeiboBase, self).__init__(channel)
 
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = SNSBase.new_channel(full)
 
         c['app_key'] = ''
@@ -43,16 +44,16 @@ class SinaWeiboBase(SNSBase):
     def read_channel(self, channel):
         super(SinaWeiboBase, self).read_channel(channel)
 
-        if not "auth_url" in self.auth_info:
+        if "auth_url" not in self.auth_info:
             self.auth_info.auth_url = "https://api.weibo.com/oauth2/"
-        if not "callback_url" in self.auth_info:
+        if "callback_url" not in self.auth_info:
             self.auth_info.callback_url = "http://snsapi.sinaapp.com/auth.php"
 
         # According to our test, it is 142 unicode character
         # We also use 140 by convention
         self.jsonconf['text_length_limit'] = 140
 
-        #if not 'platform_prefix' in self.jsonconf:
+        # If not 'platform_prefix' in self.jsonconf:
         #    self.jsonconf['platform_prefix'] = u'新浪'
 
     def need_auth(self):
@@ -93,7 +94,7 @@ class SinaWeiboBase(SNSBase):
             }
 
             auth_url = "https://api.weibo.com/oauth2/authorize"
-            #auth_url = self.auth_info.auth_url
+            # auth_url = self.auth_info.auth_url
             resp_url = self._http_post(auth_url, data=postdata, headers=headers, json_parse=False).url
             logger.debug("response URL from local post: %s", resp_url)
             return resp_url
@@ -124,7 +125,7 @@ class SinaWeiboBase(SNSBase):
         base_url = "https://api.weibo.com/2"
         full_url = "%s/%s.json" % (base_url, name)
 
-        if not 'access_token' in params:
+        if 'access_token' not in params:
             params['access_token'] = self.token.access_token
 
         http_request_funcs = {
@@ -146,9 +147,9 @@ class SinaWeiboBase(SNSBase):
             u = results["urls"][0]
             return u["url_short"]
             # Even for usable URL, it returns False?
-            #if u['result'] == 'true':
+            # if u['result'] == 'true':
             #    return u["url_short"]
-            #else:
+            # else:
             #    logger.warning("Response short URL is not usable ('%s'). Fallback to original URL", u["url_short"])
             #    return url
         except Exception as e:
@@ -158,7 +159,7 @@ class SinaWeiboBase(SNSBase):
     @require_authed
     def _replace_with_short_url(self, text):
         import re
-        #TODO:
+        # TODO:
         #    1) This regex needs upgrade.
         #       Is it better to match only http(s):// prefix?
         #    2) A better place to locate the pattern is the upper level dir,
@@ -171,14 +172,17 @@ class SinaWeiboBase(SNSBase):
         lst = p.findall(text)
         result = text
         for c in lst:
-            ex_c = self._expand_url(c);
+            ex_c = self._expand_url(c)
             surl = self._short_url_weibo(ex_c).encode('utf-8')
             logger.debug("url='%s', short_url='%s'", c, surl)
-            result = result.replace(c,surl)
+            result = result.replace(c, surl)
         return result.decode('utf-8')
 
+
 class SinaWeiboStatusMessage(snstype.Message):
+
     platform = "SinaWeiboStatus"
+
     def parse(self):
         self.ID.platform = self.platform
         self._parse(self.raw)
@@ -234,11 +238,12 @@ class SinaWeiboStatusMessage(snstype.Message):
             self.parsed.text_trace = None
             self.parsed.text = self.parsed.text_orig
 
+
 class SinaWeiboStatus(SinaWeiboBase):
 
     Message = SinaWeiboStatusMessage
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(SinaWeiboStatus, self).__init__(channel)
 
         self.platform = self.__class__.__name__
@@ -256,13 +261,13 @@ class SinaWeiboStatus(SinaWeiboBase):
             jsonobj = self.weibo_request('statuses/home_timeline',
                     'GET',
                     {'count': count})
-            if("error" in  jsonobj):
+            if("error" in jsonobj):
                 logger.warning("error json object returned: %s", jsonobj)
                 return []
             for j in jsonobj['statuses']:
-                statuslist.append(self.Message(j,\
-                        platform = self.jsonconf['platform'],\
-                        channel = self.jsonconf['channel_name']\
+                statuslist.append(self.Message(j,
+                        platform=self.jsonconf['platform'],
+                        channel=self.jsonconf['channel_name']
                         ))
             logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
         except Exception, e:
@@ -281,7 +286,7 @@ class SinaWeiboStatus(SinaWeiboBase):
         #     * With this pre-shortening, we can post potentially longer messages.
         #     * It consumes one more API quota.
         text = self._replace_with_short_url(text)
-        text = self._cat(self.jsonconf['text_length_limit'], [(text,1)], delim='//')
+        text = self._cat(self.jsonconf['text_length_limit'], [(text, 1)], delim='//')
 
         try:
             if not pic:
@@ -312,7 +317,7 @@ class SinaWeiboStatus(SinaWeiboBase):
         try:
             ret = self.weibo_request('comments/create',
                     'POST',
-                    {'id': statusID.id, 'comment': text })
+                    {'id': statusID.id, 'comment': text})
             ret['id']
             return True
         except Exception as e:
@@ -344,10 +349,10 @@ class SinaWeiboStatus(SinaWeiboBase):
         else:
             mID = message.ID
             if not message.parsed['text_trace'] is None:
-                #origin_sequence = u'@' + m.raw['user']['name'] + u'：' + m.raw['text'])
+                # origin_sequence = u'@' + m.raw['user']['name'] + u'：' + m.raw['text'])
                 origin_sequence = u'@' + message.parsed['username'] + u'：' + message.parsed['text_trace']
                 decorated_text = self._cat(self.jsonconf['text_length_limit'],
-                        [(text,2), (origin_sequence, 1)],
+                        [(text, 2), (origin_sequence, 1)],
                         delim='//')
             else:
                 decorated_text = text
@@ -364,7 +369,7 @@ class SinaWeiboStatus(SinaWeiboBase):
         try:
             ret = self.weibo_request('statuses/repost',
                     'POST',
-                    {'id': mID.id, 'status': text })
+                    {'id': mID.id, 'status': text})
             if 'id' in ret:
                 return True
             else:
@@ -375,10 +380,58 @@ class SinaWeiboStatus(SinaWeiboBase):
             logger.warning("'%s' forward status '%s' with comment '%s' fail: %s",
                     self.jsonconf.channel_name, mID, text, e)
             return False
-			
-	@require_authed
-	def like(self, message):
-		
+
+    @require_authed
+    def like(self, message):
+        '''
+        Like method
+           * Weibo doesn't provide an API for "like"
+           * So "favourite" function supersedes "like"
+           * Here "like" means "add to my favourites"
+           * Receive a message
+        '''
+        mID = message.ID
+        try:
+            ret = self.weibo_request('favorites/create',
+                    'POST',
+                    {'id': mID.id})
+
+            if 'favorited_time' in ret:
+                return True
+            else:
+                logger.warning("'%s' like status '%s' fail. ret: %s",
+                        self.jsonconf.channel_name, mID, ret)
+                return False
+        except Exception as e:
+            logger.warning("'%s' like status '%s' fail. ret: %s",
+                        self.jsonconf.channel_name, mID, ret)
+            return False
+
+    @require_authed
+    def unlike(self, message):
+        '''
+        Unlike method
+           * Weibo doesn't provide an API for "unlike"
+           * So "unfavourite" function supersedes "unlike"
+           * Here "unlike" means "remove from my favourites"
+           * Receive a message
+        '''
+        mID = message.ID
+        try:
+            ret = self.weibo_request('favorites/destroy',
+                    'POST',
+                    {'id': mID.id})
+            logger.warning(str())
+            if 'favorited_time' in ret:
+                return True
+            else:
+                logger.warning("'%s' unlike status '%s' fail. ret: %s",
+                        self.jsonconf.channel_name, mID, ret)
+                return False
+        except Exception as e:
+            logger.warning("'%s' unlike status '%s' fail. ret: %s",
+                        self.jsonconf.channel_name, mID, ret)
+            return False
 
 if __name__ == '__main__':
     print '\n\n\n'
@@ -386,7 +439,7 @@ if __name__ == '__main__':
     # Create and fill in app information
     sina_conf = SinaWeiboStatus.new_channel()
     sina_conf['channel_name'] = 'test_sina'
-    sina_conf['app_key'] = '2932547522'                           # Chnage to your own keys
+    sina_conf['app_key'] = '2932547522'                           # Change to your own keys
     sina_conf['app_secret'] = '93969e0d835ffec8dcd4a56ecf1e57ef'  # Change to your own keys
     # Instantiate the channel
     sina = SinaWeiboStatus(sina_conf)

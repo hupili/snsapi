@@ -154,7 +154,7 @@ class RenrenFeed(SNSBase):
         c['auth_info'] = {
                 "save_token_file": "(default)",
                 "cmd_request_url": "(default)",
-                "callback_url": "http://snsapi.sinaapp.com/auth.php",
+                "callback_url": "http://snsapi.ie.cuhk.edu.hk/aux/auth.php",
                 "cmd_fetch_code": "(default)"
                 }
         return c
@@ -196,11 +196,12 @@ class RenrenFeed(SNSBase):
             del kwargs['file']
         else:
             _files = {}
+
         if method == "feed/list" or method == "status/list":
             response = self._http_get(RENREN_API2_SERVER + method, kwargs)
         else:
             response = self._http_post(RENREN_API2_SERVER + method, kwargs, files=_files)
-        logger.warning(json.dumps(response))
+
         if type(response) is not list and "error" in response:
             raise RenrenAPIError(response["error"]["code"], response["error"]["message"])
         return response['response']
@@ -279,8 +280,8 @@ class RenrenFeed(SNSBase):
         docstring placeholder
         '''
 
-        #if self.get_saved_token():
-        #    return
+        if self.get_saved_token():
+            return
 
         logger.info("Try to authenticate '%s' using OAuth2", self.jsonconf.channel_name)
         self.auth_first()
@@ -442,41 +443,43 @@ class RenrenFeed(SNSBase):
     @require_authed
     def forward(self, message, text):
         res = None
+        if not message.platform == self.platform:
+            return super(RenrenFeed, self).forward(message, text)
+        else:
+            try:
+                if message.ID.feed_type == 'UPDATE_STATUS':
+                    res = self.renren_request(
+                        method='status/share',
+                        content=text,
+                        statusId=message.ID.resource_id,
+                        ownerId=message.ID.source_user_id,
+                    )
 
-        try:
-            if message.ID.feed_type == 'UPDATE_STATUS':
-                res = self.renren_request(
-                    method='status/share',
-                    content=text,
-                    statusId=message.ID.resource_id,
-                    ownerId=message.ID.source_user_id,
-                )
-
-            elif message.ID.feed_type != 'OTHER':
-                for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "VIDEO"]:
-                    if msg_type in message.ID.feed_type:
-                        break
-                # The order in the bracket is important since there
-                # exists "SHARE_XXXX" type. In order to figure out
-                # the actual type, SHARE must be put in the first position.
-                res = self.renren_request(
-                    method='share/ugc/put',
-                    ugcType="TYPE_" + msg_type,
-                    ugcId=message.ID.resource_id,
-                    # Here message.ID.resource_id is the proper id
-                    # for forwarding these messages instead of message.ID.status_id
-                    ugcOwnerId=message.ID.source_user_id,
-                    comment=text
-                )
-            else:
+                elif message.ID.feed_type != 'OTHER':
+                    for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "VIDEO"]:
+                        if msg_type in message.ID.feed_type:
+                            break
+                    # The order in the bracket is important since there
+                    # exists "SHARE_XXXX" type. In order to figure out
+                    # the actual type, SHARE must be put in the first position.
+                    res = self.renren_request(
+                        method='share/ugc/put',
+                        ugcType="TYPE_" + msg_type,
+                        ugcId=message.ID.resource_id,
+                        # Here message.ID.resource_id is the proper id
+                        # for forwarding these messages instead of message.ID.status_id
+                        ugcOwnerId=message.ID.source_user_id,
+                        comment=text
+                    )
+                else:
+                    return BooleanWrappedData(False, {
+                        'errors': ['SNSAPI_NOT_SUPPORTED'],
+                    })
+            except Exception as e:
+                logger.warning('Catch exception: %s', type(e))
                 return BooleanWrappedData(False, {
-                    'errors': ['SNSAPI_NOT_SUPPORTED'],
+                    'errors': ['PLATFORM_'],
                 })
-        except Exception as e:
-            logger.warning('Catch exception: %s', type(e))
-            return BooleanWrappedData(False, {
-                'errors': ['PLATFORM_'],
-            })
         if res:
             return BooleanWrappedData(True)
         else:
@@ -507,7 +510,6 @@ class RenrenFeed(SNSBase):
                 return BooleanWrappedData(False, {
                     'errors': ['SNSAPI_NOT_SUPPORTED'],
                 })
-            
         except Exception as e:
             logger.warning('Catch exception: %s', type(e))
             return BooleanWrappedData(False, {
@@ -519,6 +521,42 @@ class RenrenFeed(SNSBase):
             return BooleanWrappedData(False, {
                 'errors': ['PLATFORM_'],
             })
+
+    @require_authed
+    def unlike(self, message):
+        res = None
+        flag = False
+        try:
+            # The order in the bracket is important since there
+            # exists "SHARE_XXXX" type. In order to figure out
+            # the actual type, SHARE must be put in the first position.
+            for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "STATUS", "VIDEO"]:
+                if msg_type in message.ID.feed_type:
+                    flag = True
+                    break
+            if flag:
+                res = self.renren_request(
+                    method="like/ugc/remove",
+                    ugcOwnerId=message.ID.source_user_id,
+                    likeUGCType="TYPE_" + msg_type,
+                    ugcId=message.ID.resource_id
+                )
+            else:
+                return BooleanWrappedData(False, {
+                    'errors': ['SNSAPI_NOT_SUPPORTED'],
+                })
+        except Exception as e:
+            logger.warning('Catch exception: %s', type(e))
+            return BooleanWrappedData(False, {
+                'errors': ['PLATFORM_'],
+            })
+        if res:
+            return BooleanWrappedData(True)
+        else:
+            return BooleanWrappedData(False, {
+                'errors': ['PLATFORM_'],
+            })
+
 
 class RenrenStatus(RenrenFeed):
 
