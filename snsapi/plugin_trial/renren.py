@@ -154,7 +154,7 @@ class RenrenFeed(SNSBase):
         c['auth_info'] = {
                 "save_token_file": "(default)",
                 "cmd_request_url": "(default)",
-                "callback_url": "http://snsapi.sinaapp.com/auth.php",
+                "callback_url": "http://snsapi.ie.cuhk.edu.hk/aux/auth.php",
                 "cmd_fetch_code": "(default)"
                 }
         return c

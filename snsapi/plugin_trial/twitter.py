@@ -111,7 +111,7 @@ class TwitterStatus(SNSBase):
         try:
             status = self.api.PostUpdate(text,
                                          in_reply_to_status_id=statusID.id)
-            #TODO:
+            # TODO:
             #     Find better indicator for status update success
             if status:
                 return True
@@ -131,7 +131,7 @@ class TwitterStatus(SNSBase):
                     delim='//')
             try:
                 status = self.api.PostUpdate(decorated_text)
-                #TODO:
+                # TODO:
                 #     Find better indicator for status update success
                 if status:
                     return True
@@ -183,4 +183,3 @@ class TwitterSearch(TwitterStatus):
         except Exception, e:
             logger.warning("Catch expection: %s", e)
         return status_list
-
