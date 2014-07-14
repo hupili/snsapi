@@ -166,7 +166,7 @@ class SinaWeiboBase(SNSBase):
         #       e.g. snstype.py. URL matching pattern is universal for all
         #       platforms. Placing it at a common area and making the pattern
         #       testable is favourable.
-        p = re.compile("[a-zA-z]+://[^\s]*")
+        p = re.compile("http(s)?://[^\s]*")
         if isinstance(text, unicode):
             text = text.encode('utf-8')
         lst = p.findall(text)
