@@ -48,7 +48,7 @@ class RSSMessage(snstype.Message):
 
         self.parsed.title = self.raw.get('title')
         self.parsed.link = self.raw.get('link')
-
+        self.parsed.liked = False
         self.ID.link = self.parsed.link
 
         try:
@@ -316,12 +316,12 @@ class RSS2RW(RSS):
         return True
 
     def like(self, message):
-        logger.warning("RSS doesn't support 'like' function!")
-        return False
+        message.parsed.liked = True
+        return True
 
     def unlike(self, message):
-        logger.warning("RSS doesn't support 'unlike' function!")
-        return False
+        message.parsed.liked = False
+        return True
 
 
 class RSSSummaryMessage(RSSMessage):

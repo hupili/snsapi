@@ -53,6 +53,12 @@ class FacebookFeedMessage(snstype.Message):
                 'data': dct['link']
             })
         self.parsed.text = '\n'.join(resmsg)
+        self.parsed.liked = False
+        # Actually there exists an API for obtaining likeinfo.
+        # But in order to get that trivial info we have to make
+        # requests for every message, which is pretty time-consuming.
+        # Considering our situation, we had better regard all facebook
+        # messages as unliked.
 
 
 class FacebookFeed(SNSBase):
@@ -180,6 +186,7 @@ class FacebookFeed(SNSBase):
         try:
             status = self.graph.put_object(message.ID.id, "likes")
             if status:
+                message.parsed.liked = True
                 return True
             else:
                 return False
@@ -193,8 +200,9 @@ class FacebookFeed(SNSBase):
             # The third SDK doesn't provide a high-level
             # interface for unlike. So here a low-level
             # method is called.
-            status = self.graph.request(message.ID.id + "/likes",                            post_args={"method": "delete"})
+            status = self.graph.request(message.ID.id + "/likes", post_args={"method": "delete"})
             if status:
+                message.parsed.liked = False
                 return True
             else:
                 return False

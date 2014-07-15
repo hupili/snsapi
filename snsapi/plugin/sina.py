@@ -204,6 +204,11 @@ class SinaWeiboStatusMessage(snstype.Message):
         self.parsed.userid = dct['user']['id']
         self.parsed.reposts_count = dct['reposts_count']
         self.parsed.comments_count = dct['comments_count']
+        # accordian to http://open.weibo.com/qa/index.php?qa=448&qa_1=v2-%E5%B7%B2%E6%94%B6%E8%97%8F%E5%BE%AE%E5%8D%9A-%E6%8E%A5%E5%8F%A3statuses-friends-timeline%E8%BF%94%E5%9B%9E%E5%AD%97%E6%AE%B5-favorited-%E4%B8%BAfalse
+        # Currently we have no way to tell whether 
+        # a weibo message is favorited Although there's a 
+        # specious property
+        self.parsed.liked = False
         if 'pic_urls' in dct:
             for pic in dct['pic_urls']:
                 self.parsed.attachments.append(
@@ -395,16 +400,19 @@ class SinaWeiboStatus(SinaWeiboBase):
             ret = self.weibo_request('favorites/create',
                     'POST',
                     {'id': mID.id})
-
-            if 'favorited_time' in ret:
+            # error_code 20704 means this status had been collected.
+            # For the purpose of backward compatibility, we also view
+            # it as a successful like
+            if 'favorited_time' in ret or ret["error_code"] == 20704:
+                message.parsed.liked = True
                 return True
             else:
-                logger.warning("'%s' like status '%s' fail. ret: %s",
+                logger.warning("'%s' likes status '%s' fail. ret: %s",
                         self.jsonconf.channel_name, mID, ret)
                 return False
-        except Exception as e:
-            logger.warning("'%s' like status '%s' fail. ret: %s",
-                        self.jsonconf.channel_name, mID, ret)
+        except Exception, e:
+            logger.warning("Exception: %s. '%s' like status '%s' fail. ret: %s",
+                        e, self.jsonconf.channel_name, mID, ret)
             return False
 
     @require_authed
@@ -421,14 +429,17 @@ class SinaWeiboStatus(SinaWeiboBase):
             ret = self.weibo_request('favorites/destroy',
                     'POST',
                     {'id': mID.id})
-            logger.warning(str())
-            if 'favorited_time' in ret:
+            # error_code 20705 means this status had never been collected.
+            # For the purpose of backward compatibility, we also view
+            # it as a successful unlike
+            if 'favorited_time' in ret or ret["error_code"] == 20705:
+                message.parsed.liked = False
                 return True
             else:
-                logger.warning("'%s' unlike status '%s' fail. ret: %s",
+                logger.warning("'%s' unlikes status '%s' fail. ret: %s",
                         self.jsonconf.channel_name, mID, ret)
                 return False
-        except Exception as e:
+        except Exception, e:
             logger.warning("'%s' unlike status '%s' fail. ret: %s",
                         self.jsonconf.channel_name, mID, ret)
             return False
@@ -457,6 +468,6 @@ if __name__ == '__main__':
     print '\n\n--- Statuses of your friends is followed ---'
     print status_list
     print '--- End of status timeline ---\n\n'
-
+    
     print 'Short demo ends here! You can do more with SNSAPI!'
     print 'Please join our group for further discussions'

@@ -60,7 +60,10 @@ class InstagramMessage(snstype.Message):
         #   * dct['user']['name'] is actually a nick name you can set. It's not
         #   permanent.
         self.parsed.username = data['user']['username']
-        self.parsed.liked = data["user_has_liked"]
+        if str(data["user_has_liked"]).lower() == "false":
+            self.parsed.liked = False
+        else:
+            self.parsed.liked = True
         try:
             self.parsed.text = data['caption']['text']
         except Exception, e:
@@ -222,37 +225,29 @@ class InstagramFeed(SNSBase):
 
     @require_authed
     def like(self, message):
-        if str(message.parsed.liked).lower() == "true":
-            logger.warning("You have liked this message before")
+        try:
+            jsonlist = self.instagram_request(
+                resource="media/" + message.ID.id + "/likes",
+                method="post"
+            )
+            message.parsed.liked = True
             return True
-        else:
-            try:
-                jsonlist = self.instagram_request(
-                    resource="media/" + message.ID.id + "/likes",
-                    method="post"
-                )
-                message.parsed.liked = True
-                return True
-            except Exception, e:
-                logger.warning("InstagramAPIError, %s", e)
-                return False
+        except Exception, e:
+            logger.warning("InstagramAPIError, %s", e)
+            return False
 
     @require_authed
     def unlike(self, message):
-        if str(message.parsed.liked).lower() == "false":
-            logger.warning("You have never liked this message before")
+        try:
+            jsonlist = self.instagram_request(
+                resource="media/" + message.ID.id + "/likes",
+                method="delete"
+            )
+            message.parsed.liked = False
             return True
-        else:
-            try:
-                jsonlist = self.instagram_request(
-                    resource="media/" + message.ID.id + "/likes",
-                    method="delete"
-                )
-                message.parsed.liked = False
-                return True
-            except Exception, e:
-                logger.warning("InstagramAPIError, %s", e)
-                return False
+        except Exception, e:
+            logger.warning("InstagramAPIError, %s", e)
+            return False
 
     def forward(self, message, text):
         logger.warning("Instagram does not support update()!")

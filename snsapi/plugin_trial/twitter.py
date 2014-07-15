@@ -6,7 +6,6 @@ twitter
 We use python-twitter as the backend at present.
 It should be changed to invoke REST API directly later.
 '''
-
 from ..snslog import SNSLog
 logger = SNSLog
 from ..snsbase import SNSBase
@@ -40,6 +39,10 @@ class TwitterStatusMessage(snstype.Message):
         self.parsed.username = dct['user']['screen_name']
         self.parsed.userid = dct['user']['id']
         self.parsed.text = dct['text']
+        if str(dct["favorited"]).lower() == "false":
+            self.parsed.liked = False
+        else:
+            self.parsed.liked = True
 
 
 class TwitterStatus(SNSBase):
@@ -154,6 +157,7 @@ class TwitterStatus(SNSBase):
         try:
             status = self.api.CreateFavorite(id=message.ID.id)
             if status:
+                message.parsed.liked = True
                 return True
             else:
                 return False
@@ -172,6 +176,7 @@ class TwitterStatus(SNSBase):
         try:
             status = self.api.DestroyFavorite(id=message.ID.id)
             if status:
+                message.parsed.liked = False
                 return True
             else:
                 return False
