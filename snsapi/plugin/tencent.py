@@ -1,27 +1,40 @@
-#-*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
 '''
 Tencent Weibo Client
 '''
 
-from ..snslog import SNSLog as logger
-from ..snsbase import SNSBase, require_authed
-from .. import snstype
-from .. import utils
+if __name__ == '__main__':
+    import sys
+    sys.path.append('..')
+    from snslog import SNSLog as logger
+    from snsbase import SNSBase, require_authed
+    import snstype
+    import utils
+    import random
+else:
+    from ..snslog import SNSLog as logger
+    from ..snsbase import SNSBase, require_authed
+    from .. import snstype
+    from .. import utils
+    import random
 
 logger.debug("%s plugged!", __file__)
 
+
 class TencentWeiboStatusMessage(snstype.Message):
+
     platform = "TencentWeiboStatus"
+
     def parse(self):
         self.ID.platform = self.platform
         self._parse(self.raw)
 
     def _parse(self, dct):
-        #TODO: unify the data type
+        # TODO: unify the data type
         #      In SinaAPI, 'created_at' is a string
         #      In TecentWeibo, 'created_at' is an int
-        #Proposal:
+        # Proposal:
         #      1. Store a copy of dct object in the Status object.
         #         Derived class of TecentWeibo or SinaAPI can extract
         #         other fields for future use.
@@ -33,6 +46,12 @@ class TencentWeiboStatusMessage(snstype.Message):
         self.parsed.time = dct['timestamp']
         self.parsed.userid = dct['name']
         self.parsed.username = dct['nick']
+        self.parsed.liked = False
+        # Actually there exists an API for obtaining likeinfo.
+        # But in order to get that trivial info we have to make
+        # requests for every message, which is pretty time-consuming.
+        # Considering our situation, we had better regard all renren
+        # messages as unliked.
 
         # The 'origtext' field is plaintext.
         # URLs in 'text' field is parsed to HTML tag
@@ -43,38 +62,37 @@ class TencentWeiboStatusMessage(snstype.Message):
             self.parsed.text_trace = utils.html_entity_unescape(dct['origtext'])
             self.parsed.text_orig = utils.html_entity_unescape(dct['source']['origtext'])
             self.parsed.username_orig = utils.html_entity_unescape(dct['source']['nick'])
-            self.parsed.text = self.parsed.text_trace \
-                    + " || " + "@" + self.parsed.username_orig \
-                    + " : " + self.parsed.text_orig
+            self.parsed.text = self.parsed.text_trace + " || " + "@" + self.parsed.username_orig + " : " + self.parsed.text_orig
         else:
             self.parsed.text_trace = None
             self.parsed.text_orig = utils.html_entity_unescape(dct['origtext'])
             self.parsed.username_orig = dct['nick']
             self.parsed.text = utils.html_entity_unescape(dct['origtext'])
 
-        #TODO:
+        # TODO:
         #    retire past fields
-        #self.ID.reid = dct['id']
-        #self.parsed.id = dct['id']
-        #self.parsed.created_at = dct['timestamp']
-        #self.parsed.text = dct['text']
-        #self.parsed.reposts_count = dct['count']
-        #self.parsed.comments_count = dct['mcount']
-        #self.parsed.username = dct['name']
-        #self.parsed.usernick = dct['nick']
+        # self.ID.reid = dct['id']
+        # self.parsed.id = dct['id']
+        # self.parsed.created_at = dct['timestamp']
+        # self.parsed.text = dct['text']
+        # self.parsed.reposts_count = dct['count']
+        # self.parsed.comments_count = dct['mcount']
+        # self.parsed.username = dct['name']
+        # self.parsed.usernick = dct['nick']
+
 
 class TencentWeiboStatus(SNSBase):
 
     Message = TencentWeiboStatusMessage
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(TencentWeiboStatus, self).__init__(channel)
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = SNSBase.new_channel(full)
 
         c['app_key'] = ''
@@ -92,16 +110,16 @@ class TencentWeiboStatus(SNSBase):
     def read_channel(self, channel):
         super(TencentWeiboStatus, self).read_channel(channel)
 
-        if not "auth_url" in self.auth_info:
+        if "auth_url" not in self.auth_info:
             self.auth_info.auth_url = "https://open.t.qq.com/cgi-bin/oauth2/"
-        if not "callback_url" in self.auth_info:
+        if "callback_url" not in self.auth_info:
             self.auth_info.callback_url = "http://snsapi.sinaapp.com/auth.php"
 
         # Tencent limit is a little more than 140.
         # We just use 140, which is a global industrial standard.
         self.jsonconf['text_length_limit'] = 140
 
-        #if not 'platform_prefix' in self.jsonconf:
+        # if not 'platform_prefix' in self.jsonconf:
         #    self.jsonconf['platform_prefix'] = u'腾讯'
 
     def need_auth(self):
@@ -146,9 +164,9 @@ class TencentWeiboStatus(SNSBase):
         statuslist = snstype.MessageList()
         try:
             for j in jsonobj['data']['info']:
-                statuslist.append(self.Message(j,\
-                    platform = self.jsonconf['platform'],\
-                    channel = self.jsonconf['channel_name']\
+                statuslist.append(self.Message(j,
+                    platform=self.jsonconf['platform'],
+                    channel=self.jsonconf['channel_name']
                     ))
         except Exception, e:
             logger.warning("Catch exception: %s", e)
@@ -163,7 +181,7 @@ class TencentWeiboStatus(SNSBase):
            * return: success or not
         '''
 
-        text = self._cat(self.jsonconf['text_length_limit'], [(text,1)])
+        text = self._cat(self.jsonconf['text_length_limit'], [(text, 1)])
 
         if not pic:
             method = "t/add"
@@ -197,3 +215,65 @@ class TencentWeiboStatus(SNSBase):
         logger.info("Reply '%s' to status '%s' fail: %s", text, self.jsonconf.channel_name, ret)
         return ret
 
+    @require_authed
+    def like(self, message):
+        '''like a status
+
+           * parameter message: the message to be liked
+           * return: success or not
+        '''
+        ret = self.tencent_request("t/like", "POST", id=message.ID.reid, format="json")
+        # errcode 6 means this status had been collected.
+        # For the purpose of backward compatibility, we also view
+        # it as a successful like
+        if ret['msg'] == "ok" or ret["errcode"] == 6:
+            message.parsed.liked = True
+            return True
+        logger.info("Like status '%s' fail: %s", self.jsonconf.channel_name, ret)
+        return ret
+
+    @require_authed
+    def unlike(self, message):
+        '''unlike a status
+
+           * parameter message: the message to be unliked
+           * return: success or not
+        '''
+        # errcode 6 means this status had never been collected.
+        # For the purpose of backward compatibility, we also view
+        # it as a successful like
+        ret = self.tencent_request("t/unlike", "POST", id=message.ID.reid, format="json", favoriteId=random.randint(10, 20))
+        # Accordion to the API document, favoriteId can be a random number other than 0
+        if ret['msg'] == "ok" or ret["errcode"] == 6:
+            message.parsed.liked = False
+            return True
+        logger.info("Unlike status '%s' fail: %s", self.jsonconf.channel_name, ret)
+        return ret
+
+if __name__ == '__main__':
+    print '\n\n\n'
+    print '==== SNSAPI Demo of tencent.py module ====\n'
+    # Create and fill in app information
+    tencent_conf = TencentWeiboStatus.new_channel()
+    tencent_conf['channel_name'] = 'test_tencent'
+    tencent_conf['app_key'] = '801389477'                           # Change to your own keys
+    tencent_conf['app_secret'] = 'bd002edff5670f64be610c7e143b3b18'  # Change to your own keys
+    # Instantiate the channel
+    tencent = TencentWeiboStatus(tencent_conf)
+    # OAuth your app
+    print 'SNSAPI is going to authorize your app.'
+    print 'Please make sure:'
+    print '   * You have filled in your own app_key and app_secret in this script.'
+    print '   * You configured the callback_url on open.weibo.com as'
+    print '     http://snsapi.sinaapp.com/auth.php'
+    print 'Press [Enter] to continue or Ctrl+C to end.'
+    raw_input()
+    tencent.auth()
+    # Test get 2 messages from your timeline
+    status_list = tencent.home_timeline(3)
+    print '\n\n--- Statuses of your friends is followed ---'  
+    print status_list
+    print '--- End of status timeline ---\n\n'
+    
+    print 'Short demo ends here! You can do more with SNSAPI!'
+    print 'Please join our group for further discussions'

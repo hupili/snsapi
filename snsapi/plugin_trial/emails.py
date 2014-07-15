@@ -51,7 +51,7 @@ class EmailMessage(snstype.Message):
         return ret
 
     def _parse(self, dct):
-        #TODO:
+        # TODO:
         #    Put in message id.
         #    The id should be composed of mailbox and id in the box.
         #
@@ -73,7 +73,7 @@ class EmailMessage(snstype.Message):
         try:
             self.parsed.title = self._decode_header(dct.get('Subject'))
             self.parsed.text = dct.get('body')
-    
+            self.parsed.liked = False
         except Exception, e:
             logger.warning("I caught you%s",type(e))
         self.parsed.time = utils.str2utc(dct.get('Date'))
@@ -88,7 +88,7 @@ class EmailMessage(snstype.Message):
             self.parsed.username = sender
             self.parsed.userid = sender
         
-        #TODO:
+        # TODO:
         #    The following is just temporary method to enable reply email.
         #    See the above TODO for details. The following information
         #    suffices to reply email. However, they do not form a real ID.
@@ -108,7 +108,7 @@ class Email(SNSBase):
         self.smtp_ok = False
 
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = SNSBase.new_channel(full)
 
         c['platform'] = 'Email'
@@ -144,7 +144,7 @@ class Email(SNSBase):
         # The past content-type fetching codes.
         # It's better to rely on email.Message functions.
         #
-        #if 'Content-Type' in msg:
+        # if 'Content-Type' in msg:
         #    ct = msg['Content-Type']
         #    r = re.compile(r'^(.+); charset="(.+)"$', re.IGNORECASE)
         #    m = r.match(ct)
@@ -284,7 +284,7 @@ class Email(SNSBase):
         conn.copy(mlist, 'buddy')
         conn.store(mlist, '+FLAGS', r'(\deleted)')
 
-    def add_buddy(self, address, nickname = None):
+    def add_buddy(self, address, nickname=None):
         '''
         Warning: Use this function only when necessary. (20121026)
 
@@ -305,7 +305,7 @@ class Email(SNSBase):
         self.buddy_list[address] = {"userid": address, "username": nickname}
         self._update_buddy_list()
 
-    def _receive(self, count = 20):
+    def _receive(self, count=20):
         #TODO:
         #    1.
         #    Consider UNSEEN message first. If we get less than count
@@ -325,7 +325,7 @@ class Email(SNSBase):
 
             # We assume ID is in chronological order and filter
             # the count number of latest messages.
-            latest_messages = sorted(data[0].split(), key = lambda x: int(x), reverse = True)[0:count]
+            latest_messages = sorted(data[0].split(), key=lambda x: int(x), reverse = True)[0:count]
             #logger.debug("selected message IDs: %s", latest_messages)
         except Exception, e:
             logger.warning(e)
@@ -484,7 +484,15 @@ class Email(SNSBase):
         toaddr = statusID.reply_to
         return self._send(toaddr, title, msg)
 
-    def expire_after(self, token = None):
+    def like(self, message):
+        message.parsed.liked = True
+        return True
+
+    def unlike(self, message):
+        message.parsed.liked = False
+        return True
+
+    def expire_after(self, token=None):
         # Check whether the user supplied secrets are correct
         if self.imap_ok == True and self.smtp_ok == True:
             # -1: Means this platform does not have token expire issue.
