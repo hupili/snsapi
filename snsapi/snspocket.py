@@ -519,3 +519,49 @@ class SNSPocket(dict):
         logger.info("Forward status '%s' with text '%s'. Result: %s",\
                 message.digest(), text, re)
         return re
+
+    def like(self, message, channel=None):
+        """
+        like a message
+
+        """
+        re = {}
+        if channel:
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re = self[channel].like(message)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
+        else:
+            for c in self.itervalues():
+                if self.__check_method(c, 'like') and not c.is_expired():
+                    re[c.jsonconf['channel_name']] = c.forward(message)
+
+        logger.info("Like status '%s'. Result: %s",\
+                message.digest(), re)
+        return re
+
+    def unlike(self, message, channel=None):
+        """
+        unlike a message
+
+        """
+        re = {}
+        if channel:
+            if channel in self:
+                if self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re = self[channel].unlike(message)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
+        else:
+            for c in self.itervalues():
+                if self.__check_method(c, 'unlike') and not c.is_expired():
+                    re[c.jsonconf['channel_name']] = c.forward(message)
+
+        logger.info("UnLike status '%s'. Result: %s",\
+                message.digest(), re)
+        return re
