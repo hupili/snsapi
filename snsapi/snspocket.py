@@ -477,7 +477,10 @@ class SNSPocket(dict):
         re = {}
         if channel:
             if channel in self:
-                if self[channel].is_expired():
+                # If the platforms are not identical, reply method will surly fail
+                if self[channel].platform != mID.platform:
+                    logger.warning("Inter-platform reply method is not supported.")                   
+                elif self[channel].is_expired():
                     logger.warning("channel '%s' is expired. Do nothing.", channel)
                 else:
                     re = self[channel].reply(mID, text)
@@ -486,9 +489,6 @@ class SNSPocket(dict):
         else:
             for c in self.itervalues():
                 if self.__check_method(c, 'reply') and not c.is_expired():
-                    #TODO:
-                    #    First try to match "channel_name".
-                    #    If there is no match, try to match "platform".
                     if c.jsonconf['platform'] == mID.platform:
                         re = c.reply(mID, text)
                         break
@@ -518,4 +518,72 @@ class SNSPocket(dict):
 
         logger.info("Forward status '%s' with text '%s'. Result: %s",\
                 message.digest(), text, re)
+        return re
+
+    def like(self, message, channel=None):
+        """
+        like a message
+
+        """
+        if isinstance(message, snstype.Message):
+            mID = message.ID
+        elif isinstance(message, snstype.MessageID):
+            mID = message
+        else:
+            logger.warning("unknown type: %s", type(message))
+            return {}
+
+        if channel:
+            if channel in self:
+                # If the platforms are not identical, like method will surly fail
+                if self[channel].platform != mID.platform:
+                    logger.warning("Inter-platform like method is not supported.")                   
+                elif self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re = self[channel].like(message)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
+        else:
+            for c in self.itervalues():
+                if self.__check_method(c, 'like') and not c.is_expired():
+                    re = c.like(message)
+                    break
+
+        logger.info("Like status '%s'. Result: %s",\
+                message.digest(), re)
+        return re
+
+    def unlike(self, message, channel=None):
+        """
+        unlike a message
+
+        """
+        if isinstance(message, snstype.Message):
+            mID = message.ID
+        elif isinstance(message, snstype.MessageID):
+            mID = message
+        else:
+            logger.warning("unknown type: %s", type(message))
+            return {}
+
+        if channel:
+            if channel in self:
+                # If the platforms are not identical, unlike method will surly fail
+                if self[channel].platform != mID.platform:
+                    logger.warning("Inter-platform unlike method is not supported.")                   
+                elif self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re = self[channel].unlike(message)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
+        else:
+            for c in self.itervalues():
+                if self.__check_method(c, 'unlike') and not c.is_expired():
+                    re = c.unlike(message)
+                    break
+
+        logger.info("UnLike status '%s'. Result: %s",\
+                message.digest(), re)
         return re
