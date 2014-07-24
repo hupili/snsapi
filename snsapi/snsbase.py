@@ -26,6 +26,7 @@ from snslog import SNSLog as logger
 
 # === 3rd party modules ===
 from third import oauth
+from third import pyDes
 oauth.logger = logger
 
 def require_authed(func):
@@ -265,7 +266,29 @@ class SNSBase(object):
         if fname == "(default)":
             fname = os.path.join(_dir_save, self.jsonconf.channel_name + ".token.json")
         return fname
+    
+    def _encrypt_data(self, key, data):
+        '''
+        Encrypt using triple DES.
+        User must provide a 24-bit key for Encrypting.
+        '''
+        key = key.encode("ascii")
+        refined_key = "123456781234567812345678"
+        k = pyDes.triple_des(refined_key, pyDes.CBC, "\0\1\2\3\4\5\6\7")
 
+        return k.encrypt(data.encode("ascii"), padmode=pyDes.PAD_PKCS5)
+        
+    def _decrypt_data(self, key, data):
+        '''
+        Decrypt using triple DES.
+        User must provide a 24-bit key for Decrypting.
+        '''
+        key = key.encode("ascii")
+        refined_key = "123456781234567812345678"
+        k = pyDes.triple_des(refined_key, pyDes.CBC, IV="\0\1\2\3\4\5\6\7")
+
+        return k.decrypt(data, padmode=pyDes.PAD_PKCS5)
+        
     def save_token(self):
         '''
         access token can be saved, it stays valid for a couple of days
@@ -273,11 +296,11 @@ class SNSBase(object):
         '''
         fname = self._token_filename()
         # Do not save expired token (or None type token)
-        if not fname is None and not self.is_expired():
-            #TODO: encrypt access token
+        if fname is not None and not self.is_expired():
             token = utils.JsonObject(self.token)
-            with open(fname,"w") as fp:
-                json.dump(token, fp)
+            encrypted_token = self._encrypt_data("11", json.dumps(token))
+            with open(fname,"wb") as fp:
+                fp.write(encrypted_token)
 
         return True
 
@@ -285,13 +308,24 @@ class SNSBase(object):
         try:
             fname = self._token_filename()
             if not fname is None:
-                with open(fname, "r") as fp:
-                    token = utils.JsonObject(json.load(fp))
-                    # check expire time
+                with open(fname, "rb") as fp:
+                    encrypted_token = fp.read()
+                    try:
+                        token = utils.JsonObject(json.loads(encrypted_token))
+                        # Check if the token is encrypted.
+                    except:
+                        token = self._decrypt_data("11", encrypted_token)
+                        try:
+                            # Check if user-offered password can decrypt the token
+                            token = utils.JsonObject(json.loads(token))
+                        except:
+                            logger.warning(str(token))
+                            logger.warning("The key you provided is incorrect, try another key")
+                            return False
+                    # Check expire time
                     if self.is_expired(token):
                         logger.debug("Saved Access token is expired, try to get one through sns.auth() :D")
                         return False
-                    #TODO: decrypt token
                     self.token = token
             else:
                 logger.debug("This channel is configured not to save token to file")
@@ -335,11 +369,13 @@ class SNSBase(object):
         formal module to use. This interface is kept for backward
         compatibility.
         '''
-        #TODO:
+        # TODO:
         #    For those token that are near 0, we'd better inform
         #    the upper layer somehow. Or, it may just expire when
         #    the upper layer calls.
-        if self.expire_after(token) == 0:
+        # Modification:
+        #    I think 10 mins is sufficient for a pre-alarm.
+        if self.expire_after(token) <= 600 and self.expire_after(token) != -1:
             return True
         else:
             # >0 (not expire) or ==-1 (no expire issue)
@@ -633,7 +669,7 @@ class SNSBase(object):
         if 'text_length_limit' in self.jsonconf:
             tll = self.jsonconf['text_length_limit']
 
-        #TODO:
+        # TODO:
         #    This mapping had better be configurable from user side
         mapping = {
                 'RSS': u'RSS',
@@ -644,7 +680,8 @@ class SNSBase(object):
                 'SinaWeiboStatus': u'新浪',
                 'TencentWeiboStatus': u'腾讯',
                 'TwitterStatus': u'推特',
-                'Email': u'伊妹'
+                'Email': u'伊妹',
+                'InstagramFeed': u'Instagram'
         }
 
         platform_prefix = message.platform
@@ -661,11 +698,11 @@ class SNSBase(object):
             # this way, it we can compat the message further. i.e.
             # When one field is None, we omit the text "None" and
             # delimiter.
-            final = self._cat(tll, [(text, 5), (last_user, 4), \
-                    (unicode(message.parsed.text_trace), 1), \
+            final = self._cat(tll, [(text, 5), (last_user, 4),
+                    (unicode(message.parsed.text_trace), 1),
                     (unicode(message.parsed.text_orig), 3)])
         else:
-            final = self._cat(tll, [(text, 3), (last_user, 2),\
+            final = self._cat(tll, [(text, 3), (last_user, 2),
                     (unicode(message.parsed.text), 1)])
 
         return self.update(final)

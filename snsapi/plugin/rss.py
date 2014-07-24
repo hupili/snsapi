@@ -159,6 +159,14 @@ class RSS(SNSBase):
         # This platform does not have token expire issue.
         return -1
 
+    def like(self, message):
+        message.parsed.liked = True
+        return True
+
+    def unlike(self, message):
+        message.parsed.liked = False
+        return True
+
 
 class RSS2RWMessage(RSSMessage):
 
@@ -313,14 +321,6 @@ class RSS2RW(RSS):
         except Exception as e:
             raise snserror.op.write(str(e))
 
-        return True
-
-    def like(self, message):
-        message.parsed.liked = True
-        return True
-
-    def unlike(self, message):
-        message.parsed.liked = False
         return True
 
 

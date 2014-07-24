@@ -54,16 +54,15 @@ class InstagramMessage(snstype.Message):
                     }
                 )
         # NOTE:
-        #   * dct['user']['screen_name'] is the path part of user's profile URL
-        #   It is actually in a position of an id. You should @ this string in
-        #   order to mention someone.
-        #   * dct['user']['name'] is actually a nick name you can set. It's not
-        #   permanent.
+        #    data["user_has_liked"] will be different if you like/unlike 
+        #    an insta. So we'd better set it to be empty after obtaining
+        #    related information.
         self.parsed.username = data['user']['username']
         if str(data["user_has_liked"]).lower() == "false":
             self.parsed.liked = False
         else:
             self.parsed.liked = True
+        data["user_has_liked"] = ""
         try:
             self.parsed.text = data['caption']['text']
         except Exception, e:

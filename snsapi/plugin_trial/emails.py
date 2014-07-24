@@ -329,7 +329,7 @@ class Email(SNSBase):
             #logger.debug("selected message IDs: %s", latest_messages)
         except Exception, e:
             logger.warning(e)
-            message_list = []
+        message_list = []
         try:
             #for num in data[0].split():
             for num in latest_messages:
@@ -374,7 +374,7 @@ class Email(SNSBase):
         try:
             if self.imap:
                 del self.imap
-            self.imap = imaplib.IMAP4_SSL(self.jsonconf['imap_host'], self.jsonconf['imap_port'])
+            self.imap = imaplib.IMAP4_SSL(self.jsonconf['imap_host'], int(self.jsonconf['imap_port']))
             self.imap.login(self.jsonconf['username'], self.jsonconf['password'])
             imap_ok = True
         except imaplib.IMAP4_SSL.error, e:
@@ -382,7 +382,6 @@ class Email(SNSBase):
                 logger.warning("IMAP Authentication failed! Channel '%s'", self.jsonconf['channel_name'])
             else:
                 raise e
-
         logger.debug("Try login SMTP server...")
         try:
             if self.smtp:
@@ -393,7 +392,7 @@ class Email(SNSBase):
             smtp_ok = True
         except smtplib.SMTPAuthenticationError:
             logger.warning("SMTP Authentication failed! Channel '%s'", self.jsonconf['channel_name'])
-
+          
         if imap_ok and smtp_ok:
             self.imap_ok = True
             self.smtp_ok = True
