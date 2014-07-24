@@ -681,7 +681,8 @@ class SNSBase(object):
                 'TencentWeiboStatus': u'腾讯',
                 'TwitterStatus': u'推特',
                 'Email': u'伊妹',
-                'InstagramFeed': u'Instagram'
+                'InstagramFeed': u'Instagram',
+                'DoubanFeed': u'豆瓣',
         }
 
         platform_prefix = message.platform
