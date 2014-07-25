@@ -375,7 +375,7 @@ class SNSBase(object):
         #    the upper layer calls.
         # Modification:
         #    I think 10 mins is sufficient for a pre-alarm.
-        if self.expire_after(token) <= 600 and self.expire_after(token) != -1:
+        if self.expire_after(token) <= 600 and self.expire_after(token) >= 0:
             return True
         else:
             # >0 (not expire) or ==-1 (no expire issue)
