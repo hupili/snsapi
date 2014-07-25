@@ -1,4 +1,4 @@
-#-*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
 '''
 RSS Feed
@@ -22,14 +22,16 @@ from .. import utils
 
 logger.debug("%s plugged!", __file__)
 
+
 class RSSMessage(snstype.Message):
+
     platform = "RSS"
 
     def parse(self):
         self.ID.platform = self.platform
 
         self.parsed.username = self.raw.get('author', self.ID.channel)
-        #TODO:
+        # TODO:
         #    According to the notion of ID, it should identify
         #    a single user in a cross platform fashion. From the
         #    message, we know platform is RSS. However, author
@@ -46,7 +48,7 @@ class RSSMessage(snstype.Message):
 
         self.parsed.title = self.raw.get('title')
         self.parsed.link = self.raw.get('link')
-
+        self.parsed.liked = False
         self.ID.link = self.parsed.link
 
         try:
@@ -84,7 +86,9 @@ class RSSMessage(snstype.Message):
         self.raw = _raw
         return _str
 
+
 class RSS(SNSBase):
+
     '''
     Supported Methods
         * auth() :
@@ -98,14 +102,14 @@ class RSS(SNSBase):
 
     Message = RSSMessage
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(RSS, self).__init__(channel)
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = SNSBase.new_channel(full)
         c['platform'] = 'RSS'
         c['url'] = 'https://github.com/hupili/snsapi/commits/master.atom'
@@ -145,18 +149,29 @@ class RSS(SNSBase):
                     platform=self.jsonconf['platform'],
                     channel=self.jsonconf['channel_name'],
                     conf=conf)
-            #TODO:
+            # TODO:
             #     RSS parsed result is not json serializable.
             #     Try to find other ways of serialization.
             statuslist.append(s)
         return statuslist
 
-    def expire_after(self, token = None):
+    def expire_after(self, token=None):
         # This platform does not have token expire issue.
         return -1
 
+    def like(self, message):
+        message.parsed.liked = True
+        return True
+
+    def unlike(self, message):
+        message.parsed.liked = False
+        return True
+
+
 class RSS2RWMessage(RSSMessage):
+
     platform = "RSS2RW"
+
     def parse(self):
         super(RSS2RWMessage, self).parse()
         self.ID.platform = self.platform
@@ -166,7 +181,9 @@ class RSS2RWMessage(RSSMessage):
         # The 'title' field is the place where we put our messages.
         self.parsed.text = self.parsed.title
 
+
 class RSS2RW(RSS):
+
     '''
     Read/Write Channel for rss2
 
@@ -174,14 +191,14 @@ class RSS2RW(RSS):
 
     Message = RSS2RWMessage
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(RSS2RW, self).__init__(channel)
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = RSS.new_channel(full)
         c['platform'] = 'RSS2RW'
         if full:
@@ -193,13 +210,14 @@ class RSS2RW(RSS):
     def read_channel(self, channel):
         super(RSS2RW, self).read_channel(channel)
 
-        if not 'author' in self.jsonconf:
+        if 'author' not in self.jsonconf:
             self.jsonconf['author'] = 'snsapi'
-        if not 'entry_timeout' in self.jsonconf:
+        if 'entry_timeout' not in self.jsonconf:
             # Default entry timeout in seconds (1 hour)
             self.jsonconf['entry_timeout'] = 3600
 
     def update(self, message):
+
         '''
         :type message: ``Message`` or ``str``
         :param message:
@@ -267,11 +285,11 @@ class RSS2RW(RSS):
                     if _entry_timeout is None or cur_time - entry_time < _entry_timeout:
                         items.append(
                             PyRSS2Gen.RSSItem(
-                                author = s.parsed.username,
-                                title = s.parsed.title,
-                                description = "snsapi RSS2RW update",
-                                link = self._make_link(s),
-                                pubDate = utils.utc2str(entry_time)
+                                author=s.parsed.username,
+                                title=s.parsed.title,
+                                description="snsapi RSS2RW update",
+                                link=self._make_link(s),
+                                pubDate=utils.utc2str(entry_time)
                                 )
                             )
                 except Exception as e:
@@ -282,20 +300,20 @@ class RSS2RW(RSS):
         if _entry_timeout is None or cur_time - message.parsed.time < _entry_timeout:
             items.insert(0,
                 PyRSS2Gen.RSSItem(
-                    author = message.parsed.username,
-                    title = message.parsed.text,
-                    description = "snsapi RSS2RW update",
-                    link = self._make_link(message),
-                    pubDate = utils.utc2str(message.parsed.time)
+                    author=message.parsed.username,
+                    title=message.parsed.text,
+                    description="snsapi RSS2RW update",
+                    link=self._make_link(message),
+                    pubDate=utils.utc2str(message.parsed.time)
                     )
                 )
 
         rss = PyRSS2Gen.RSS2(
-            title = "snsapi, RSS2 R/W Channel",
-            link = "https://github.com/hupili/snsapi",
-            description = "RSS2 R/W channel based on feedparser and PyRSS2Gen",
-            lastBuildDate = datetime.datetime.now(),
-            items = items
+            title="snsapi, RSS2 R/W Channel",
+            link="https://github.com/hupili/snsapi",
+            description="RSS2 R/W channel based on feedparser and PyRSS2Gen",
+            lastBuildDate=datetime.datetime.now(),
+            items=items
             )
 
         try:
@@ -305,8 +323,11 @@ class RSS2RW(RSS):
 
         return True
 
+
 class RSSSummaryMessage(RSSMessage):
+
     platform = "RSSSummary"
+
     def parse(self):
         super(RSSSummaryMessage, self).parse()
         self.ID.platform = self.platform
@@ -318,9 +339,9 @@ class RSSSummaryMessage(RSSMessage):
         #      Each element is a dict. and the 'value' field is the text (maybe in HTML).
 
         _summary = None
-        if self.parsed.body != None:
+        if self.parsed.body is not None:
             _summary = self.parsed.body
-        elif self.parsed.description != None:
+        elif self.parsed.description is not None:
             _summary = self.parsed.description
         if _summary:
             _summary = utils.strip_html(_summary).replace('\n', '')
@@ -328,7 +349,9 @@ class RSSSummaryMessage(RSSMessage):
             _summary = ""
         self.parsed.text = '"%s" ( %s ) %s' % (self.parsed.title, self.parsed.link, _summary)
 
+
 class RSSSummary(RSS):
+
     '''
     Summary Channel for RSS
 
@@ -338,14 +361,14 @@ class RSSSummary(RSS):
 
     Message = RSSSummaryMessage
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(RSSSummary, self).__init__(channel)
 
         self.platform = self.__class__.__name__
         self.Message.platform = self.platform
 
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = RSS.new_channel(full)
         c['platform'] = 'RSSSummary'
         return c
