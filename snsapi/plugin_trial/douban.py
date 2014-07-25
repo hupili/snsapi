@@ -20,7 +20,7 @@ else:
     from .. import utils
     import time
     import urllib
-    from third import douban_client as doubansdk
+    from ..third import douban_client as doubansdk
     import json
 
 
@@ -45,31 +45,54 @@ class DoubanMessage(snstype.Message):
         self.ID.status_id = data['id']
         self.ID.id = data['id']
         self.ID.source_user_id = self.parsed.userid = str(data['user']['id'])
-        self.parsed.time = float(data['created_at'])
-        # self.parsed.attachments.append(
-                    # {
-                        # 'type': 'picture',
-                        # 'format': ['link'],
-                        # # FIXME: page photo don't have raw_src
-                        # 'data': data["images"]["standard_resolution"]["url"]
-                    # }
-                # )
+        self.parsed.time = utils.str2utc(data['created_at'], " +08:00")
+        self.parsed.text = data['title'] + u"   "
+        self.parsed.text += data['text']
+        if hasattr(data, 'reshared_status'):
+            self.parsed.text += u"// " + data['reshared_status']['user']['screen_name'] + self._get_share_text(data['reshared_status'])
         # NOTE:
-        #    data["favorited"] will be different if you like/unlike
+        #    data["liked"] will be different if you like/unlike
         #    an miniblog. So we'd better set it to be empty after obtaining
         #    related information.
         self.parsed.username = data['user']['screen_name']
-        if str(data["favorited"]).lower() == "false":
-            self.parsed.liked = False
-        else:
+        if hasattr(data, "liked") and data["liked"] == True:
             self.parsed.liked = True
-        data["favorited"] = ""
-        try:
-            self.parsed.text = data['text']
-            if hasattr(data, "retshared_status") and hasattr(data.retshared_status, "text"):
-                self.parsed.text += data["retshared_status"]['text']
-        except Exception, e:
-            self.parsed.text = ""
+        else:
+            self.parsed.liked = False
+        data["liked"] = ""
+        if data['attachments']:
+            for at in data['attachments']:
+                if str(at['type']) in ['image', 'photos']:
+                    for at1 in at['media']:
+                        self.parsed.attachments.append(
+                            {
+                                'type': 'picture',
+                                'format': ['link'],
+                                # FIXME: page photo don't have raw_src
+                                'data': at1['src'].replace("small", "raw", 1)
+                            }
+                        )
+                else:
+                    self.parsed.text += at['title'] + u" : " + at['description']
+                    self.parsed.attachments.append(
+                            {
+                                'type': at['type'],
+                                'format': ['link'],
+                                'data': at['expaned_href']
+                            })
+
+    def _get_share_text(self, data):
+        text = data['title'] + u" : "
+        text += data['text']
+        if hasattr(data, 'reshared_status'):
+            text += u"// " + data['reshared_status']['user']['screen_name'] + self._get_share_text(data['reshared_status'])
+        if data['attachments'] and data['has_photo'] != True:
+            for at in data['attachments']:
+                if at['description'] != "":
+                    text += at['description']
+                else:
+                    text += at['title']
+        return text
 
 
 class DoubanFeed(SNSBase):
@@ -80,7 +103,7 @@ class DoubanFeed(SNSBase):
         super(DoubanFeed, self).__init__(channel)
         self.platform = self.__class__.__name__
 
-        SCOPE = 'douban_basic_common,shuo_basic_r,shuo_basic_w'
+        SCOPE = 'douban_basic_common,shuo_basic_r,shuo_basic_w,community_advanced_doumail_r'
         self.client = doubansdk.DoubanClient(self.jsonconf["app_key"],
                               self.jsonconf["app_secret"],
                               self.jsonconf["auth_info"]["callback_url"],
@@ -116,11 +139,11 @@ class DoubanFeed(SNSBase):
         '''
         # NOTE:
         # Accordion to Douban API, the token will expire
-		# in one week.
+        # in one week.
         try:
             url = self.fetch_code()
             code = self._parse_code(url)
-            self.client.auth_with_code(code)
+            self.client.auth_with_code(code["code"])
             self.token = {"access_token": self.client.token_code, "expires_in": 7 * 24 * 60 * 60}
         except Exception, e:
             logger.warning("Auth second fail. Catch exception: %s", e)
@@ -135,6 +158,7 @@ class DoubanFeed(SNSBase):
         '''
         try:
             if self.get_saved_token():
+                self.client.auth_with_token(self.token["access_token"])
                 return
 
             logger.info("Try to authenticate '%s' using OAuth2", self.jsonconf.channel_name)
@@ -159,7 +183,7 @@ class DoubanFeed(SNSBase):
             logger.warning("DoubanAPIError, %s", e)
             return snstype.MessageList()
         statuslist = snstype.MessageList()
-        for j in jsonlist["data"]:
+        for j in jsonlist:
             try:
                 statuslist.append(self.Message(
                     j,
@@ -171,6 +195,33 @@ class DoubanFeed(SNSBase):
 
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
         return statuslist
+
+    # Note:
+    # The two following functions are solely for test purpose.
+    # They should not be called during normal use.
+    @require_authed
+    def home_timeline_for_test(self, count=20):
+        try:
+            jsonlist = self.dummy()
+        except Exception, e:
+            logger.warning("DoubanAPIError, %s", e)
+            return snstype.MessageList()
+        statuslist = snstype.MessageList()
+        for j in jsonlist:
+            try:
+                statuslist.append(self.Message(
+                    j,
+                    platform=self.jsonconf['platform'],
+                    channel=self.jsonconf['channel_name']
+                ))
+            except Exception, e:
+                logger.warning("Catch exception: %s", e)
+
+        logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
+        return statuslist
+    
+    def dummy(self):
+        return
 
     def update(self, text):
         try:
@@ -217,18 +268,3 @@ class DoubanFeed(SNSBase):
         except Exception, e:
             logger.warning("DoubanAPIError: %s", e)
             return False
-
-if __name__ == '__main__':
-
-    sp = DoubanFeed.new_channel()
-    sp['platform']="DoubanFeed"
-    sp['app_key']="0432d284689ad4f10c98778d39d07ed3"
-    sp['app_secret']="4a0a39053d5fdce6"
-    sp["auth_info"]["callback_url"] = "http://snsapi.sinaapp.com/auth.php"
-    renren = DoubanFeed(sp)
-    renren.auth()
-    sl = renren.home_timeline(20)
-    logger.warning(json.dumps(sl[0].ID))
-    for s in sl:
-        renren.unlike(s)
-
