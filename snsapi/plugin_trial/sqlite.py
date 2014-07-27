@@ -1,4 +1,4 @@
-#-*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
 '''
 sqlite
@@ -17,27 +17,32 @@ import sqlite3
 
 logger.debug("%s plugged!", __file__)
 
+
 class SQLiteMessage(snstype.Message):
+
     platform = "SQLite"
+
     def parse(self):
         self.ID.platform = self.platform
         self._parse(self.raw)
 
     def _parse(self, dct):
         self.parsed = dct
+        self.parsed.liked = False
+
 
 class SQLite(SNSBase):
 
     Message = SQLiteMessage
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(SQLite, self).__init__(channel)
         self.platform = self.__class__.__name__
 
         self.con = None
 
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = SNSBase.new_channel(full)
 
         c['platform'] = 'SQLite'
@@ -115,7 +120,7 @@ class SQLite(SNSBase):
     def auth_second(self):
         logger.info("%s platform do not need auth_second!", self.platform)
 
-    def home_timeline(self, count = 20):
+    def home_timeline(self, count=20):
         message_list = snstype.MessageList()
 
         try:
@@ -126,13 +131,13 @@ class SQLite(SNSBase):
             ''', (count,))
             for m in r:
                 message_list.append(self.Message({
-                        'time':m[0],
-                        'userid':m[1],
-                        'username':m[2],
-                        'text':m[3]
-                        },\
-                        platform = self.jsonconf['platform'],\
-                        channel = self.jsonconf['channel_name']\
+                        'time': m[0],
+                        'userid': m[1],
+                        'username': m[2],
+                        'text': m[3]
+                        },
+                        platform=self.jsonconf['platform'],
+                        channel=self.jsonconf['channel_name']
                         ))
         except Exception, e:
             logger.warning("Catch expection: %s", e)
@@ -140,14 +145,14 @@ class SQLite(SNSBase):
         return message_list
 
     def _update_text(self, text):
-        m = self.Message({\
-                'time':int(self.time()),
-                'userid':self.jsonconf['userid'],
-                'username':self.jsonconf['username'],
-                'text':text
-                }, \
-                platform = self.jsonconf['platform'],\
-                channel = self.jsonconf['channel_name']\
+        m = self.Message({
+                'time': int(self.time()),
+                'userid': self.jsonconf['userid'],
+                'username': self.jsonconf['username'],
+                'text': text
+                }, 
+                platform=self.jsonconf['platform'],
+                channel=self.jsonconf['channel_name']
                 )
         return self._update_message(m)
 
@@ -158,15 +163,15 @@ class SQLite(SNSBase):
             cur.execute('''
             INSERT INTO message(time,userid,username,text,mid,digest,digest_parsed,digest_full,parsed,full)
             VALUES (?,?,?,?,?,?,?,?,?,?)
-            ''', (\
-                    message.parsed.time,\
-                    message.parsed.userid,\
-                    message.parsed.username,\
-                    message.parsed.text,\
-                    str(message.ID),\
-                    message.digest(),\
-                    message.digest_parsed(),\
-                    message.digest_full(),\
+            ''', (
+                    message.parsed.time,
+                    message.parsed.userid,
+                    message.parsed.username,
+                    message.parsed.text,
+                    str(message.ID),
+                    message.digest(),
+                    message.digest_parsed(),
+                    message.digest_full(),
                     message.dump_parsed(),
                     message.dump_full()
                     ))
@@ -186,6 +191,14 @@ class SQLite(SNSBase):
             logger.warning('unknown type: %s', type(text))
             return False
 
-    def expire_after(self, token = None):
+    def like(self, message):
+        message.parsed.liked = True
+        return True
+
+    def unlike(self, message):
+        message.parsed.liked = False
+        return True
+
+    def expire_after(self, token=None):
         # This platform does not have token expire issue.
         return -1

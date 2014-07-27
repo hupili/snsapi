@@ -1,4 +1,4 @@
-#-*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
 '''
 twitter
@@ -6,7 +6,6 @@ twitter
 We use python-twitter as the backend at present.
 It should be changed to invoke REST API directly later.
 '''
-
 from ..snslog import SNSLog
 logger = SNSLog
 from ..snsbase import SNSBase
@@ -18,8 +17,11 @@ from ..third import twitter
 
 logger.debug("%s plugged!", __file__)
 
+
 class TwitterStatusMessage(snstype.Message):
+
     platform = "TwitterStatus"
+
     def parse(self):
         self.ID.platform = self.platform
         self._parse(self.raw)
@@ -28,7 +30,7 @@ class TwitterStatusMessage(snstype.Message):
         self.ID.id = dct['id']
 
         self.parsed.time = utils.str2utc(dct['created_at'])
-        #NOTE:
+        # NOTE:
         #   * dct['user']['screen_name'] is the path part of user's profile URL.
         #   It is actually in a position of an id. You should @ this string in
         #   order to mention someone.
@@ -37,24 +39,32 @@ class TwitterStatusMessage(snstype.Message):
         self.parsed.username = dct['user']['screen_name']
         self.parsed.userid = dct['user']['id']
         self.parsed.text = dct['text']
+        # NOTE:
+        #    dct["favorited"] will be different if you like/unlike 
+        #    an insta. So we'd better set it to be empty after obtaining
+        #    related information.
+        if str(dct["favorited"]).lower() == "false":
+            self.parsed.liked = False
+        else:
+            self.parsed.liked = True
+        dct["favorited"] = ""
 
 
 class TwitterStatus(SNSBase):
 
     Message = TwitterStatusMessage
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(TwitterStatus, self).__init__(channel)
         self.platform = self.__class__.__name__
 
-        self.api = twitter.Api(consumer_key=self.jsonconf['app_key'],\
-                consumer_secret=self.jsonconf['app_secret'],\
-                access_token_key=self.jsonconf['access_key'],\
+        self.api = twitter.Api(consumer_key=self.jsonconf['app_key'],
+                consumer_secret=self.jsonconf['app_secret'],
+                access_token_key=self.jsonconf['access_key'],
                 access_token_secret=self.jsonconf['access_secret'])
 
-
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = SNSBase.new_channel(full)
 
         c['platform'] = 'TwitterStatus'
@@ -72,7 +82,7 @@ class TwitterStatus(SNSBase):
     def auth(self):
         logger.info("Current implementation of Twitter does not use auth!")
 
-    def home_timeline(self, count = 20):
+    def home_timeline(self, count=20):
         '''
         NOTE: this does not include your re-tweeted statuses.
         It's another interface to get re-tweeted status on Tiwtter.
@@ -82,10 +92,10 @@ class TwitterStatus(SNSBase):
         '''
         status_list = snstype.MessageList()
         try:
-            statuses = self.api.GetHomeTimeline(count = count)
+            statuses = self.api.GetHomeTimeline(count=count)
             for s in statuses:
-                status_list.append(self.Message(s.AsDict(),\
-                        self.jsonconf['platform'],\
+                status_list.append(self.Message(s.AsDict(),
+                        self.jsonconf['platform'],
                         self.jsonconf['channel_name']))
             logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
         except Exception, e:
@@ -96,7 +106,7 @@ class TwitterStatus(SNSBase):
         text = self._cat(self.jsonconf['text_length_limit'], [(text, 1)])
         try:
             status = self.api.PostUpdate(text)
-            #TODO:
+            # TODO:
             #     Find better indicator for status update success
             if status:
                 return True
@@ -111,7 +121,7 @@ class TwitterStatus(SNSBase):
         try:
             status = self.api.PostUpdate(text,
                                          in_reply_to_status_id=statusID.id)
-            #TODO:
+            # TODO:
             #     Find better indicator for status update success
             if status:
                 return True
@@ -131,7 +141,7 @@ class TwitterStatus(SNSBase):
                     delim='//')
             try:
                 status = self.api.PostUpdate(decorated_text)
-                #TODO:
+                # TODO:
                 #     Find better indicator for status update success
                 if status:
                     return True
@@ -141,14 +151,56 @@ class TwitterStatus(SNSBase):
                 logger.warning('update Twitter failed: %s', str(e))
                 return False
 
-    def expire_after(self, token = None):
+    def like(self, message):
+        '''
+        Like method
+           * Twitter doesn't provide an API for "like"
+           * So "favourite" function supersedes "like"
+           * Here "like" means "add to my favourites"
+           * Receive a message
+        '''
+        try:
+            status = self.api.CreateFavorite(id=message.ID.id)
+            if status:
+                message.parsed.liked = True
+                return True
+            else:
+                return False
+        except Exception, e:
+            logger.warning('like tweet failed: %s', str(e))
+            return False
+
+    def unlike(self, message):
+        '''
+        UnLike method
+           * Twitter doesn't provide an API for "unlike"
+           * So "unfavourite" function supersedes "unlike"
+           * Here "unlike" means "delete from my favourites"
+           * Receive a message
+        '''
+        try:
+            status = self.api.DestroyFavorite(id=message.ID.id)
+            if status:
+                message.parsed.liked = False
+                return True
+            else:
+                return False
+        except Exception, e:
+            logger.warning('like tweet failed: %s', str(e))
+            return False
+
+    def expire_after(self, token=None):
         # This platform does not have token expire issue.
         return -1
 
+
 class TwitterSearchMessage(TwitterStatusMessage):
+
     platform = "TwitterSearch"
 
+
 class TwitterSearch(TwitterStatus):
+
     Message = TwitterSearchMessage
 
     @staticmethod
@@ -159,28 +211,27 @@ class TwitterSearch(TwitterStatus):
         c['include_entities'] = True
         return c
 
-    def __init__(self, channel = None):
+    def __init__(self, channel=None):
         super(TwitterSearch, self).__init__(channel)
         self.platform = self.__class__.__name__
 
-        self.api = twitter.Api(consumer_key=self.jsonconf['app_key'],\
-                consumer_secret=self.jsonconf['app_secret'],\
-                access_token_key=self.jsonconf['access_key'],\
+        self.api = twitter.Api(consumer_key=self.jsonconf['app_key'],
+                consumer_secret=self.jsonconf['app_secret'],
+                access_token_key=self.jsonconf['access_key'],
                 access_token_secret=self.jsonconf['access_secret'])
 
-    def home_timeline(self, count = 100):
+    def home_timeline(self, count=100):
         status_list = snstype.MessageList()
         try:
-            #statuses = self.api.GetHomeTimeline(count = count)
+            # statuses = self.api.GetHomeTimeline(count = count)
             statuses = self.api.GetSearch(term=self.jsonconf['term'],
                             include_entities=self.jsonconf['include_entities'],
                             count=count)
             for s in statuses:
-                status_list.append(self.Message(s.AsDict(),\
-                        self.jsonconf['platform'],\
+                status_list.append(self.Message(s.AsDict(),
+                        self.jsonconf['platform'],
                         self.jsonconf['channel_name']))
             logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
         except Exception, e:
             logger.warning("Catch expection: %s", e)
         return status_list
-

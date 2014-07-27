@@ -15,6 +15,7 @@ if __name__ == '__main__':
     import utils
     import time
     import urllib
+    import json
 else:
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
@@ -60,29 +61,20 @@ class RenrenFeedMessage(snstype.Message):
         self.parsed.time = utils.str2utc(dct['time'], " +08:00")
         self.parsed.text = ""
         self.ID.feed_type = self.parsed.feed_type = dct['type']
-    # self.ID.feed_type = self.parsed.feed_type = {
-        #   10: 'STATUS',
-        #    11: 'STATUS',
-        #    20: 'BLOG',
-        #    21: 'SHARE',
-        #    22: 'BLOG',
-        #    23: 'SHARE',
-        #    30: 'PHOTO',
-        #    31: 'PHOTO',
-        #    32: 'SHARE',
-        #    33: 'SHARE',
-        #    34: 'OTHER',
-        #    35: 'OTHER',
-        #    36: 'SHARE',
-        #    40: 'OTHER',
-        #    41: 'OTHER',
-        #    50: 'SHARE',
-        #    51: 'SHARE',
-        #    52: 'SHARE',
-        #    53: 'SHARE',
-        #    54: 'SHARE',
-        #    55: 'SHARE'
-        # }[dct['feed_type']]
+        self.parsed.liked = False
+        # Actually there exists an API for obtaining likeinfo.
+        # But in order to get that trivial info we have to make
+        # requests for every message, which is pretty time-consuming.
+        # Considering our situation, we had better regard all renren
+        # messages as unliked.
+        try:
+            if self.ID.feed_type == "PUBLISH_ONE_PHOTO" or self.ID.feed_type == "PUBLISH_MORE_PHOTO":
+                self.ID.resource_id = dct["attachment"][0]["id"]
+            else:
+                self.ID.resource_id = dct["resource"]["id"]
+        except Exception, e:
+            logger.warning(str(e))
+            self.ID.resource_id = self.ID.status_id
         ORIG_USER = 'orig'
 
         if 'attachment' in dct and dct['attachment']:
@@ -203,22 +195,21 @@ class RenrenFeed(SNSBase):
         Return a list on success
         raise Exception on error
         '''
-
         kwargs['access_token'] = self.token.access_token
         kwargs['format'] = 'json'
-        if '_files' in kwargs:
-            _files = kwargs['_files']
-            del kwargs['_files']
+        if 'file' in kwargs:
+            _files = kwargs['file']
+            del kwargs['file']
         else:
             _files = {}
-        if method == "feed/list":
+
+        if method == "feed/list" or method == "status/list":
             response = self._http_get(RENREN_API2_SERVER + method, kwargs)
         else:
             response = self._http_post(RENREN_API2_SERVER + method, kwargs, files=_files)
 
         if type(response) is not list and "error" in response:
-            logger.warning(response)
-            raise RenrenAPIError(response["error_code"], response["error_msg"])
+            raise RenrenAPIError(response["error"]["code"], response["error"]["message"])
         return response['response']
 
     def _renren_request_v1_no_sig(self, method=None, **kwargs):
@@ -262,7 +253,8 @@ class RenrenFeed(SNSBase):
                                   "publish_share",
                                   "publish_feed",
                                   "status_update",
-                                  "photo_upload"])
+                                  "photo_upload",
+                                  "operate_like"])
 
         url = RENREN_AUTHORIZATION_URI + "?" + self._urlencode(args)
         self.request_url(url)
@@ -312,9 +304,12 @@ class RenrenFeed(SNSBase):
     @require_authed
     def home_timeline(self, count=20, **kwargs):
         # FIXME: automatic paging for count > 100
+        # BUG: It seems that ttype has no influence
+        # on the returned value of renren_request()
         ttype = 'ALL'
         if 'type' in kwargs:
             ttype = kwargs['type']
+
         try:
             jsonlist = self.renren_request(
                 method="feed/list",
@@ -354,7 +349,7 @@ class RenrenFeed(SNSBase):
     def _update_blog(self, text, title):
         try:
             self.renren_request(
-                method='blog.addBlog',
+                method='blog/put',
                 title=title,
                 content=text
             )
@@ -367,8 +362,7 @@ class RenrenFeed(SNSBase):
     def _update_share_link(self, text, link):
         try:
             self.renren_request(
-                method='share.share',
-                type='6',
+                method='share/url/put',
                 url=link,
                 comment=text
             )
@@ -381,9 +375,9 @@ class RenrenFeed(SNSBase):
     def _update_photo(self, text, pic):
         try:
             self.renren_request(
-                method='photos.upload',
-                caption=text,
-                _files={'upload': ('%d.jpg' % int(time.time()), pic)}
+                method='photo/upload',
+                description=text,
+                file={'upload': ('%d.jpg' % int(time.time()), pic)}
             )
             return BooleanWrappedData(True)
         except:
@@ -402,7 +396,7 @@ class RenrenFeed(SNSBase):
                                    'link' in kwargs,
                                    'pic' in kwargs
                                ][::-1])
-                           ))
+                    ))
         try:
             update_what = {
                 0: self._update_status,
@@ -418,45 +412,30 @@ class RenrenFeed(SNSBase):
 
     @require_authed
     def reply(self, statusId, text):
-        # NOTE: you can mix API1 and API2.
-        # NOTE: API2 is more better on comment
         res = None
+        flag = False
         try:
-            if statusId.feed_type == 'STATUS':
+            # The order in the bracket is important since there
+            # exists "SHARE_XXXX" type. In order to figure out
+            # the actual type, SHARE must be put in the first position.
+            for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "STATUS", "VIDEO"]:
+                if msg_type in statusId.feed_type:
+                    flag = True
+                    break
+            if flag:
                 res = self.renren_request(
-                    method='status.addComment',
-                    status_id=statusId.status_id,
-                    owner_id=statusId.source_user_id,
-                    content=text
-                )
-            elif statusId.feed_type == 'SHARE':
-                res = self.renren_request(
-                    method='share.addComment',
-                    share_id=statusId.status_id,
-                    user_id=statusId.source_user_id,
-                    content=text
-                )
-            elif statusId.feed_type == 'BLOG':
-                res = self.renren_request(
-                    method='blog.addComment',
-                    id=statusId.status_id,
-                    # FIXME: page_id, uid
-                    uid=statusId.source_user_id,
-                    content=text
-                )
-            elif statusId.feed_type == 'PHOTO':
-                res = self.renren_request(
-                    method='photos.addComment',
-                    uid=statusId.source_user_id,
+                    method="comment/put",
                     content=text,
-                    # FIXME: aid, pid
-                    pid=statusId.status_id
+                    commentType=msg_type,
+                    entryOwnerId=statusId.source_user_id,
+                    entryId=statusId.resource_id
                 )
             else:
                 return BooleanWrappedData(False, {
                     'errors': ['SNSAPI_NOT_SUPPORTED'],
                 })
-        except:
+        except Exception, e:
+            logger.warning('Catch exception: %s', e)
             return BooleanWrappedData(False, {
                 'errors': ['PLATFORM_'],
             })
@@ -470,25 +449,68 @@ class RenrenFeed(SNSBase):
     @require_authed
     def forward(self, message, text):
         res = None
+        if not message.platform == self.platform:
+            return super(RenrenFeed, self).forward(message, text)
+        else:
+            try:
+                if message.ID.feed_type == 'UPDATE_STATUS':
+                    res = self.renren_request(
+                        method='status/share',
+                        content=text,
+                        statusId=message.ID.resource_id,
+                        ownerId=message.ID.source_user_id,
+                    )
+
+                elif message.ID.feed_type != 'OTHER':
+                    for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "VIDEO"]:
+                        if msg_type in message.ID.feed_type:
+                            break
+                    # The order in the bracket is important since there
+                    # exists "SHARE_XXXX" type. In order to figure out
+                    # the actual type, SHARE must be put in the first position.
+                    res = self.renren_request(
+                        method='share/ugc/put',
+                        ugcType="TYPE_" + msg_type,
+                        ugcId=message.ID.resource_id,
+                        # Here message.ID.resource_id is the proper id
+                        # for forwarding these messages instead of message.ID.status_id
+                        ugcOwnerId=message.ID.source_user_id,
+                        comment=text
+                    )
+                else:
+                    return BooleanWrappedData(False, {
+                        'errors': ['SNSAPI_NOT_SUPPORTED'],
+                    })
+            except Exception as e:
+                logger.warning('Catch exception: %s', e)
+                return BooleanWrappedData(False, {
+                    'errors': ['PLATFORM_'],
+                })
+        if res:
+            return BooleanWrappedData(True)
+        else:
+            return BooleanWrappedData(False, {
+                'errors': ['PLATFORM_'],
+            })
+    
+    @require_authed
+    def like(self, message):
+        res = None
+        flag = False
         try:
-            if message.ID.feed_type == 'STATUS':
+            # The order in the bracket is important since there
+            # exists "SHARE_XXXX" type. In order to figure out
+            # the actual type, SHARE must be put in the first position.
+            for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "STATUS", "VIDEO"]:
+                if msg_type in message.ID.feed_type:
+                    flag = True
+                    break
+            if flag:
                 res = self.renren_request(
-                    method='status.forward',
-                    status=text,
-                    forward_id=message.ID.status_id,
-                    forward_owner=message.ID.source_user_id,
-                )
-            elif message.ID.feed_type != 'OTHER':
-                res = self.renren_request(
-                    method='share.share',
-                    type=str({
-                        'BLOG': 1,
-                        'PHOTO': 2,
-                        'SHARE': 20
-                    }[message.parsed.feed_type]),
-                    ugc_id=message.ID.status_id,
-                    user_id=message.ID.source_user_id,
-                    comment=text
+                    method="like/ugc/put",
+                    ugcOwnerId=message.ID.source_user_id,
+                    likeUGCType="TYPE_" + msg_type,
+                    ugcId=message.ID.resource_id
                 )
             else:
                 return BooleanWrappedData(False, {
@@ -500,6 +522,43 @@ class RenrenFeed(SNSBase):
                 'errors': ['PLATFORM_'],
             })
         if res:
+            message.parsed.liked = False
+            return BooleanWrappedData(True)
+        else:
+            return BooleanWrappedData(False, {
+                'errors': ['PLATFORM_'],
+            })
+
+    @require_authed
+    def unlike(self, message):
+        res = None
+        flag = False
+        try:
+            # The order in the bracket is important since there
+            # exists "SHARE_XXXX" type. In order to figure out
+            # the actual type, SHARE must be put in the first position.
+            for msg_type in ["SHARE", "BLOG", "PHOTO", "ALBUM", "STATUS", "VIDEO"]:
+                if msg_type in message.ID.feed_type:
+                    flag = True
+                    break
+            if flag:
+                res = self.renren_request(
+                    method="like/ugc/remove",
+                    ugcOwnerId=message.ID.source_user_id,
+                    likeUGCType="TYPE_" + msg_type,
+                    ugcId=message.ID.resource_id
+                )
+            else:
+                return BooleanWrappedData(False, {
+                    'errors': ['SNSAPI_NOT_SUPPORTED'],
+                })
+        except Exception as e:
+            logger.warning('Catch exception: %s', type(e))
+            return BooleanWrappedData(False, {
+                'errors': ['PLATFORM_'],
+            })
+        if res:
+            message.parsed.liked = False
             return BooleanWrappedData(True)
         else:
             return BooleanWrappedData(False, {
@@ -550,7 +609,7 @@ class RenrenBlog(RenrenFeed):
     def update(self, text, title=None):
         if not title:
             title = text.split('\n')[0]
-            return RenrenFeed._update_blog(self, text, title)
+        return RenrenFeed._update_blog(self, text, title)
 
 
 class RenrenPhoto(RenrenFeed):
@@ -608,14 +667,14 @@ class RenrenStatusDirectMessage(snstype.Message):
         self._parse(self.raw)
 
     def _parse(self, dct):
-        self.ID.status_id = dct['status_id']
-        self.ID.source_user_id = dct['uid']
+        self.ID.status_id = dct['id']
+        self.ID.source_user_id = dct['ownerId']
         self.ID.feed_type = 'STATUS'
 
-        self.parsed.userid = str(dct['uid'])
+        self.parsed.userid = str(dct['ownerId'])
         self.parsed.username = dct['name']
-        self.parsed.time = utils.str2utc(dct['time'], " +08:00")
-        self.parsed.text = dct['message']
+        self.parsed.time = utils.str2utc(dct['createTime'], " +08:00")
+        self.parsed.text = dct['content']
 
 
 class RenrenStatusDirect(RenrenFeed):
@@ -644,10 +703,10 @@ class RenrenStatusDirect(RenrenFeed):
     def _get_user_status_list(self, count, userid, username):
         try:
             jsonlist = self.renren_request(
-                method="status.gets",
-                page=1,
-                count=count,
-                uid=userid,
+                method="status/list",
+                pageNumberint=1,
+                pageSize=count,
+                ownerId=userid,
             )
         except RenrenAPIError, e:
             logger.warning("RenrenAPIError, %s", e)
