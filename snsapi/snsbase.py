@@ -487,7 +487,7 @@ class SNSBase(object):
         else:
             return s
     
-        def _http_delete(self, baseurl, params={}, headers=None, json_parse=True):
+    def _http_delete(self, baseurl, params={}, headers=None, json_parse=True):
         '''Use HTTP DELETE to request a JSON interface
 
         :param baseurl: Base URL before parameters
