@@ -22,7 +22,7 @@ from .. import snstype
 from ..utils import console_output
 from .. import utils
 from ..utils import json
-
+import quopri
 import time
 import email
 from email.mime.text import MIMEText
@@ -43,13 +43,15 @@ class EmailMessage(snstype.Message):
 
     def _decode_header(self, header_value):
         ret = unicode()
-        #print decode_header(header_value)
+        
         for (s,e) in decode_header(header_value):
+            if e and e.lower() == "gb2312":
+                e = "gbk"
             ret += s.decode(e) if e else s
         return ret
 
     def _parse(self, dct):
-        #TODO:
+        # TODO:
         #    Put in message id.
         #    The id should be composed of mailbox and id in the box.
         #
@@ -68,11 +70,14 @@ class EmailMessage(snstype.Message):
         #
         #     I prefer 2. at present. Our Message objects are designed
         #     to be able to digest themselves.
-
-        self.parsed.title = self._decode_header(dct.get('Subject'))
-        self.parsed.text = dct.get('body')
+        try:
+            self.parsed.title = self._decode_header(dct.get('Subject'))
+            self.parsed.text = dct.get('body')
+            self.parsed.liked = False
+        except Exception, e:
+            logger.warning("I caught you%s",type(e))
         self.parsed.time = utils.str2utc(dct.get('Date'))
-
+        
         sender = dct.get('From')
         r = re.compile(r'^(.+)<(.+@.+\..+)>$', re.IGNORECASE)
         m = r.match(sender)
@@ -82,14 +87,13 @@ class EmailMessage(snstype.Message):
         else:
             self.parsed.username = sender
             self.parsed.userid = sender
-
-        #TODO:
+        
+        # TODO:
         #    The following is just temporary method to enable reply email.
         #    See the above TODO for details. The following information
         #    suffices to reply email. However, they do not form a real ID.
         self.ID.title = self.parsed.title
         self.ID.reply_to = dct.get('Reply-To', self.parsed.userid)
-
 class Email(SNSBase):
 
     Message = EmailMessage
@@ -104,7 +108,7 @@ class Email(SNSBase):
         self.smtp_ok = False
 
     @staticmethod
-    def new_channel(full = False):
+    def new_channel(full=False):
         c = SNSBase.new_channel(full)
 
         c['platform'] = 'Email'
@@ -124,9 +128,11 @@ class Email(SNSBase):
         ret = payload
         if 'Content-Transfer-Encoding' in msg:
             transfer_enc = msg['Content-Transfer-Encoding'].strip()
-            if transfer_enc == "base64":
+            if transfer_enc == "quoted-printable":
+                ret = quopri.decodestring(ret)
+            elif transfer_enc == "base64":
                 ret = base64.decodestring(ret)
-            elif transfer_enc == "7bit":
+            elif transfer_enc in ("7bit", "8bit"):
                 #TODO:
                 #    It looks like 7bit is just ASCII standard.
                 #    Do nothing.
@@ -138,7 +144,7 @@ class Email(SNSBase):
         # The past content-type fetching codes.
         # It's better to rely on email.Message functions.
         #
-        #if 'Content-Type' in msg:
+        # if 'Content-Type' in msg:
         #    ct = msg['Content-Type']
         #    r = re.compile(r'^(.+); charset="(.+)"$', re.IGNORECASE)
         #    m = r.match(ct)
@@ -278,7 +284,7 @@ class Email(SNSBase):
         conn.copy(mlist, 'buddy')
         conn.store(mlist, '+FLAGS', r'(\deleted)')
 
-    def add_buddy(self, address, nickname = None):
+    def add_buddy(self, address, nickname=None):
         '''
         Warning: Use this function only when necessary. (20121026)
 
@@ -299,7 +305,7 @@ class Email(SNSBase):
         self.buddy_list[address] = {"userid": address, "username": nickname}
         self._update_buddy_list()
 
-    def _receive(self, count = 20):
+    def _receive(self, count=20):
         #TODO:
         #    1.
         #    Consider UNSEEN message first. If we get less than count
@@ -312,15 +318,17 @@ class Email(SNSBase):
 
         # Check out all the email IDs
         conn = self.imap
-        conn.select('INBOX')
-        typ, data = conn.search(None, 'ALL')
-        #logger.debug("read message IDs: %s", data)
+        try:
+            conn.select('INBOX')
+            typ, data = conn.search(None, 'ALL')
+            #logger.debug("read message IDs: %s", data)
 
-        # We assume ID is in chronological order and filter
-        # the count number of latest messages.
-        latest_messages = sorted(data[0].split(), key = lambda x: int(x), reverse = True)[0:count]
-        #logger.debug("selected message IDs: %s", latest_messages)
-
+            # We assume ID is in chronological order and filter
+            # the count number of latest messages.
+            latest_messages = sorted(data[0].split(), key=lambda x: int(x), reverse = True)[0:count]
+            #logger.debug("selected message IDs: %s", latest_messages)
+        except Exception, e:
+            logger.warning(e)
         message_list = []
         try:
             #for num in data[0].split():
@@ -366,7 +374,7 @@ class Email(SNSBase):
         try:
             if self.imap:
                 del self.imap
-            self.imap = imaplib.IMAP4_SSL(self.jsonconf['imap_host'], self.jsonconf['imap_port'])
+            self.imap = imaplib.IMAP4_SSL(self.jsonconf['imap_host'], int(self.jsonconf['imap_port']))
             self.imap.login(self.jsonconf['username'], self.jsonconf['password'])
             imap_ok = True
         except imaplib.IMAP4_SSL.error, e:
@@ -374,7 +382,6 @@ class Email(SNSBase):
                 logger.warning("IMAP Authentication failed! Channel '%s'", self.jsonconf['channel_name'])
             else:
                 raise e
-
         logger.debug("Try login SMTP server...")
         try:
             if self.smtp:
@@ -385,7 +392,7 @@ class Email(SNSBase):
             smtp_ok = True
         except smtplib.SMTPAuthenticationError:
             logger.warning("SMTP Authentication failed! Channel '%s'", self.jsonconf['channel_name'])
-
+          
         if imap_ok and smtp_ok:
             self.imap_ok = True
             self.smtp_ok = True
@@ -429,7 +436,6 @@ class Email(SNSBase):
                 self.auth()
             logger.warning("Catch exception: %s", e)
             return snstype.MessageList()
-
         message_list = snstype.MessageList()
         try:
             for m in r:
@@ -440,7 +446,6 @@ class Email(SNSBase):
                         ))
         except Exception, e:
             logger.warning("Catch expection: %s", e)
-
         logger.info("Read %d statuses from '%s'", len(message_list), self.jsonconf.channel_name)
         return message_list
 
@@ -478,7 +483,15 @@ class Email(SNSBase):
         toaddr = statusID.reply_to
         return self._send(toaddr, title, msg)
 
-    def expire_after(self, token = None):
+    def like(self, message):
+        message.parsed.liked = True
+        return True
+
+    def unlike(self, message):
+        message.parsed.liked = False
+        return True
+
+    def expire_after(self, token=None):
         # Check whether the user supplied secrets are correct
         if self.imap_ok == True and self.smtp_ok == True:
             # -1: Means this platform does not have token expire issue.

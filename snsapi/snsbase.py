@@ -486,6 +486,48 @@ class SNSBase(object):
             return s.encode('utf-8')
         else:
             return s
+    
+        def _http_delete(self, baseurl, params={}, headers=None, json_parse=True):
+        '''Use HTTP DELETE to request a JSON interface
+
+        :param baseurl: Base URL before parameters
+
+        :param params: a dict of params (can be unicode)
+
+        :param headers: a dict of params (can be unicode)
+
+        :param json_parse: whether to parse json (default True)
+
+        :return:
+
+           * Success: If json_parse is True, a dict of json structure
+             is returned. Otherwise, the response of requests library
+             is returned.
+           * Failure: A warning is logged.
+             If json_parse is True, {} is returned.
+             Otherwise, the response of requests library is returned.
+             (can be None)
+        '''
+        # Support unicode parameters.
+        # We should encode them as exchanging stream (e.g. utf-8)
+        # before URL encoding and issue HTTP requests.
+        r = None
+        try:
+            for p in params:
+                params[p] = self._unicode_encode(params[p])
+            r = requests.delete(baseurl, params=params, headers=headers)
+            if json_parse:
+                return r.json()
+            else:
+                return r
+        except Exception, e:
+            # Tolerate communication fault, like network failure.
+            logger.warning("_http_delete fail: %s", e)
+            if json_parse:
+                return {}
+            else:
+                return r
+
 
     def _expand_url(self, url):
         '''

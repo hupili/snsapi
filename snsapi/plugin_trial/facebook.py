@@ -1,4 +1,4 @@
-#-*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
 import time
 import re
@@ -12,8 +12,11 @@ from ..third import facebook
 
 logger.debug("%s plugged!", __file__)
 
+
 class FacebookFeedMessage(snstype.Message):
+
     platform = "FacebookFeed"
+
     def parse(self):
         self.ID.platform = self.platform
         self._parse(self.raw)
@@ -34,7 +37,7 @@ class FacebookFeedMessage(snstype.Message):
             self.parsed.attachments.append({
                 'type': 'picture',
                 'format': ['link'],
-                #NOTE: replace _s to _n will get the original picture
+                # NOTE: replace _s to _n will get the original picture
                 'data': re.sub(r'_[a-z](\.[^.]*)$', r'_n\1', dct['picture'])
             })
         if dct['type'] == 'video':
@@ -50,6 +53,12 @@ class FacebookFeedMessage(snstype.Message):
                 'data': dct['link']
             })
         self.parsed.text = '\n'.join(resmsg)
+        self.parsed.liked = False
+        # Actually there exists an API for obtaining likeinfo.
+        # But in order to get that trivial info we have to make
+        # requests for every message, which is pretty time-consuming.
+        # Considering our situation, we had better regard all facebook
+        # messages as unliked.
 
 
 class FacebookFeed(SNSBase):
@@ -92,14 +101,14 @@ class FacebookFeed(SNSBase):
         self.request_url(url)
 
     def auth_second(self):
-        #TODO:
+        # TODO:
         #    Find a way to get the code in parameters, not in URL fragmentation
         try:
             url = self.fetch_code()
             url = url.replace('#', '?')
             self.token = self._parse_code(url)
             self.token.expires_in = int(int(self.token.expires_in) + time.time())
-            #self.token = {'access_token' : self.fetch_code(),
+            # self.token = {'access_token' : self.fetch_code(),
             #              'expires_in' : -1}
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
         except Exception, e:
@@ -119,13 +128,12 @@ class FacebookFeed(SNSBase):
             logger.info("OAuth channel '%s' on Facebook fail", self.jsonconf.channel_name)
             return False
 
-
     def auth(self):
         if self.get_saved_token():
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             return True
         if self.jsonconf['access_token'] and self._is_authed(self.jsonconf['access_token']):
-            self.token = {'access_token': self.jsonconf['access_token'], 'expires_in' : -1}
+            self.token = {'access_token': self.jsonconf['access_token'], 'expires_in': -1}
             self.graph = facebook.GraphAPI(access_token=self.token['access_token'])
             self.save_token()
             return True
@@ -141,8 +149,8 @@ class FacebookFeed(SNSBase):
         statuses = self.graph.get_connections("me", "home", limit=count)
         for s in statuses['data']:
             try:
-                status_list.append(self.Message(s,\
-                        self.jsonconf['platform'],\
+                status_list.append(self.Message(s,
+                        self.jsonconf['platform'],
                         self.jsonconf['channel_name']))
             except Exception, e:
                 logger.warning("Catch expection: %s", e)
@@ -173,18 +181,47 @@ class FacebookFeed(SNSBase):
             logger.warning("commenting on Facebook failed:%s", str(e))
             return False
 
+    @require_authed
+    def like(self, message):
+        try:
+            status = self.graph.put_object(message.ID.id, "likes")
+            if status:
+                message.parsed.liked = True
+                return True
+            else:
+                return False
+        except Exception, e:
+            logger.warning("like on Facebook failed:%s", str(e))
+            return False
+
+    @require_authed
+    def unlike(self, message):
+        try:
+            # The third SDK doesn't provide a high-level
+            # interface for unlike. So here a low-level
+            # method is called.
+            status = self.graph.request(message.ID.id + "/likes", post_args={"method": "delete"})
+            if status:
+                message.parsed.liked = False
+                return True
+            else:
+                return False
+        except Exception, e:
+            logger.warning("like on Facebook failed:%s", str(e))
+            return False
+
     def need_auth(self):
         return True
 
     def _is_authed(self, token=None):
-        #FIXME:
-        #TODO:
+        # FIXME:
+        # TODO:
         #    Important refactor point here!
         #    See `SNSBase.expire_after` for the flow.
         #    The aux function should only look at the 'token' parameter.
         #    Belowing is just a logic fix.
         orig_token = token
-        if token == None:
+        if token is None:
             if self.token and 'access_token' in self.token:
                 token = self.token['access_token']
             else:
@@ -194,7 +231,7 @@ class FacebookFeed(SNSBase):
         t = facebook.GraphAPI(access_token=token)
         try:
             res = t.request('me/')
-            if orig_token == None and self.token and self.jsonconf['app_secret'] and self.jsonconf['app_key'] and (self.token['expires_in'] - time.time() < 6000):
+            if orig_token is None and self.token and self.jsonconf['app_secret'] and self.jsonconf['app_key'] and (self.token['expires_in'] - time.time() < 6000):
                 logger.debug("refreshing token")
                 try:
                     res = t.extend_access_token(self.jsonconf['app_key'], self.jsonconf['app_secret'])
@@ -204,7 +241,7 @@ class FacebookFeed(SNSBase):
                     if 'expires' in res:
                         self.token['expires_in'] = int(res['expires']) + time.time()
                     else:
-                        #TODO:
+                        # TODO:
                         #    How to come to this branch?
                         #    Can we assert False here?
                         self.token['expires_in'] = -1
@@ -218,7 +255,7 @@ class FacebookFeed(SNSBase):
             logger.warning("Catch Exception: %s", e)
             return False
 
-    def expire_after(self, token = None):
+    def expire_after(self, token=None):
         # This platform does not have token expire issue.
         if token and 'access_token' in token:
             token = token['access_token']
