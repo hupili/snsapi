@@ -50,16 +50,6 @@ class DoubanMessage(snstype.Message):
         self.parsed.text += data['text']
         if hasattr(data, 'reshared_status'):
             self.parsed.text += u"// " + data['reshared_status']['user']['screen_name'] + self._get_share_text(data['reshared_status'])
-        # NOTE:
-        #    data["liked"] will be different if you like/unlike
-        #    an miniblog. So we'd better set it to be empty after obtaining
-        #    related information.
-        self.parsed.username = data['user']['screen_name']
-        if hasattr(data, "liked") and data["liked"] == True:
-            self.parsed.liked = True
-        else:
-            self.parsed.liked = False
-        data["liked"] = ""
         if data['attachments']:
             for at in data['attachments']:
                 if str(at['type']) in ['image', 'photos']:
@@ -244,7 +234,6 @@ class DoubanFeed(SNSBase):
     def like(self, message):
         try:
             self.client.miniblog.like(message.ID.id)
-            message.parsed.liked = True
             return True
         except Exception, e:
             logger.warning("DoubanAPIError: %s", e)
@@ -254,7 +243,6 @@ class DoubanFeed(SNSBase):
     def unlike(self, message):
         try:
             self.client.miniblog.unlike(message.ID.id)
-            message.parsed.liked = False
             return True
         except Exception, e:
             logger.warning("DoubanAPIError, %s", e)
