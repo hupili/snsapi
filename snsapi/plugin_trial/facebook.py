@@ -140,17 +140,17 @@ class FacebookFeed(SNSBase):
         status_list = snstype.MessageList()
         try:
             statuses = self.graph.get_connections("me", "home", limit=count)
-        except:
+        except Exception, e:
             statuses = {"data" : []}
-            logger.warning("Catch expection: %s", e)
+            logger.warning("Catch exception: %s", e)
         # Defensive programming: API may throw unexpected error
         for s in statuses['data']:
             try:
-                status_list.append(self.Message(s,\
-                        self.jsonconf['platform'],\
+                status_list.append(self.Message(s,
+                        self.jsonconf['platform'],
                         self.jsonconf['channel_name']))
             except Exception, e:
-                logger.warning("Catch expection: %s", type(e))
+                logger.warning("Catch exception: %s", e)
         logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
         return status_list
 
