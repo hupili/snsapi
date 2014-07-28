@@ -138,7 +138,12 @@ class FacebookFeed(SNSBase):
     @require_authed
     def home_timeline(self, count=20):
         status_list = snstype.MessageList()
-        statuses = self.graph.get_connections("me", "home", limit=count)
+        try:
+            statuses = self.graph.get_connections("me", "home", limit=count)
+        except:
+            statuses = {"data" : []}
+            logger.warning("Catch expection: %s", e)
+        # Defensive programming: API may throw unexpected error
         for s in statuses['data']:
             try:
                 status_list.append(self.Message(s,\
