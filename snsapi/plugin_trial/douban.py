@@ -48,6 +48,7 @@ class DoubanMessage(snstype.Message):
         self.parsed.time = utils.str2utc(data['created_at'], " +08:00")
         self.parsed.text = data['title'] + u"   "
         self.parsed.text += data['text']
+        self.parsed.username = data['user']['screen_name']
         if hasattr(data, 'reshared_status'):
             self.parsed.text += u"// " + data['reshared_status']['user']['screen_name'] + self._get_share_text(data['reshared_status'])
         if data['attachments']:
