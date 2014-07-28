@@ -54,7 +54,6 @@ class TestDoubanFeed(TestBase):
         eq_(len(ht), 1)
         eq_(ht[0].parsed['username'], 'wcyz666')
         eq_(ht[0].parsed['userid'], '93836298')
-        eq_(ht[0].parsed['liked'], False)
         eq_(ht[0].parsed['attachments'][0]['data'], 'http://img3.douban.com/view/status/raw/public/2758c76c154c0af.jpg')
         eq_(ht[0].parsed['attachments'][0]['type'], 'picture')
         eq_(ht[0].parsed['attachments'][0]['format'][0], 'link')
