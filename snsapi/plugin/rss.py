@@ -48,7 +48,6 @@ class RSSMessage(snstype.Message):
 
         self.parsed.title = self.raw.get('title')
         self.parsed.link = self.raw.get('link')
-        self.parsed.liked = False
         self.ID.link = self.parsed.link
 
         try:
@@ -158,14 +157,6 @@ class RSS(SNSBase):
     def expire_after(self, token=None):
         # This platform does not have token expire issue.
         return -1
-
-    def like(self, message):
-        message.parsed.liked = True
-        return True
-
-    def unlike(self, message):
-        message.parsed.liked = False
-        return True
 
 
 class RSS2RWMessage(RSSMessage):

@@ -39,15 +39,6 @@ class TwitterStatusMessage(snstype.Message):
         self.parsed.username = dct['user']['screen_name']
         self.parsed.userid = dct['user']['id']
         self.parsed.text = dct['text']
-        # NOTE:
-        #    dct["favorited"] will be different if you like/unlike 
-        #    an insta. So we'd better set it to be empty after obtaining
-        #    related information.
-        if str(dct["favorited"]).lower() == "false":
-            self.parsed.liked = False
-        else:
-            self.parsed.liked = True
-        dct["favorited"] = ""
 
 
 class TwitterStatus(SNSBase):
@@ -162,7 +153,6 @@ class TwitterStatus(SNSBase):
         try:
             status = self.api.CreateFavorite(id=message.ID.id)
             if status:
-                message.parsed.liked = True
                 return True
             else:
                 return False
@@ -181,7 +171,6 @@ class TwitterStatus(SNSBase):
         try:
             status = self.api.DestroyFavorite(id=message.ID.id)
             if status:
-                message.parsed.liked = False
                 return True
             else:
                 return False

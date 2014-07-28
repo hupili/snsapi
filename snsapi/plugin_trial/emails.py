@@ -73,7 +73,6 @@ class EmailMessage(snstype.Message):
         try:
             self.parsed.title = self._decode_header(dct.get('Subject'))
             self.parsed.text = dct.get('body')
-            self.parsed.liked = False
         except Exception, e:
             logger.warning("I caught you%s",type(e))
         self.parsed.time = utils.str2utc(dct.get('Date'))
@@ -482,14 +481,6 @@ class Email(SNSBase):
         title = "Re:" + statusID.title
         toaddr = statusID.reply_to
         return self._send(toaddr, title, msg)
-
-    def like(self, message):
-        message.parsed.liked = True
-        return True
-
-    def unlike(self, message):
-        message.parsed.liked = False
-        return True
 
     def expire_after(self, token=None):
         # Check whether the user supplied secrets are correct

@@ -46,12 +46,6 @@ class TencentWeiboStatusMessage(snstype.Message):
         self.parsed.time = dct['timestamp']
         self.parsed.userid = dct['name']
         self.parsed.username = dct['nick']
-        self.parsed.liked = False
-        # Actually there exists an API for obtaining likeinfo.
-        # But in order to get that trivial info we have to make
-        # requests for every message, which is pretty time-consuming.
-        # Considering our situation, we had better regard all renren
-        # messages as unliked.
 
         # The 'origtext' field is plaintext.
         # URLs in 'text' field is parsed to HTML tag
@@ -227,7 +221,6 @@ class TencentWeiboStatus(SNSBase):
         # For the purpose of backward compatibility, we also view
         # it as a successful like
         if ret['msg'] == "ok" or ret["errcode"] == 6:
-            message.parsed.liked = True
             return True
         logger.info("Like status '%s' fail: %s", self.jsonconf.channel_name, ret)
         return ret
@@ -245,7 +238,6 @@ class TencentWeiboStatus(SNSBase):
         ret = self.tencent_request("t/unlike", "POST", id=message.ID.reid, format="json", favoriteId=random.randint(10, 20))
         # Accordion to the API document, favoriteId can be a random number other than 0
         if ret['msg'] == "ok" or ret["errcode"] == 6:
-            message.parsed.liked = False
             return True
         logger.info("Unlike status '%s' fail: %s", self.jsonconf.channel_name, ret)
         return ret

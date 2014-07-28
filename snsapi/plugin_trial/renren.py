@@ -61,12 +61,6 @@ class RenrenFeedMessage(snstype.Message):
         self.parsed.time = utils.str2utc(dct['time'], " +08:00")
         self.parsed.text = ""
         self.ID.feed_type = self.parsed.feed_type = dct['type']
-        self.parsed.liked = False
-        # Actually there exists an API for obtaining likeinfo.
-        # But in order to get that trivial info we have to make
-        # requests for every message, which is pretty time-consuming.
-        # Considering our situation, we had better regard all renren
-        # messages as unliked.
         try:
             if self.ID.feed_type == "PUBLISH_ONE_PHOTO" or self.ID.feed_type == "PUBLISH_MORE_PHOTO":
                 self.ID.resource_id = dct["attachment"][0]["id"]
@@ -522,7 +516,6 @@ class RenrenFeed(SNSBase):
                 'errors': ['PLATFORM_'],
             })
         if res:
-            message.parsed.liked = False
             return BooleanWrappedData(True)
         else:
             return BooleanWrappedData(False, {
@@ -558,7 +551,6 @@ class RenrenFeed(SNSBase):
                 'errors': ['PLATFORM_'],
             })
         if res:
-            message.parsed.liked = False
             return BooleanWrappedData(True)
         else:
             return BooleanWrappedData(False, {

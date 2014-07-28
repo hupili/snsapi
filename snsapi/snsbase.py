@@ -601,6 +601,54 @@ class SNSBase(object):
     # def reply(self, mID, text):
     #     """docstring for reply"""
     #     pass
+    
+    @require_authed
+    def like(self, message):
+        '''
+        A general forwarding implementation using like method.
+
+        :param message:
+            The Message object. The message you want to like.
+
+        :return:
+            Successful or not: True / False
+
+        
+        This like function is "shallow", namely, it has nothing
+        to do with the actual sns website. All what it does is just 
+        set a flag to evince that the message is locally liked.
+        
+        This default implementation is meaningful for sqlite or email.
+        
+        If you want to have a "deep" like, just override it with your
+        own like function
+        '''
+        
+        if not isinstance(message, snstype.Message):
+            logger.warning("unknown type to forward: %s", type(message))
+            return False
+
+        return True
+
+    def unlike(self, message):
+        '''
+        A general forwarding implementation using unlike method.
+
+        :param message:
+            The Message object. The message you want to unlike.
+
+        :return:
+            Successful or not: True / False
+            
+        Same as like
+
+        '''
+
+        if not isinstance(message, snstype.Message):
+            logger.warning("unknown type to forward: %s", type(message))
+            return False
+
+        return True
 
     @require_authed
     def forward(self, message, text):

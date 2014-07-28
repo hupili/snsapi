@@ -28,7 +28,6 @@ class SQLiteMessage(snstype.Message):
 
     def _parse(self, dct):
         self.parsed = dct
-        self.parsed.liked = False
 
 
 class SQLite(SNSBase):
@@ -190,14 +189,6 @@ class SQLite(SNSBase):
         else:
             logger.warning('unknown type: %s', type(text))
             return False
-
-    def like(self, message):
-        message.parsed.liked = True
-        return True
-
-    def unlike(self, message):
-        message.parsed.liked = False
-        return True
 
     def expire_after(self, token=None):
         # This platform does not have token expire issue.

@@ -204,11 +204,6 @@ class SinaWeiboStatusMessage(snstype.Message):
         self.parsed.userid = dct['user']['id']
         self.parsed.reposts_count = dct['reposts_count']
         self.parsed.comments_count = dct['comments_count']
-        # accordian to http://open.weibo.com/qa/index.php?qa=448&qa_1=v2-%E5%B7%B2%E6%94%B6%E8%97%8F%E5%BE%AE%E5%8D%9A-%E6%8E%A5%E5%8F%A3statuses-friends-timeline%E8%BF%94%E5%9B%9E%E5%AD%97%E6%AE%B5-favorited-%E4%B8%BAfalse
-        # Currently we have no way to tell whether 
-        # a weibo message is favorited Although there's a 
-        # specious property
-        self.parsed.liked = False
         if 'pic_urls' in dct:
             for pic in dct['pic_urls']:
                 self.parsed.attachments.append(
@@ -404,7 +399,6 @@ class SinaWeiboStatus(SinaWeiboBase):
             # For the purpose of backward compatibility, we also view
             # it as a successful like
             if 'favorited_time' in ret or ret["error_code"] == 20704:
-                message.parsed.liked = True
                 return True
             else:
                 logger.warning("'%s' likes status '%s' fail. ret: %s",
@@ -433,7 +427,6 @@ class SinaWeiboStatus(SinaWeiboBase):
             # For the purpose of backward compatibility, we also view
             # it as a successful unlike
             if 'favorited_time' in ret or ret["error_code"] == 20705:
-                message.parsed.liked = False
                 return True
             else:
                 logger.warning("'%s' unlikes status '%s' fail. ret: %s",

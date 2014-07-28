@@ -53,16 +53,7 @@ class InstagramMessage(snstype.Message):
                         'data': data["images"]["standard_resolution"]["url"]
                     }
                 )
-        # NOTE:
-        #    data["user_has_liked"] will be different if you like/unlike 
-        #    an insta. So we'd better set it to be empty after obtaining
-        #    related information.
         self.parsed.username = data['user']['username']
-        if str(data["user_has_liked"]).lower() == "false":
-            self.parsed.liked = False
-        else:
-            self.parsed.liked = True
-        data["user_has_liked"] = ""
         try:
             self.parsed.text = data['caption']['text']
         except Exception, e:
@@ -229,7 +220,6 @@ class InstagramFeed(SNSBase):
                 resource="media/" + message.ID.id + "/likes",
                 method="post"
             )
-            message.parsed.liked = True
             return True
         except Exception, e:
             logger.warning("InstagramAPIError, %s", e)
@@ -242,7 +232,6 @@ class InstagramFeed(SNSBase):
                 resource="media/" + message.ID.id + "/likes",
                 method="delete"
             )
-            message.parsed.liked = False
             return True
         except Exception, e:
             logger.warning("InstagramAPIError, %s", e)
