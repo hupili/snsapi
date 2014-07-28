@@ -144,7 +144,7 @@ class DoubanFeed(SNSBase):
             url = self.fetch_code()
             code = self._parse_code(url)
             self.client.auth_with_code(code["code"])
-            self.token = {"access_token": self.client.token_code, "expires_in": 7 * 24 * 60 * 60}
+            self.token = utils.JsonDict({"access_token": self.client.token_code, "expires_in": 7 * 24 * 60 * 60})
         except Exception, e:
             logger.warning("Auth second fail. Catch exception: %s", e)
             self.token = None
