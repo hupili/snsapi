@@ -4,9 +4,11 @@
 Renren Client
 
 '''
+import sys
+reload(sys)
+sys.setdefaultencoding( "utf-8" )
 
 if __name__ == '__main__':
-    import sys
     sys.path.append('..')
     from snslog import SNSLog as logger
     from snsbase import SNSBase, require_authed
@@ -201,9 +203,13 @@ class RenrenFeed(SNSBase):
             response = self._http_get(RENREN_API2_SERVER + method, kwargs)
         else:
             response = self._http_post(RENREN_API2_SERVER + method, kwargs, files=_files)
-
+        # For like function, error will be returned if a feed is liked twice.
+        # In this case we regard it as a successful like
         if type(response) is not list and "error" in response:
-            raise RenrenAPIError(response["error"]["code"], response["error"]["message"])
+            if response["error"]["code"] == u"invalid_request.HAS_ALREADY_LIKED":
+                return {"response": 1}
+            else:
+                raise RenrenAPIError(response["error"]["code"], response["error"]["message"])
         return response['response']
 
     def _renren_request_v1_no_sig(self, method=None, **kwargs):
@@ -234,7 +240,6 @@ class RenrenFeed(SNSBase):
         '''
         docstring placeholder
         '''
-
         args = {"client_id": self.jsonconf.app_key,
                 "redirect_uri": self.auth_info.callback_url}
         args["response_type"] = "code"
@@ -272,7 +277,7 @@ class RenrenFeed(SNSBase):
                 self.token.expires_in = self.time() + 60 * 60 * 7 * 24
             # In case that no "expires_in" property is returned.
         except Exception, e:
-            logger.warning("Auth second fail. Catch exception: %s", str(e))
+            logger.warning("Auth second fail. Catch exception: %s", (e))
             self.token = None
 
     def auth(self):
@@ -507,20 +512,14 @@ class RenrenFeed(SNSBase):
                     ugcId=message.ID.resource_id
                 )
             else:
-                return BooleanWrappedData(False, {
-                    'errors': ['SNSAPI_NOT_SUPPORTED'],
-                })
+                return False
         except Exception as e:
             logger.warning('Catch exception: %s', e)
-            return BooleanWrappedData(False, {
-                'errors': ['PLATFORM_'],
-            })
+            return False
         if res:
-            return BooleanWrappedData(True)
+            return True
         else:
-            return BooleanWrappedData(False, {
-                'errors': ['PLATFORM_'],
-            })
+            return False
 
     @require_authed
     def unlike(self, message):
@@ -542,20 +541,14 @@ class RenrenFeed(SNSBase):
                     ugcId=message.ID.resource_id
                 )
             else:
-                return BooleanWrappedData(False, {
-                    'errors': ['SNSAPI_NOT_SUPPORTED'],
-                })
+                return False
         except Exception as e:
             logger.warning('Catch exception: %s', type(e))
-            return BooleanWrappedData(False, {
-                'errors': ['PLATFORM_'],
-            })
+            return False
         if res:
-            return BooleanWrappedData(True)
+            return True
         else:
-            return BooleanWrappedData(False, {
-                'errors': ['PLATFORM_'],
-            })
+            return False
 
 
 class RenrenStatus(RenrenFeed):
