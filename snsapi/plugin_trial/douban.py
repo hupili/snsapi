@@ -225,7 +225,7 @@ class DoubanFeed(SNSBase):
     @require_authed
     def reply(self, statusID, text):
         try:
-            self.client.miniblog.comment.new(statusID, text)
+            self.client.miniblog.comment.new(statusID.id, text)
             return True
         except Exception, e:
             logger.warning('DoubanAPIError: %s', str(e))
@@ -257,3 +257,16 @@ class DoubanFeed(SNSBase):
         except Exception, e:
             logger.warning("DoubanAPIError: %s", e)
             return False
+
+if __name__ == '__main__':
+
+    sp = DoubanFeed.new_channel()
+    sp['platform']="DoubanFeed"
+    sp['app_key']="0c1f7169eb6ceb80245e543dc246c280"
+    sp['app_secret']="d8ccd01506219118"
+    sp["auth_info"]["callback_url"] = "http://snsapi.sinaapp.com/auth.php"
+    renren = DoubanFeed(sp)
+    renren.auth()
+    sl = renren.home_timeline(20)
+    renren.unlike(sl[1])
+    renren.unlike(sl[0])

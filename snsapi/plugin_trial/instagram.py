@@ -209,7 +209,7 @@ class InstagramFeed(SNSBase):
     def reply(self, statusID, text):
         try:
             result = self.instagram_request(
-                    resource="media/" + statusID + "/comments",
+                    resource="media/" + statusID.id + "/comments",
                     method="post",
                     text=text
                 )
