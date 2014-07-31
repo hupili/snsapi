@@ -143,7 +143,8 @@ class FacebookFeed(SNSBase):
         except Exception, e:
             statuses = {"data" : []}
             logger.warning("Catch exception: %s", e)
-        # Defensive programming: API may throw unexpected error
+        # Defensive programming: API may throw unexpected error as following:
+        # [An unexpected error has occurred. Please retry your request later.]
         for s in statuses['data']:
             try:
                 status_list.append(self.Message(s,
