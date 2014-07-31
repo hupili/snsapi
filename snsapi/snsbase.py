@@ -486,6 +486,48 @@ class SNSBase(object):
             return s.encode('utf-8')
         else:
             return s
+    
+    def _http_delete(self, baseurl, params={}, headers=None, json_parse=True):
+        '''Use HTTP DELETE to request a JSON interface
+
+        :param baseurl: Base URL before parameters
+
+        :param params: a dict of params (can be unicode)
+
+        :param headers: a dict of params (can be unicode)
+
+        :param json_parse: whether to parse json (default True)
+
+        :return:
+
+           * Success: If json_parse is True, a dict of json structure
+             is returned. Otherwise, the response of requests library
+             is returned.
+           * Failure: A warning is logged.
+             If json_parse is True, {} is returned.
+             Otherwise, the response of requests library is returned.
+             (can be None)
+        '''
+        # Support unicode parameters.
+        # We should encode them as exchanging stream (e.g. utf-8)
+        # before URL encoding and issue HTTP requests.
+        r = None
+        try:
+            for p in params:
+                params[p] = self._unicode_encode(params[p])
+            r = requests.delete(baseurl, params=params, headers=headers)
+            if json_parse:
+                return r.json()
+            else:
+                return r
+        except Exception, e:
+            # Tolerate communication fault, like network failure.
+            logger.warning("_http_delete fail: %s", e)
+            if json_parse:
+                return {}
+            else:
+                return r
+
 
     def _expand_url(self, url):
         '''
@@ -559,6 +601,54 @@ class SNSBase(object):
     # def reply(self, mID, text):
     #     """docstring for reply"""
     #     pass
+    
+    @require_authed
+    def like(self, message):
+        '''
+        A general forwarding implementation using like method.
+
+        :param message:
+            The Message object. The message you want to like.
+
+        :return:
+            Successful or not: True / False
+
+        
+        This like function is "shallow", namely, it has nothing
+        to do with the actual sns website. All what it does is just 
+        set a flag to evince that the message is locally liked.
+        
+        This default implementation is meaningful for sqlite or email.
+        
+        If you want to have a "deep" like, just override it with your
+        own like function
+        '''
+        
+        if not isinstance(message, snstype.Message):
+            logger.warning("unknown type to forward: %s", type(message))
+            return False
+
+        return True
+
+    def unlike(self, message):
+        '''
+        A general forwarding implementation using unlike method.
+
+        :param message:
+            The Message object. The message you want to unlike.
+
+        :return:
+            Successful or not: True / False
+            
+        Same as like
+
+        '''
+
+        if not isinstance(message, snstype.Message):
+            logger.warning("unknown type to forward: %s", type(message))
+            return False
+
+        return True
 
     @require_authed
     def forward(self, message, text):

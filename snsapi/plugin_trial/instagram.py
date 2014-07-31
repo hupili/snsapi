@@ -53,14 +53,7 @@ class InstagramMessage(snstype.Message):
                         'data': data["images"]["standard_resolution"]["url"]
                     }
                 )
-        # NOTE:
-        #   * dct['user']['screen_name'] is the path part of user's profile URL
-        #   It is actually in a position of an id. You should @ this string in
-        #   order to mention someone.
-        #   * dct['user']['name'] is actually a nick name you can set. It's not
-        #   permanent.
         self.parsed.username = data['user']['username']
-        self.parsed.liked = data["user_has_liked"]
         try:
             self.parsed.text = data['caption']['text']
         except Exception, e:
@@ -201,7 +194,7 @@ class InstagramFeed(SNSBase):
         return False
 
     # NOTE:
-    # Comments function will be blocked by Instagram defaultly.
+    # Comments function will be blocked by Instagram by default.
     # Anyone who would like to use this function must
     # apply for authorization first. Refer to the following website:
     # https://help.instagram.com/contact/185819881608116
@@ -222,19 +215,27 @@ class InstagramFeed(SNSBase):
 
     @require_authed
     def like(self, message):
-        if str(message.parsed.liked).lower() == "true":
-            logger.warning("You have liked this message before")
+        try:
+            jsonlist = self.instagram_request(
+                resource="media/" + message.ID.id + "/likes",
+                method="post"
+            )
             return True
-        else:
-            try:
-                jsonlist = self.instagram_request(
-                    resource="media/" + message.ID.id + "/likes",
-                    method="post"
-                )
-                return True
-            except Exception, e:
-                logger.warning("InstagramAPIError, %s", e)
-                return False
+        except Exception, e:
+            logger.warning("InstagramAPIError, %s", e)
+            return False
+
+    @require_authed
+    def unlike(self, message):
+        try:
+            jsonlist = self.instagram_request(
+                resource="media/" + message.ID.id + "/likes",
+                method="delete"
+            )
+            return True
+        except Exception, e:
+            logger.warning("InstagramAPIError, %s", e)
+            return False
 
     def forward(self, message, text):
         logger.warning("Instagram does not support update()!")

@@ -49,7 +49,8 @@ ht = home_timeline = convert_parameter_to_unicode(sp.home_timeline)
 up = update = convert_parameter_to_unicode(sp.update)
 re = reply = convert_parameter_to_unicode(sp.reply)
 fwd = forward = convert_parameter_to_unicode(sp.forward)
-
+lk = like = convert_parameter_to_unicode(sp.like)
+ulk = unlike = convert_parameter_to_unicode(sp.unlike)
 #==== documentation ====
 
 helpdoc = \
@@ -72,7 +73,9 @@ To start your new journey, type "print tut"
    * up = update
    * re = reply
    * fwd = forward
-
+   * lk = like
+   * ulk = unlike
+   
 Tutorial of SNSCLI:
 
    * https://github.com/hupili/snsapi/wiki/Tutorial-of-snscli
