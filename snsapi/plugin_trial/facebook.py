@@ -138,14 +138,20 @@ class FacebookFeed(SNSBase):
     @require_authed
     def home_timeline(self, count=20):
         status_list = snstype.MessageList()
-        statuses = self.graph.get_connections("me", "home", limit=count)
+        try:
+            statuses = self.graph.get_connections("me", "home", limit=count)
+        except Exception, e:
+            statuses = {"data" : []}
+            logger.warning("Catch exception: %s", e)
+        # Defensive programming: API may throw unexpected error as following:
+        # [An unexpected error has occurred. Please retry your request later.]
         for s in statuses['data']:
             try:
-                status_list.append(self.Message(s,\
-                        self.jsonconf['platform'],\
+                status_list.append(self.Message(s,
+                        self.jsonconf['platform'],
                         self.jsonconf['channel_name']))
             except Exception, e:
-                logger.warning("Catch expection: %s", type(e))
+                logger.warning("Catch exception: %s", e)
         logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
         return status_list
 
