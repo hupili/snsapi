@@ -145,8 +145,10 @@ supported platforms as follows:
 ::
 
     Supported platforms:
+       * DoubanFeed
        * Email
        * FacebookFeed
+       * InstagramFeed
        * RSS
        * RSS2RW
        * RSSSummary
@@ -225,13 +227,11 @@ Other
 -  Old version of this readme `in
    Chinese <https://github.com/hupili/snsapi/blob/master/doc/snsapi-old-readme-cn.md>`__
 
-Build Status
-------------
-
--  master: |master|
--  dev: |dev|
+|master| |dev| |Analytics|
 
 .. |copyleft| image:: http://unlicense.org/pd-icon.png
    :target: http://unlicense.org
 .. |master| image:: https://travis-ci.org/hupili/snsapi.png?branch=master
 .. |dev| image:: https://travis-ci.org/hupili/snsapi.png?branch=dev
+.. |Analytics| image:: https://ga-beacon.appspot.com/UA-37311363-5/hupili/snsapi
+   :target: https://github.com/igrigorik/ga-beacon

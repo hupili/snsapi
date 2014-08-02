@@ -1,4 +1,4 @@
-SNSAPI 0.8.0
+SNSAPI 0.8.1
 ============
 
 Version string convention: `x.y.z`
@@ -7,7 +7,7 @@ Version string convention: `x.y.z`
    * `y`: Minor version with functional extension.
    * `z`: Micro version with small fix.
 
-0.8.0
+0.8.1
 -----
 
    * Douban is added.
