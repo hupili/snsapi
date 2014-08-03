@@ -19,7 +19,7 @@ INSTALL_REQUIRES=[
 ]
 
 setup(name='snsapi',
-      version='0.7.1',
+      version='0.8.0',
       description='lightweight middleware for multiple social networking services',
       author='Pili Hu',
       author_email='me@hupili.net',

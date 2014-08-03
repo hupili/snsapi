@@ -11,5 +11,5 @@ import platform
 
 _dir_static_data = snsconf.SNSConf._SNSAPI_DIR_STATIC_DATA
 
-__versioninfo__ = (0, 7, 1)
+__versioninfo__ = (0, 8, 0)
 __version__ = '.'.join(map(str, __versioninfo__))

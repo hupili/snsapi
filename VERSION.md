@@ -1,4 +1,4 @@
-SNSAPI 0.7.1
+SNSAPI 0.8.0
 ============
 
 Version string convention: `x.y.z`
@@ -6,6 +6,14 @@ Version string convention: `x.y.z`
    * `x`: Major version with architectural upgrades.
    * `y`: Minor version with functional extension.
    * `z`: Micro version with small fix.
+
+0.8.0
+-----
+
+   * Douban is added.
+   * Instagram is added.
+   * Renren API V2 migrated.
+   * like/unlike method for all platforms
 
 0.7.1
 -----

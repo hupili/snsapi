@@ -127,8 +127,10 @@ Get the supported platforms as follows:
 
 ```
 Supported platforms:
+   * DoubanFeed
    * Email
    * FacebookFeed
+   * InstagramFeed
    * RSS
    * RSS2RW
    * RSSSummary
