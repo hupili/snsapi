@@ -242,7 +242,7 @@ class InstagramFeed(SNSBase):
             return True
         except Exception, e:
             logger.warning("InstagramAPIError: %s", e)
-            return False
+            return {"error": e.message}
 
     def forward(self, message, text):
         logger.warning("Instagram does not support update()!")
@@ -271,6 +271,8 @@ if __name__ == "__main__":
     # Test get 2 messages from your timeline
     status_list = instagramapi.home_timeline(2)
     print '\n\n--- Statuses of your friends is followed ---'
+    status_list[0].parsed.userid = "1111111111"
+    print(instagramapi.unsubscribe(status_list[0]))
     print status_list
     print '--- End of status timeline ---\n\n'
     
