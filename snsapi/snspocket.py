@@ -353,7 +353,7 @@ class SNSPocket(dict):
             console_output("Current channels:")
             for cname in self.iterkeys():
                 c = self[cname].jsonconf
-                console_output("   * %s: %s %s" % \
+                console_output("   * %s: %s %s" %
                         (c['channel_name'],c['platform'],c['open']))
                 if verbose:
                     console_output("    %s" % json.dumps(c))
@@ -493,7 +493,7 @@ class SNSPocket(dict):
                         re = c.reply(mID, text)
                         break
 
-        logger.info("Reply to status '%s' with text '%s'. Result: %s",\
+        logger.info("Reply to status '%s' with text '%s'. Result: %s",
                 mID, text, re)
         return re
 
@@ -516,7 +516,7 @@ class SNSPocket(dict):
                 if self.__check_method(c, 'forward') and not c.is_expired():
                     re[c.jsonconf['channel_name']] = c.forward(message, text)
 
-        logger.info("Forward status '%s' with text '%s'. Result: %s",\
+        logger.info("Forward status '%s' with text '%s'. Result: %s",
                 message.digest(), text, re)
         return re
 
@@ -551,7 +551,7 @@ class SNSPocket(dict):
                     re = c.like(message)
                     break
 
-        logger.info("Like status '%s'. Result: %s",\
+        logger.info("Like status '%s'. Result: %s",
                 message.digest(), re)
         return re
 
@@ -586,6 +586,40 @@ class SNSPocket(dict):
                     re = c.unlike(message)
                     break
 
-        logger.info("UnLike status '%s'. Result: %s",\
+        logger.info("UnLike status '%s'. Result: %s",
+                message.digest(), re)
+        return re
+
+    def unsubscribe(self, message, channel=None):
+        '''
+        Unsubscribe the owner of the input message
+        '''
+
+        if isinstance(message, snstype.Message):
+            mID = message.ID
+        elif isinstance(message, snstype.MessageID):
+            mID = message
+        else:
+            logger.warning("unknown type: %s", type(message))
+            return {}
+
+        if channel:
+            if channel in self:
+                # If the platforms are not identical, unsubscribe method will surly fail
+                if self[channel].platform != mID.platform:
+                    logger.warning("Inter-platform unsubscribe method is not supported.")                   
+                elif self[channel].is_expired():
+                    logger.warning("channel '%s' is expired. Do nothing.", channel)
+                else:
+                    re = self[channel].unsubscribe(message)
+            else:
+                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
+        else:
+            for c in self.itervalues():
+                if self.__check_method(c, 'unsubscribe') and not c.is_expired():
+                    re = c.unsubscribe(message)
+                    break
+
+        logger.info("Unsubscribe status '%s'. Result: %s",
                 message.digest(), re)
         return re

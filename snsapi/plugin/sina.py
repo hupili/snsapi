@@ -451,8 +451,8 @@ class SinaWeiboStatus(SinaWeiboBase):
 
         '''
 
-        uID = message.parsed.userid
         try:
+            uID = message.parsed.userid
             ret = self.weibo_request('friendships/destroy',
                     'POST',
                     {'uid': uID})

@@ -265,8 +265,8 @@ class TencentWeiboStatus(SNSBase):
                  Otherwise a dict containing the error message will be returned.
 
         '''
-        uID = message.parsed.userid
         try:
+            uID = message.parsed.userid
             # errcode 80022 means this user is not followed or has been unsubscribed.
             # For the purpose of backward compatibility, we also view
             # it as a successful unsubscription.

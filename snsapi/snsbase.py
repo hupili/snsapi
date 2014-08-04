@@ -630,6 +630,7 @@ class SNSBase(object):
 
         return True
 
+    @require_authed
     def unlike(self, message):
         '''
         A general forwarding implementation using unlike method.
@@ -649,6 +650,28 @@ class SNSBase(object):
             return False
 
         return True
+
+    @require_authed
+    def unsubscribe(self, message):
+        '''
+        Unsubscribe the owner of the input message
+
+        :param message:
+            An ``snstype.Message`` object whose owner to unsubscribe
+
+        :return: True if successfully unsubscribed.
+                 Otherwise a dict containing the error message will be returned.
+
+        This is a default implementation for SQLite, Email and RSS.
+        If you want to have an "effective" unsubscription, just override it with your
+        own unsubscribe() function
+        '''
+
+        if not isinstance(message, snstype.Message):
+            logger.warning("unknown type to forward: %s", type(message))
+            return {"error", "Unknown message type"}
+
+        return {"error": "This platform doesn't support unsubscription"}
 
     @require_authed
     def forward(self, message, text):
@@ -710,11 +733,11 @@ class SNSBase(object):
             # this way, it we can compat the message further. i.e.
             # When one field is None, we omit the text "None" and
             # delimiter.
-            final = self._cat(tll, [(text, 5), (last_user, 4), \
-                    (unicode(message.parsed.text_trace), 1), \
+            final = self._cat(tll, [(text, 5), (last_user, 4),
+                    (unicode(message.parsed.text_trace), 1),
                     (unicode(message.parsed.text_orig), 3)])
         else:
-            final = self._cat(tll, [(text, 3), (last_user, 2),\
+            final = self._cat(tll, [(text, 3), (last_user, 2),
                     (unicode(message.parsed.text), 1)])
 
         return self.update(final)
