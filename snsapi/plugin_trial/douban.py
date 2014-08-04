@@ -8,20 +8,18 @@ if __name__ == '__main__':
     from snstype import BooleanWrappedData
     import platform
     import utils
-    import time
-    import urllib
     from third import douban_client as doubansdk
-    import json
 else:
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from ..snstype import BooleanWrappedData
     from .. import snstype
     from .. import utils
-    import time
-    import urllib
     from ..third import douban_client as doubansdk
-    import json
+
+import json
+import time
+import urllib
 
 
 # This error is moved back to "douban.py".
@@ -258,15 +256,48 @@ class DoubanFeed(SNSBase):
             logger.warning("DoubanAPIError: %s", e)
             return False
 
+    @require_authed
+    def unsubscribe(self, message):
+        try:
+            ret = self.client.user.unfollow(message.parsed.userid)
+            if "following" in ret and ret["following"] == False:
+                return True
+            else:
+                return {"error": "Failed in unsubscribing this user"}
+            # Accordion to Douban API we can't read out the actual error
+            # message from the returned value.
+        except Exception, e:
+            logger.warning("DoubanAPIError: %s", e)
+            return {"error": e.message}
+
+
 if __name__ == '__main__':
 
-    sp = DoubanFeed.new_channel()
-    sp['platform']="DoubanFeed"
-    sp['app_key']="0c1f7169eb6ceb80245e543dc246c280"
-    sp['app_secret']="d8ccd01506219118"
-    sp["auth_info"]["callback_url"] = "http://snsapi.sinaapp.com/auth.php"
-    renren = DoubanFeed(sp)
-    renren.auth()
-    sl = renren.home_timeline(20)
-    renren.unlike(sl[1])
-    renren.unlike(sl[0])
+    print '\n\n\n'
+    print '==== SNSAPI Demo of douban.py module ====\n'
+    # Create and fill in app information
+    douban_conf = DoubanFeed.new_channel()
+    douban_conf['channel_name'] = 'test_douban'
+    douban_conf['app_key'] = '0c1f7169eb6ceb80245e543dc246c280'        # Change to your own keys
+    douban_conf['app_secret'] = 'd8ccd01506219118'                     # Change to your own keys
+    # Instantiate the channel
+    douban = DoubanFeed(douban_conf)
+    # OAuth your app
+    print 'SNSAPI is going to authorize your app.'
+    print 'Please make sure:'
+    print '   * You have filled in your own app_key and app_secret in this script.'
+    print '   * You configured the callback_url on open.weibo.com as'
+    print '     http://snsapi.sinaapp.com/auth.php'
+    print 'Press [Enter] to continue or Ctrl+C to end.'
+    raw_input()
+    douban.auth()
+    # Test get 2 messages from your timeline
+    status_list = douban.home_timeline(1)
+    
+    print '\n\n--- Statuses of your friends is followed ---'
+    print status_list
+    print '--- End of status timeline ---\n\n'
+    
+    print 'Short demo ends here! You can do more with SNSAPI!'
+    print 'Please join our group for further discussions'
+    
