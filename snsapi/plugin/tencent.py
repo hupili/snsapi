@@ -11,13 +11,14 @@ if __name__ == '__main__':
     from snsbase import SNSBase, require_authed
     import snstype
     import utils
-    import random
 else:
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from .. import snstype
     from .. import utils
-    import random
+
+import random
+import json
 
 logger.debug("%s plugged!", __file__)
 
@@ -44,8 +45,8 @@ class TencentWeiboStatusMessage(snstype.Message):
         self.ID.reid = dct['id']
 
         self.parsed.time = dct['timestamp']
-        self.parsed.userid = dct['name']
-        self.parsed.username = dct['nick']
+        self.parsed.userid = dct['openid']
+        self.parsed.username = dct['name']
 
         # The 'origtext' field is plaintext.
         # URLs in 'text' field is parsed to HTML tag
@@ -152,11 +153,9 @@ class TencentWeiboStatus(SNSBase):
            * parameter count: number of statuses
         '''
 
-        jsonobj = self.tencent_request("statuses/home_timeline", reqnum=count)
-        #logger.debug("returned: %s", jsonobj)
-
         statuslist = snstype.MessageList()
         try:
+            jsonobj = self.tencent_request("statuses/home_timeline", reqnum=count)
             for j in jsonobj['data']['info']:
                 statuslist.append(self.Message(j,
                     platform=self.jsonconf['platform'],
@@ -203,11 +202,15 @@ class TencentWeiboStatus(SNSBase):
            * parameter text: the comment text
            * return: success or not
         '''
-        ret = self.tencent_request("t/reply", "POST", content=text, reid=statusID.reid)
-        if(ret['msg'] == "ok"):
-            return True
-        logger.info("Reply '%s' to status '%s' fail: %s", text, self.jsonconf.channel_name, ret)
-        return ret
+        try:
+            ret = self.tencent_request("t/reply", "POST", content=text, reid=statusID.reid)
+            if(ret['msg'] == "ok"):
+                return True
+            logger.warning("Reply '%s' to status '%s' fail: %s", text, self.jsonconf.channel_name, ret)
+            return ret
+        except Exception, e:
+            return {"ret": "1", "msg": e.message}
+            # return a similar error dict
 
     @require_authed
     def like(self, message):
@@ -216,14 +219,18 @@ class TencentWeiboStatus(SNSBase):
            * parameter message: the message to be liked
            * return: success or not
         '''
-        ret = self.tencent_request("t/like", "POST", id=message.ID.reid, format="json")
-        # errcode 6 means this status had been collected.
-        # For the purpose of backward compatibility, we also view
-        # it as a successful like
-        if ret['msg'] == "ok" or ret["errcode"] == 6:
-            return True
-        logger.info("Like status '%s' fail: %s", self.jsonconf.channel_name, ret)
-        return ret
+        try:
+            ret = self.tencent_request("t/like", "POST", id=message.ID.reid, format="json")
+            # errcode 6 means this status had been collected.
+            # For the purpose of backward compatibility, we also view
+            # it as a successful like
+            if ret['msg'] == "ok" or ret["errcode"] == 6:
+                return True
+            logger.warning("Like status '%s' failed: %s", self.jsonconf.channel_name, ret)
+            return False
+        except Exception, e:
+            logger.warning("Catch exception: %s. Like status '%s' failed.", e, self.jsonconf.channel_name)
+            return False
 
     @require_authed
     def unlike(self, message):
@@ -232,15 +239,46 @@ class TencentWeiboStatus(SNSBase):
            * parameter message: the message to be unliked
            * return: success or not
         '''
-        # errcode 6 means this status had never been collected.
-        # For the purpose of backward compatibility, we also view
-        # it as a successful like
-        ret = self.tencent_request("t/unlike", "POST", id=message.ID.reid, format="json", favoriteId=random.randint(10, 20))
-        # Accordion to the API document, favoriteId can be a random number other than 0
-        if ret['msg'] == "ok" or ret["errcode"] == 6:
-            return True
-        logger.info("Unlike status '%s' fail: %s", self.jsonconf.channel_name, ret)
-        return ret
+        try:
+            # errcode 6 means this status had never been collected.
+            # For the purpose of backward compatibility, we also view
+            # it as a successful like
+            ret = self.tencent_request("t/unlike", "POST", id=message.ID.reid, format="json", favoriteId=random.randint(10, 20))
+            # Accordion to the API document, favoriteId can be a random number other than 0
+            if ret['msg'] == "ok" or ret["errcode"] == 6:
+                return True
+            logger.info("Unlike status '%s' failed: %s", self.jsonconf.channel_name, ret)
+            return False
+        except Exception, e:
+            logger.warning("Catch exception: %s. Unlike status '%s' failed.", e, self.jsonconf.channel_name)
+            return False
+
+    @require_authed
+    def unsubscribe(self, message):
+        '''
+        Unsubscribe the owner of the input message:
+
+        :param message:
+            An ``snstype.Message`` object whose owner to unsubscribe
+
+        :return: True if successfully unsubscribed.
+                 Otherwise a dict containing the error message will be returned.
+
+        '''
+        uID = message.parsed.userid
+        try:
+            # errcode 80022 means this user is not followed or has been unsubscribed.
+            # For the purpose of backward compatibility, we also view
+            # it as a successful unsubscription.
+            ret = self.tencent_request("friends/del", "POST", fopenid=uID, format="json")
+            if ret['msg'] == "ok" or ret["errcode"] == 80022:
+                return True
+            logger.warning("Unsubscribe status '%s' failed: %s", self.jsonconf.channel_name, ret)
+            return False
+        except Exception, e:
+            logger.warning("Catch exception: %s. Unsubscribe status '%s' failed.", e, self.jsonconf.channel_name)
+            return {"error": e.message}
+
 
 if __name__ == '__main__':
     print '\n\n\n'
@@ -248,7 +286,7 @@ if __name__ == '__main__':
     # Create and fill in app information
     tencent_conf = TencentWeiboStatus.new_channel()
     tencent_conf['channel_name'] = 'test_tencent'
-    tencent_conf['app_key'] = '801389477'                           # Change to your own keys
+    tencent_conf['app_key'] = '801389477'                            # Change to your own keys
     tencent_conf['app_secret'] = 'bd002edff5670f64be610c7e143b3b18'  # Change to your own keys
     # Instantiate the channel
     tencent = TencentWeiboStatus(tencent_conf)
