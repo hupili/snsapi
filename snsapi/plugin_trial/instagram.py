@@ -232,18 +232,6 @@ class InstagramFeed(SNSBase):
             return False
 
     @require_authed
-    def unsubscribe(self, message):
-        try:
-            jsonlist = self.instagram_request(
-                resource="users/" + message.parsed.userid + "/relationship",
-                method="post",
-                action="unfollow"
-            )
-            return True
-        except Exception, e:
-            logger.warning("InstagramAPIError: %s", e)
-            return {"error": e.message}
-
     def forward(self, message, text):
         logger.warning("Instagram does not support update()!")
         return False
@@ -255,8 +243,8 @@ if __name__ == "__main__":
     # Create and fill in app information
     instagram_conf = InstagramFeed.new_channel()
     instagram_conf['channel_name'] = 'test_instagram'
-    instagram_conf['app_key'] = '6f2ae09b48ca4639b8f25bfc5dee7a98'    # Change to your own keys
-    instagram_conf['app_secret'] = 'a32b770c1b6345008e050ace200eba29' # Change to your own keys
+    instagram_conf['app_key'] = ''    # Add your own keys
+    instagram_conf['app_secret'] = '' # Add your own keys
     # Instantiate the channel
     instagramapi = InstagramFeed(instagram_conf)
     # OAuth your app
@@ -271,8 +259,6 @@ if __name__ == "__main__":
     # Test get 2 messages from your timeline
     status_list = instagramapi.home_timeline(2)
     print '\n\n--- Statuses of your friends is followed ---'
-    status_list[0].parsed.userid = "1111111111"
-    print(instagramapi.unsubscribe(status_list[0]))
     print status_list
     print '--- End of status timeline ---\n\n'
     

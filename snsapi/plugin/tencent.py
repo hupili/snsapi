@@ -253,32 +253,6 @@ class TencentWeiboStatus(SNSBase):
             logger.warning("Catch exception: %s. Unlike status '%s' failed.", e, self.jsonconf.channel_name)
             return False
 
-    @require_authed
-    def unsubscribe(self, message):
-        '''
-        Unsubscribe the owner of the input message:
-
-        :param message:
-            An ``snstype.Message`` object whose owner to unsubscribe
-
-        :return: True if successfully unsubscribed.
-                 Otherwise a dict containing the error message will be returned.
-
-        '''
-        try:
-            uID = message.parsed.userid
-            # errcode 80022 means this user is not followed or has been unsubscribed.
-            # For the purpose of backward compatibility, we also view
-            # it as a successful unsubscription.
-            ret = self.tencent_request("friends/del", "POST", fopenid=uID, format="json")
-            if ret['msg'] == "ok" or ret["errcode"] == 80022:
-                return True
-            logger.warning("Unsubscribe status '%s' failed: %s", self.jsonconf.channel_name, ret)
-            return False
-        except Exception, e:
-            logger.warning("Catch exception: %s. Unsubscribe status '%s' failed.", e, self.jsonconf.channel_name)
-            return {"error": e.message}
-
 
 if __name__ == '__main__':
     print '\n\n\n'
@@ -286,8 +260,8 @@ if __name__ == '__main__':
     # Create and fill in app information
     tencent_conf = TencentWeiboStatus.new_channel()
     tencent_conf['channel_name'] = 'test_tencent'
-    tencent_conf['app_key'] = '801389477'                            # Change to your own keys
-    tencent_conf['app_secret'] = 'bd002edff5670f64be610c7e143b3b18'  # Change to your own keys
+    tencent_conf['app_key'] = ''     # Add your own keys
+    tencent_conf['app_secret'] = ''  # Add your own keys
     # Instantiate the channel
     tencent = TencentWeiboStatus(tencent_conf)
     # OAuth your app
@@ -300,7 +274,7 @@ if __name__ == '__main__':
     raw_input()
     tencent.auth()
     # Test get 2 messages from your timeline
-    status_list = tencent.home_timeline(3)
+    status_list = tencent.home_timeline(2)
     print '\n\n--- Statuses of your friends is followed ---'  
     print status_list
     print '--- End of status timeline ---\n\n'

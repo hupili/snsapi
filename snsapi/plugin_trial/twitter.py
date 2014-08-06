@@ -13,14 +13,15 @@ if __name__ == '__main__':
     from snsbase import SNSBase, require_authed
     import snstype
     import utils
+    from third import twitter
 else:
-	from ..snslog import SNSLog
-	logger = SNSLog
-	from ..snsbase import SNSBase
-	from .. import snstype
-	from ..utils import console_output
-	from .. import utils
-	from ..third import twitter
+    from ..snslog import SNSLog
+    logger = SNSLog
+    from ..snsbase import SNSBase
+    from .. import snstype
+    from ..utils import console_output
+    from .. import utils
+    from ..third import twitter
 
 logger.debug("%s plugged!", __file__)
 
@@ -164,7 +165,7 @@ class TwitterStatus(SNSBase):
             else:
                 return False
         except Exception, e:
-            logger.warning('like tweet failed: %s', str(e))
+            logger.warning('like tweet failed: %s', e)
             return False
 
     def unlike(self, message):
@@ -182,29 +183,8 @@ class TwitterStatus(SNSBase):
             else:
                 return False
         except Exception, e:
-            logger.warning('like tweet failed: %s', str(e))
+            logger.warning('like tweet failed: %s', e)
             return False
-
-    def unsubscribe(self, message):
-        '''
-        Unsubscribe the owner of the input message:
-
-        :param message:
-            An ``snstype.Message`` object whose owner to unsubscribe
-
-        :return: True if successfully unsubscribed.
-                 Otherwise a dict containing the error message will be returned.
-
-        '''
-        try:
-            user = self.api.DestroyFriendship(user_id=message.parsed.userid)
-            if user:
-                return True
-            else:
-                return {"error": "Failed in unsubscribing this user"}
-        except Exception, e:
-            logger.warning('Unsubscribe tweet user failed: %s', str(e))
-            return {"error": e.message}
 
     def expire_after(self, token=None):
         # This platform does not have token expire issue.
@@ -253,6 +233,7 @@ class TwitterSearch(TwitterStatus):
             logger.warning("Catch exception: %s", e)
         return status_list
 
+
 if __name__ == '__main__':
 
     print '\n\n\n'
@@ -260,24 +241,22 @@ if __name__ == '__main__':
     # Create and fill in app information
     twitter_conf = TwitterStatus.new_channel()
     twitter_conf['channel_name'] = 'test_twitter'
-    twitter_conf['app_secret']="xOl31NQFrO9mn99tvvf5wmYBjeJT2V50gJNrPNHs6c"             # Change to your own keys
-    twitter_conf['app_key']="jNeenbpkNvGnGgR09AbXRQ"                                    # Change to your own keys
-    twitter_conf['access_key'] = '1599990409-keJcjxyibqjHkEdEeZ1LkvcIiw809I0N9HCvRRH'   # Change to your own keys
-    twitter_conf['access_secret'] = '4fk0WmEos6bTEMuA7cjYAjGNkmLqusQAzAkrbFgq3M'        # Change to your own keys
+    twitter_conf['app_secret'] = ""             # Add your own keys
+    twitter_conf['app_key'] = ""                # Add your own keys
+    twitter_conf['access_key'] = ''             # Add your own keys
+    twitter_conf['access_secret'] = ''          # Add your own keys
  
     # Instantiate the channel
-    twitter = TwitterStatus(twitter_conf)
+    twi = TwitterStatus(twitter_conf)
     # OAuth your app
     print 'SNSAPI is going to authorize your app.'
     print 'Please make sure:'
     print '   * You have filled in your own app_key and app_secret in this script.'
-    print '   * You configured the callback_url on open.weibo.com as'
-    print '     http://snsapi.sinaapp.com/auth.php'
     print 'Press [Enter] to continue or Ctrl+C to end.'
     raw_input()
-    twitter.auth()
+    twi.auth()
     # Test get 2 messages from your timeline
-    status_list = twitter.home_timeline(2)
+    status_list = twi.home_timeline(2)
     print '\n\n--- Statuses of your friends is followed ---'
     print status_list
     print '--- End of status timeline ---\n\n'

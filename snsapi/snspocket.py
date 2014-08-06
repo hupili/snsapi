@@ -589,37 +589,3 @@ class SNSPocket(dict):
         logger.info("UnLike status '%s'. Result: %s",
                 message.digest(), re)
         return re
-
-    def unsubscribe(self, message, channel=None):
-        '''
-        Unsubscribe the owner of the input message
-        '''
-
-        if isinstance(message, snstype.Message):
-            mID = message.ID
-        elif isinstance(message, snstype.MessageID):
-            mID = message
-        else:
-            logger.warning("unknown type: %s", type(message))
-            return {}
-
-        if channel:
-            if channel in self:
-                # If the platforms are not identical, unsubscribe method will surly fail
-                if self[channel].platform != mID.platform:
-                    logger.warning("Inter-platform unsubscribe method is not supported.")                   
-                elif self[channel].is_expired():
-                    logger.warning("channel '%s' is expired. Do nothing.", channel)
-                else:
-                    re = self[channel].unsubscribe(message)
-            else:
-                logger.warning("channel '%s' is not in pocket. Do nothing.", channel)
-        else:
-            for c in self.itervalues():
-                if self.__check_method(c, 'unsubscribe') and not c.is_expired():
-                    re = c.unsubscribe(message)
-                    break
-
-        logger.info("Unsubscribe status '%s'. Result: %s",
-                message.digest(), re)
-        return re

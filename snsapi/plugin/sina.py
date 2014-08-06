@@ -438,38 +438,6 @@ class SinaWeiboStatus(SinaWeiboBase):
                         e, self.jsonconf.channel_name, mID)
             return False
 
-    @require_authed
-    def unsubscribe(self, message):
-        '''
-        Unsubscribe the owner of the input message:
-
-        :param message:
-            An ``snstype.Message`` object whose owner to unsubscribe
-
-        :return: True if successfully unsubscribed.
-                 Otherwise a dict containing the error message will be returned.
-
-        '''
-
-        try:
-            uID = message.parsed.userid
-            ret = self.weibo_request('friendships/destroy',
-                    'POST',
-                    {'uid': uID})
-            # error_code 20522 means this user is not followed or has been unsubscribed.
-            # For the purpose of backward compatibility, we also view
-            # it as a successful unsubscribe.
-            if 'follow_me' in ret or ret["error_code"] == 20522:
-                return True
-            else:
-                logger.warning("'%s' unsubscribes '%s' fail. ret: %s",
-                        self.jsonconf.channel_name, uID, ret)
-                return {"error": ret['error']}
-        except Exception, e:
-            logger.warning("'%s' unsubscribes '%s' fail. . Catch exception: %s",
-                        self.jsonconf.channel_name, uID, e)
-            return {"error": e.message}
-
 
 if __name__ == '__main__':
     print '\n\n\n'
@@ -477,8 +445,8 @@ if __name__ == '__main__':
     # Create and fill in app information
     sina_conf = SinaWeiboStatus.new_channel()
     sina_conf['channel_name'] = 'test_sina'
-    sina_conf['app_key'] = '3102874688'                           # Change to your own keys
-    sina_conf['app_secret'] = 'b47a651d1b5be0127690f017965bd343'  # Change to your own keys
+    sina_conf['app_key'] = ''     # Add your own keys
+    sina_conf['app_secret'] = ''  # Add your own keys
     # Instantiate the channel
     sina = SinaWeiboStatus(sina_conf)
     # OAuth your app

@@ -14,14 +14,23 @@ Premature warning:
    * Welcome to report test results of other platform.
 
 '''
+if __name__ == '__main__':
+    import sys
+    sys.path.append('..')
+    from snslog import SNSLog as logger
+    from snsbase import SNSBase, require_authed
+    import snstype
+    import utils
+else:
+    from ..snslog import SNSLog
+    logger = SNSLog
+    from ..snsbase import SNSBase, require_authed
+    from .. import snstype
+    from ..utils import console_output
+    from .. import utils
+    from ..utils import json
 
-from ..snslog import SNSLog
-logger = SNSLog
-from ..snsbase import SNSBase, require_authed
-from .. import snstype
-from ..utils import console_output
-from .. import utils
-from ..utils import json
+
 import quopri
 import time
 import email
@@ -538,3 +547,36 @@ class Email(SNSBase):
 #
 # In [12]: msg['Content-Type']
 # Out[12]: 'multipart/alternative; boundary=047d7b5dbe702bc3f804ccb35e18'
+
+if __name__ == '__main__':
+
+    print '\n\n\n'
+    print '==== SNSAPI Demo of emails.py module ====\n'
+    # Create and fill in app information
+    email_conf = Email.new_channel()
+    email_conf['channel_name'] = 'test_email'
+    email_conf['imap_host'] = 'imap.gmail.com'
+    email_conf['imap_port'] = 993 #default IMAP + TLS port
+    email_conf['smtp_host'] = 'smtp.gmail.com'
+    email_conf['smtp_port'] = 587 #default SMTP + TLS port
+    email_conf['username'] = ''
+    email_conf['password'] = ''
+    email_conf['address'] = ''            # Add your own email website
+ 
+    # Instantiate the channel
+    email = Email(email_conf)
+    # OAuth your app
+    print 'SNSAPI is going to authorize your app.'
+    print 'Please make sure:'
+    print '   * You have filled in your own app_key and app_secret in this script.'
+    print 'Press [Enter] to continue or Ctrl+C to end.'
+    raw_input()
+    email.auth()
+    # Test get 2 messages from your timeline
+    status_list = email.home_timeline(2)
+    print '\n\n--- Statuses of your friends is followed ---'
+    print status_list
+    print '--- End of status timeline ---\n\n'
+    
+    print 'Short demo ends here! You can do more with SNSAPI!'
+    print 'Please join our group for further discussions'

@@ -652,28 +652,6 @@ class SNSBase(object):
         return True
 
     @require_authed
-    def unsubscribe(self, message):
-        '''
-        Unsubscribe the owner of the input message
-
-        :param message:
-            An ``snstype.Message`` object whose owner to unsubscribe
-
-        :return: True if successfully unsubscribed.
-                 Otherwise a dict containing the error message will be returned.
-
-        This is a default implementation for SQLite, Email and RSS.
-        If you want to have an "effective" unsubscription, just override it with your
-        own unsubscribe() function
-        '''
-
-        if not isinstance(message, snstype.Message):
-            logger.warning("unknown type to forward: %s", type(message))
-            return {"error", "Unknown message type"}
-
-        return {"error": "This platform doesn't support unsubscription"}
-
-    @require_authed
     def forward(self, message, text):
         """
         A general forwarding implementation using update method.

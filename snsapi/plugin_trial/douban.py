@@ -138,9 +138,6 @@ class DoubanFeed(SNSBase):
             logger.warning("Auth second fail. Catch exception: %s", e)
             self.token = None
 
-    def is_expired(self, token=None):
-        return False
-
     def auth(self):
         '''
         docstring placeholder
@@ -256,20 +253,6 @@ class DoubanFeed(SNSBase):
             logger.warning("DoubanAPIError: %s", e)
             return False
 
-    @require_authed
-    def unsubscribe(self, message):
-        try:
-            ret = self.client.user.unfollow(message.parsed.userid)
-            if "following" in ret and ret["following"] == False:
-                return True
-            else:
-                return {"error": "Failed in unsubscribing this user"}
-            # Accordion to Douban API we can't read out the actual error
-            # message from the returned value.
-        except Exception, e:
-            logger.warning("DoubanAPIError: %s", e)
-            return {"error": e.message}
-
 
 if __name__ == '__main__':
 
@@ -278,8 +261,8 @@ if __name__ == '__main__':
     # Create and fill in app information
     douban_conf = DoubanFeed.new_channel()
     douban_conf['channel_name'] = 'test_douban'
-    douban_conf['app_key'] = '0c1f7169eb6ceb80245e543dc246c280'        # Change to your own keys
-    douban_conf['app_secret'] = 'd8ccd01506219118'                     # Change to your own keys
+    douban_conf['app_key'] = ''        # Add your own keys
+    douban_conf['app_secret'] = ''     # Add your own keys
     # Instantiate the channel
     douban = DoubanFeed(douban_conf)
     # OAuth your app
