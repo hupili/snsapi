@@ -401,12 +401,12 @@ class SinaWeiboStatus(SinaWeiboBase):
             if 'favorited_time' in ret or ret["error_code"] == 20704:
                 return True
             else:
-                logger.warning("'%s' likes status '%s' fail. ret: %s",
+                logger.warning("'%s' likes status '%s' failed. ret: %s",
                         self.jsonconf.channel_name, mID, ret)
                 return False
         except Exception, e:
-            logger.warning("Exception: %s. '%s' like status '%s' fail. ret: %s",
-                        e, self.jsonconf.channel_name, mID, ret)
+            logger.warning("Catch exception: %s. '%s' like status '%s' failed.",
+                        e, self.jsonconf.channel_name, mID)
             return False
 
     @require_authed
@@ -419,6 +419,7 @@ class SinaWeiboStatus(SinaWeiboBase):
            * Receive a message
         '''
         mID = message.ID
+
         try:
             ret = self.weibo_request('favorites/destroy',
                     'POST',
@@ -429,13 +430,14 @@ class SinaWeiboStatus(SinaWeiboBase):
             if 'favorited_time' in ret or ret["error_code"] == 20705:
                 return True
             else:
-                logger.warning("'%s' unlikes status '%s' fail. ret: %s",
+                logger.warning("'%s' unlikes status '%s' failed. ret: %s",
                         self.jsonconf.channel_name, mID, ret)
                 return False
         except Exception, e:
-            logger.warning("'%s' unlike status '%s' fail. ret: %s",
-                        self.jsonconf.channel_name, mID, ret)
+            logger.warning("Catch exception: %s. '%s' unlikes status '%s' failed.",
+                        e, self.jsonconf.channel_name, mID)
             return False
+
 
 if __name__ == '__main__':
     print '\n\n\n'
@@ -443,8 +445,8 @@ if __name__ == '__main__':
     # Create and fill in app information
     sina_conf = SinaWeiboStatus.new_channel()
     sina_conf['channel_name'] = 'test_sina'
-    sina_conf['app_key'] = '2932547522'                           # Change to your own keys
-    sina_conf['app_secret'] = '93969e0d835ffec8dcd4a56ecf1e57ef'  # Change to your own keys
+    sina_conf['app_key'] = ''     # Add your own keys
+    sina_conf['app_secret'] = ''  # Add your own keys
     # Instantiate the channel
     sina = SinaWeiboStatus(sina_conf)
     # OAuth your app

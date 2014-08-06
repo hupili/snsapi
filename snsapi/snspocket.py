@@ -353,7 +353,7 @@ class SNSPocket(dict):
             console_output("Current channels:")
             for cname in self.iterkeys():
                 c = self[cname].jsonconf
-                console_output("   * %s: %s %s" % \
+                console_output("   * %s: %s %s" %
                         (c['channel_name'],c['platform'],c['open']))
                 if verbose:
                     console_output("    %s" % json.dumps(c))
@@ -493,7 +493,7 @@ class SNSPocket(dict):
                         re = c.reply(mID, text)
                         break
 
-        logger.info("Reply to status '%s' with text '%s'. Result: %s",\
+        logger.info("Reply to status '%s' with text '%s'. Result: %s",
                 mID, text, re)
         return re
 
@@ -516,7 +516,7 @@ class SNSPocket(dict):
                 if self.__check_method(c, 'forward') and not c.is_expired():
                     re[c.jsonconf['channel_name']] = c.forward(message, text)
 
-        logger.info("Forward status '%s' with text '%s'. Result: %s",\
+        logger.info("Forward status '%s' with text '%s'. Result: %s",
                 message.digest(), text, re)
         return re
 
@@ -551,7 +551,7 @@ class SNSPocket(dict):
                     re = c.like(message)
                     break
 
-        logger.info("Like status '%s'. Result: %s",\
+        logger.info("Like status '%s'. Result: %s",
                 message.digest(), re)
         return re
 
@@ -586,6 +586,6 @@ class SNSPocket(dict):
                     re = c.unlike(message)
                     break
 
-        logger.info("UnLike status '%s'. Result: %s",\
+        logger.info("UnLike status '%s'. Result: %s",
                 message.digest(), re)
         return re

@@ -96,7 +96,7 @@ class InstagramFeed(SNSBase):
         docstring placeholder
         '''
 
-        redirect_uri = self.api.get_authorize_login_url(scope=["basic", "comments", "likes"])
+        redirect_uri = self.api.get_authorize_login_url(scope=["basic", "comments", "likes", "relationships"])
         self.request_url(redirect_uri)
 
     def auth_second(self):
@@ -153,14 +153,8 @@ class InstagramFeed(SNSBase):
 
         kwargs['access_token'] = self.token.access_token
         response = eval("self._http_" + method)(INSTAGRAM_API1_SERVER + resource, kwargs)
-
         if "error_type" in response['meta']:
-            if response['meta']["error_type"] == "OAuthParameterException":
-                logger.warning(response)
-                self.auth()
-                return self._instagram_request_v1(method, resource, kwargs)
-            else:
-                raise InstagramAPIError(response['meta']["error_message"])
+            raise InstagramAPIError(response['meta']["code"], response['meta']["error_message"])
         return response
 
     @require_authed
@@ -237,6 +231,36 @@ class InstagramFeed(SNSBase):
             logger.warning("InstagramAPIError, %s", e)
             return False
 
+    @require_authed
     def forward(self, message, text):
         logger.warning("Instagram does not support update()!")
         return False
+
+if __name__ == "__main__":
+    
+    print '\n\n\n'
+    print '==== SNSAPI Demo of instagram.py module ====\n'
+    # Create and fill in app information
+    instagram_conf = InstagramFeed.new_channel()
+    instagram_conf['channel_name'] = 'test_instagram'
+    instagram_conf['app_key'] = ''    # Add your own keys
+    instagram_conf['app_secret'] = '' # Add your own keys
+    # Instantiate the channel
+    instagramapi = InstagramFeed(instagram_conf)
+    # OAuth your app
+    print 'SNSAPI is going to authorize your app.'
+    print 'Please make sure:'
+    print '   * You have filled in your own app_key and app_secret in this script.'
+    print '   * You configured the callback_url on instagram.developer.com as'
+    print '     http://snsapi.sinaapp.com/auth.php'
+    print 'Press [Enter] to continue or Ctrl+C to end.'
+    raw_input()
+    instagramapi.auth()
+    # Test get 2 messages from your timeline
+    status_list = instagramapi.home_timeline(2)
+    print '\n\n--- Statuses of your friends is followed ---'
+    print status_list
+    print '--- End of status timeline ---\n\n'
+    
+    print 'Short demo ends here! You can do more with SNSAPI!'
+    print 'Please join our group for further discussions'

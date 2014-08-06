@@ -1,14 +1,29 @@
 # -*- encoding: utf-8 -*-
+'''
+Facebook Client
+
+'''
+import sys
+reload(sys)
+sys.setdefaultencoding( "utf-8" )
+
+if __name__ == '__main__':
+    import sys
+    sys.path.append('..')
+    from snslog import SNSLog as logger
+    from snsbase import SNSBase, require_authed
+    import snstype
+    import utils
+    from third import facebook
+else:
+    from ..snslog import SNSLog as logger
+    from ..snsbase import SNSBase, require_authed
+    from .. import snstype
+    from .. import utils
+    from ..third import facebook
 
 import time
 import re
-from ..snslog import SNSLog
-logger = SNSLog
-from ..snsbase import SNSBase, require_authed
-from .. import snstype
-from .. import utils
-
-from ..third import facebook
 
 logger.debug("%s plugged!", __file__)
 
@@ -267,3 +282,31 @@ class FacebookFeed(SNSBase):
                 return -1
         else:
             return 0
+
+
+if __name__ == '__main__':
+    print '\n\n\n'
+    print '==== SNSAPI Demo of fbapi.py module ====\n'
+    # Create and fill in app information 
+    fbapi_conf = FacebookFeed.new_channel()
+    fbapi_conf['channel_name'] = 'test_fbapi'
+    fbapi_conf['app_key'] = ''     # Add your own keys
+    fbapi_conf['app_secret'] = ''  # Add your own keys
+    fbapi_conf['access_token'] = ''
+    # Instantiate the channel
+    fbapi = FacebookFeed(fbapi_conf)
+    # OAuth your app
+    print 'SNSAPI is going to authorize your app.'
+    print 'Please make sure:'
+    print '   * You have filled in your own app_key and app_secret in this script.'
+    print 'Press [Enter] to continue or Ctrl+C to end.'
+    raw_input()
+    fbapi.auth()
+    # Test get 2 messages from your timeline
+    status_list = fbapi.home_timeline(2)
+    print '\n\n--- Statuses of your friends is followed ---'
+    print status_list
+    print '--- End of status timeline ---\n\n'
+    
+    print 'Short demo ends here! You can do more with SNSAPI!'
+    print 'Please join our group for further discussions'

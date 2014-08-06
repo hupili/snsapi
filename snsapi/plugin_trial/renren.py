@@ -15,17 +15,16 @@ if __name__ == '__main__':
     import snstype
     from snstype import BooleanWrappedData
     import utils
-    import time
-    import urllib
-    import json
 else:
     from ..snslog import SNSLog as logger
     from ..snsbase import SNSBase, require_authed
     from ..snstype import BooleanWrappedData
     from .. import snstype
     from .. import utils
-    import time
-    import urllib
+
+import time
+import urllib
+import json
 
 logger.debug("%s plugged!", __file__)
 
@@ -191,7 +190,12 @@ class RenrenFeed(SNSBase):
         Return a list on success
         raise Exception on error
         '''
-        kwargs['access_token'] = self.token.access_token
+        try:
+            kwargs['access_token'] = self.token.access_token
+        except Exception, e:
+            raise RenrenAPIError(10000, "Invalid token.")
+        # Defence programming: if the token contains error, we 
+        # must catch the AttributeError
         kwargs['format'] = 'json'
         if 'file' in kwargs:
             _files = kwargs['file']
@@ -271,6 +275,8 @@ class RenrenFeed(SNSBase):
             args["code"] = self.token.code
             args["grant_type"] = "authorization_code"
             self.token.update(self._http_get(RENREN_ACCESS_TOKEN_URI, args))
+            if hasattr(self.token, "error"):
+                raise RenrenAPIError(self.token.error_code, self.token.error_description)
             if hasattr(self.token, "expires_in"):
                 self.token.expires_in = self.token.expires_in + self.time()
             else:
@@ -287,15 +293,19 @@ class RenrenFeed(SNSBase):
 
         if self.get_saved_token():
             return
-
-        logger.info("Try to authenticate '%s' using OAuth2", self.jsonconf.channel_name)
-        self.auth_first()
-        self.auth_second()
-        if not self.token:
+        
+        try:
+            logger.info("Try to authenticate '%s' using OAuth2", self.jsonconf.channel_name)
+            self.auth_first()
+            self.auth_second()
+            if not self.token:
+                return False
+            self.save_token()
+            logger.debug("Authorized! access token is " + str(self.token))
+            logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
+        except Exception, e:
+            logger.warning("Catch exception: %s", e)
             return False
-        self.save_token()
-        logger.debug("Authorized! access token is " + str(self.token))
-        logger.info("Channel '%s' is authorized", self.jsonconf.channel_name)
 
     def need_auth(self):
         return True
@@ -725,3 +735,32 @@ class RenrenStatusDirect(RenrenFeed):
             statuslist.extend(self._get_user_status_list(count, userid, username))
         logger.info("Read %d statuses from '%s'", len(statuslist), self.jsonconf['channel_name'])
         return statuslist
+
+
+if __name__ == '__main__':
+    print '\n\n\n'
+    print '==== SNSAPI Demo of renren.py module ====\n'
+    # Create and fill in app information
+    renren_conf = RenrenFeed.new_channel()
+    renren_conf['channel_name'] = 'test_renren'
+    renren_conf['app_key'] = ''     # Add your own keys
+    renren_conf['app_secret'] = ''  # Add your own keys
+    # Instantiate the channel
+    renren = RenrenFeed(renren_conf)
+    # OAuth your app
+    print 'SNSAPI is going to authorize your app.'
+    print 'Please make sure:'
+    print '   * You have filled in your own app_key and app_secret in this script.'
+    print '   * You configured the callback_url on dev.renren.com as'
+    print '     http://snsapi.ie.cuhk.edu.hk/aux/auth.php'
+    print 'Press [Enter] to continue or Ctrl+C to end.'
+    raw_input()
+    renren.auth()
+    # Test get 2 messages from your timeline
+    status_list = renren.home_timeline(2)
+    print '\n\n--- Statuses of your friends is followed ---'
+    print status_list
+    print '--- End of status timeline ---\n\n'
+    
+    print 'Short demo ends here! You can do more with SNSAPI!'
+    print 'Please join our group for further discussions'
