@@ -3,17 +3,24 @@
 '''
 twitter
 
-We use python-twitter as the backend at present.
+We use python-twitter as the back-end at present.
 It should be changed to invoke REST API directly later.
 '''
-from ..snslog import SNSLog
-logger = SNSLog
-from ..snsbase import SNSBase
-from .. import snstype
-from ..utils import console_output
-from .. import utils
-
-from ..third import twitter
+if __name__ == '__main__':
+    import sys
+    sys.path.append('..')
+    from snslog import SNSLog as logger
+    from snsbase import SNSBase, require_authed
+    import snstype
+    import utils
+else:
+	from ..snslog import SNSLog
+	logger = SNSLog
+	from ..snsbase import SNSBase
+	from .. import snstype
+	from ..utils import console_output
+	from .. import utils
+	from ..third import twitter
 
 logger.debug("%s plugged!", __file__)
 
@@ -76,7 +83,7 @@ class TwitterStatus(SNSBase):
     def home_timeline(self, count=20):
         '''
         NOTE: this does not include your re-tweeted statuses.
-        It's another interface to get re-tweeted status on Tiwtter.
+        It's another interface to get re-tweeted status on Twitter.
         We'd better save a call.
         Deprecate the use of retweets.
         See reply and forward of this platform for more info.
@@ -90,7 +97,7 @@ class TwitterStatus(SNSBase):
                         self.jsonconf['channel_name']))
             logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
         except Exception, e:
-            logger.warning("Catch expection: %s", e)
+            logger.warning("Catch exception: %s", e)
         return status_list
 
     def update(self, text):
@@ -178,6 +185,27 @@ class TwitterStatus(SNSBase):
             logger.warning('like tweet failed: %s', str(e))
             return False
 
+    def unsubscribe(self, message):
+        '''
+        Unsubscribe the owner of the input message:
+
+        :param message:
+            An ``snstype.Message`` object whose owner to unsubscribe
+
+        :return: True if successfully unsubscribed.
+                 Otherwise a dict containing the error message will be returned.
+
+        '''
+        try:
+            user = self.api.DestroyFriendship(user_id=message.parsed.userid)
+            if user:
+                return True
+            else:
+                return {"error": "Failed in unsubscribing this user"}
+        except Exception, e:
+            logger.warning('Unsubscribe tweet user failed: %s', str(e))
+            return {"error": e.message}
+
     def expire_after(self, token=None):
         # This platform does not have token expire issue.
         return -1
@@ -222,5 +250,37 @@ class TwitterSearch(TwitterStatus):
                         self.jsonconf['channel_name']))
             logger.info("Read %d statuses from '%s'", len(status_list), self.jsonconf['channel_name'])
         except Exception, e:
-            logger.warning("Catch expection: %s", e)
+            logger.warning("Catch exception: %s", e)
         return status_list
+
+if __name__ == '__main__':
+
+    print '\n\n\n'
+    print '==== SNSAPI Demo of twitter.py module ====\n'
+    # Create and fill in app information
+    twitter_conf = TwitterStatus.new_channel()
+    twitter_conf['channel_name'] = 'test_twitter'
+    twitter_conf['app_secret']="xOl31NQFrO9mn99tvvf5wmYBjeJT2V50gJNrPNHs6c"             # Change to your own keys
+    twitter_conf['app_key']="jNeenbpkNvGnGgR09AbXRQ"                                    # Change to your own keys
+    twitter_conf['access_key'] = '1599990409-keJcjxyibqjHkEdEeZ1LkvcIiw809I0N9HCvRRH'   # Change to your own keys
+    twitter_conf['access_secret'] = '4fk0WmEos6bTEMuA7cjYAjGNkmLqusQAzAkrbFgq3M'        # Change to your own keys
+ 
+    # Instantiate the channel
+    twitter = TwitterStatus(twitter_conf)
+    # OAuth your app
+    print 'SNSAPI is going to authorize your app.'
+    print 'Please make sure:'
+    print '   * You have filled in your own app_key and app_secret in this script.'
+    print '   * You configured the callback_url on open.weibo.com as'
+    print '     http://snsapi.sinaapp.com/auth.php'
+    print 'Press [Enter] to continue or Ctrl+C to end.'
+    raw_input()
+    twitter.auth()
+    # Test get 2 messages from your timeline
+    status_list = twitter.home_timeline(2)
+    print '\n\n--- Statuses of your friends is followed ---'
+    print status_list
+    print '--- End of status timeline ---\n\n'
+    
+    print 'Short demo ends here! You can do more with SNSAPI!'
+    print 'Please join our group for further discussions'

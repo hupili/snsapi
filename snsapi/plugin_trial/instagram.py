@@ -263,7 +263,7 @@ if __name__ == "__main__":
     print 'SNSAPI is going to authorize your app.'
     print 'Please make sure:'
     print '   * You have filled in your own app_key and app_secret in this script.'
-    print '   * You configured the callback_url on open.weibo.com as'
+    print '   * You configured the callback_url on instagram.developer.com as'
     print '     http://snsapi.sinaapp.com/auth.php'
     print 'Press [Enter] to continue or Ctrl+C to end.'
     raw_input()
