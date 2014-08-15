@@ -630,6 +630,7 @@ class SNSBase(object):
 
         return True
 
+    @require_authed
     def unlike(self, message):
         '''
         A general forwarding implementation using unlike method.
@@ -710,11 +711,11 @@ class SNSBase(object):
             # this way, it we can compat the message further. i.e.
             # When one field is None, we omit the text "None" and
             # delimiter.
-            final = self._cat(tll, [(text, 5), (last_user, 4), \
-                    (unicode(message.parsed.text_trace), 1), \
+            final = self._cat(tll, [(text, 5), (last_user, 4),
+                    (unicode(message.parsed.text_trace), 1),
                     (unicode(message.parsed.text_orig), 3)])
         else:
-            final = self._cat(tll, [(text, 3), (last_user, 2),\
+            final = self._cat(tll, [(text, 3), (last_user, 2),
                     (unicode(message.parsed.text), 1)])
 
         return self.update(final)
