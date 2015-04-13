@@ -1,3 +1,22 @@
+NOTICE:
+
+This projects is no longer maintained.
+However, the concept being pursued and the rationales are still valid.
+Would like to hear from anyone who works on similar stuff.
+Hope one day the Meta Social Network dream can come true.
+Let us decentralize teh social networking landscape!
+
+The following list of resources may be useful to you:
+(PR to expand the list are highly welcome)
+
+   * https://indiewebcamp.com/ -- An awesome community of people working on practical solutions to decentralize social networks.
+   * https://oauth.io/ -- nice OAuth aggregator to start with.
+
+I am also available to talk.
+Feel free to dig out email from commit history, =D.
+
+---------------
+
 # SNSAPI
 
 A cross-platform **middleware** for Social Networking Services (SNS):
